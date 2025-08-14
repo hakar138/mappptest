@@ -1,12 +1,15 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>SolarHat — Smart Wearable Guide</title>
+  <title>Solar Hat — Smart Wearable Guide</title>
   
   <!-- Font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Leaflet CSS (for embedded map) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
   <style>
     :root{
@@ -186,7 +189,7 @@
       <div class="controls">
         <button class="btn" id="speakExample">
           <svg viewBox="0 0 24 24" fill="none" stroke="white"><path d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" stroke-width="1.5"/></svg>
-          Play Demo Audio
+          Play Audio
         </button>
       </div>
     </section>
@@ -194,8 +197,8 @@
     <!-- HERO: cards -->
     <section class="hero" aria-label="Explore sections">
       <div class="hero-head">
-        <h2>Explore SolarHat Features</h2>
-        <p class="lead">Tap any card to hear location-based audio guidance. Your SolarHat will provide context-aware information as you explore.</p>
+        <h2>Explore Solar Hat Features</h2>
+        <p class="lead">Tap any card to hear location-based audio guidance. Your Solar Hat will provide context-aware information as you explore.</p>
       </div>
       
       <div class="cards" role="list">
@@ -207,13 +210,13 @@
           <p class="desc">Nearby points of interest</p>
         </article>
 
-        <article class="card" role="listitem" data-key="rent" data-message="Rent a SolarHat for your adventure. Available at multiple locations throughout the city.">
+        <article class="card" role="listitem" data-key="rent" data-message="Rent a Solar Hat for your adventure. Available at multiple locations throughout the city.">
           <div class="card-logo g-rent"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" /></svg></div>
           <div class="title">Rent a Hat</div>
           <p class="desc">Browse available rentals</p>
         </article>
 
-        <article class="card" role="listitem" data-key="about" data-message="SolarHat: Sustainable wearable technology powered by sunlight with location-aware audio.">
+        <article class="card" role="listitem" data-key=" about" data-message=" Solar Hat: Sustainable wearable technology powered by sunlight with location-aware audio.">
           <div class="card-logo g-about"><svg viewBox="0 0 24 24" fill="none" stroke="white"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" /></svg></div>
           <div class="title">About Us</div>
           <p class="desc">Our vision and technology</p>
@@ -222,16 +225,16 @@
         <article class="card" role="listitem" data-key="services" data-message="Services include audio tours, navigation assistance, and location-based information.">
           <div class="card-logo g-serv"><svg viewBox="0 0 24 24" fill="none" stroke="white"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg></div>
           <div class="title">Services</div>
-          <p class="desc">What SolarHat offers</p>
+          <p class="desc">What Solar Hat offers</p>
         </article>
 
-        <article class="card" role="listitem" data-key="contact" data-message="Contact SolarHat support at support@solarhat.com or call 1-800-SOLAR-HAT.">
+        <article class="card" role="listitem" data-key="contact" data-message="Contact Solar Hat support at support@solarhat.com or call 1-800-SOLAR-HAT.">
           <div class="card-logo g-contact"><svg viewBox="0 0 24 24" fill="none" stroke="white"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" /></svg></div>
           <div class="title">Contact Support</div>
           <p class="desc">Get in touch with us</p>
         </article>
 
-        <article class="card" role="listitem" data-key="testimonials" data-message="Our customers love the SolarHat experience. Read testimonials from satisfied users.">
+        <article class="card" role="listitem" data-key="testimonials" data-message="Our customers love the Solar Hat experience. Read testimonials from satisfied users.">
           <div class="card-logo g-test"><svg viewBox="0 0 24 24" fill="none" stroke="white"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
           <div class="title">Testimonials</div>
           <p class="desc">Customer experiences</p>
@@ -242,16 +245,21 @@
     <div class="note">Tip: Tap any card to hear its message. Use the Get Location button for precise GPS positioning. The embedded map will appear after your location is acquired.</div>
   </div>
 
-  <!-- Load Google Maps API -->
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDzB2OZ2r7Yb7qyQZxIq7Kq7j0Kt7X7X7X&callback=initMap&libraries=&v=weekly" async defer></script>
+  <!-- Leaflet JS (for embedded map) -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script>
     /************************************************************************
-     * Google Maps Integration:
-     * - Replaced Leaflet with Google Maps for better user experience
-     * - Added custom marker with animation
-     * - Added accuracy circle visualization
-     * - Improved map styling to match SolarHat theme
+     * Changes in this version:
+     * - Improved UI with better visual hierarchy and spacing
+     * - Added hover effects and animations for better interactivity
+     * - Enhanced mobile navigation with proper positioning
+     * - Improved map styling with a placeholder
+     * - Added loading indicators for better feedback
+     * - Added icons to all buttons for better visual cues
+     * - Fixed temperature row layout on small screens
+     * - Improved color contrast and visual consistency
+     * - Added subtle animations for card interactions
      ************************************************************************/
 
     /* ---------- Mobile Menu Toggle ---------- */
@@ -340,7 +348,7 @@
       });
     });
 
-    /* ---------- Location, Temperature & Map (Google Maps) ---------- */
+    /* ---------- Location, Temperature & Map (CartoDB tiles) ---------- */
     const locBtnEl = document.getElementById('locBtn');
     const stopLocBtnEl = document.getElementById('stopLocBtn');
     const coordsEl = document.getElementById('coords');
@@ -356,7 +364,7 @@
     let lastTempCoords = null;
     const TEMP_FETCH_MIN_INTERVAL_MS = 120000; // 2 minutes
 
-    // Google Maps variables
+    // Map variables
     let map = null;
     let userMarker = null;
     let accuracyCircle = null;
@@ -412,163 +420,56 @@
       return false;
     }
 
-    // Initialize Google Map
-    function initMap() {
-      // Create a map with default settings
-      map = new google.maps.Map(mapEl, {
-        center: { lat: 0, lng: 0 },
-        zoom: 2,
-        disableDefaultUI: true,
-        styles: [
-          {
-            "featureType": "all",
-            "elementType": "labels.text.fill",
-            "stylers": [
-              { "color": "#5e718d" }
-            ]
-          },
-          {
-            "featureType": "all",
-            "elementType": "labels.text.stroke",
-            "stylers": [
-              { "visibility": "on" },
-              { "color": "#ffffff" },
-              { "weight": 2 }
-            ]
-          },
-          {
-            "featureType": "all",
-            "elementType": "labels.icon",
-            "stylers": [
-              { "visibility": "off" }
-            ]
-          },
-          {
-            "featureType": "administrative",
-            "elementType": "geometry",
-            "stylers": [
-              { "color": "#f0f9ff" }
-            ]
-          },
-          {
-            "featureType": "administrative.locality",
-            "elementType": "labels.text.fill",
-            "stylers": [
-              { "color": "#0ea5a4" }
-            ]
-          },
-          {
-            "featureType": "landscape",
-            "elementType": "geometry",
-            "stylers": [
-              { "color": "#ffffff" }
-            ]
-          },
-          {
-            "featureType": "poi",
-            "elementType": "geometry",
-            "stylers": [
-              { "color": "#f0f9ff" }
-            ]
-          },
-          {
-            "featureType": "poi.park",
-            "elementType": "geometry",
-            "stylers": [
-              { "color": "#d1f0ef" }
-            ]
-          },
-          {
-            "featureType": "road",
-            "elementType": "geometry",
-            "stylers": [
-              { "color": "#ffffff" }
-            ]
-          },
-          {
-            "featureType": "road.highway",
-            "elementType": "geometry",
-            "stylers": [
-              { "color": "#d1f0ef" }
-            ]
-          },
-          {
-            "featureType": "road.arterial",
-            "elementType": "geometry",
-            "stylers": [
-              { "color": "#ffffff" }
-            ]
-          },
-          {
-            "featureType": "road.local",
-            "elementType": "geometry",
-            "stylers": [
-              { "color": "#ffffff" }
-            ]
-          },
-          {
-            "featureType": "transit",
-            "elementType": "geometry",
-            "stylers": [
-              { "color": "#f0f9ff" }
-            ]
-          },
-          {
-            "featureType": "water",
-            "elementType": "geometry",
-            "stylers": [
-              { "color": "#d1f0ef" }
-            ]
-          }
-        ]
-      });
+    function ensureMap(lat, lon) {
+      if (mapContainer.style.display !== 'block') {
+        mapContainer.style.display = 'block';
+        mapContainer.setAttribute('aria-hidden', 'false');
+      }
+      
+      if (!map) {
+        // Use CartoDB Positron (neutral light basemap)
+        map = L.map('map', { 
+          zoomControl: true, 
+          attributionControl: true 
+        }).setView([lat, lon], INITIAL_ZOOM);
+        
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+          maxZoom: 19,
+          attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+        }).addTo(map);
+      }
     }
 
     function updateMapPosition(lat, lon, accuracy) {
-      if (!map) return;
+      if (!map) ensureMap(lat, lon);
+      const latLng = [lat, lon];
       
-      const position = { lat, lng: lon };
-      
-      // Update map center
-      map.setCenter(position);
-      map.setZoom(INITIAL_ZOOM);
-      
-      // Create or update marker
       if (!userMarker) {
-        userMarker = new google.maps.Marker({
-          position,
-          map,
-          title: 'Your Location',
-          icon: {
-            path: google.maps.SymbolPath.CIRCLE,
-            fillColor: '#0ea5a4',
-            fillOpacity: 1,
-            strokeColor: '#ffffff',
-            strokeWeight: 2,
-            scale: 8
-          },
-          animation: google.maps.Animation.DROP
-        });
+        userMarker = L.marker(latLng, {
+          icon: L.divIcon({
+            className: 'user-location-marker',
+            html: '<div class="location-pulse"></div>',
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+          })
+        }).addTo(map);
       } else {
-        userMarker.setPosition(position);
+        userMarker.setLatLng(latLng);
       }
       
-      // Create or update accuracy circle
       if (!accuracyCircle) {
-        accuracyCircle = new google.maps.Circle({
-          strokeColor: '#0ea5a4',
-          strokeOpacity: 0.5,
-          strokeWeight: 1,
+        accuracyCircle = L.circle(latLng, { 
+          radius: accuracy,
+          color: '#0ea5a4',
           fillColor: '#d1f0ef',
-          fillOpacity: 0.2,
-          map,
-          center: position,
-          radius: accuracy
-        });
-      } else {
-        accuracyCircle.setCenter(position);
-        accuracyCircle.setRadius(accuracy);
+          fillOpacity: 0.3
+        }).addTo(map);
+      } else { 
+        accuracyCircle.setLatLng(latLng); 
+        accuracyCircle.setRadius(accuracy); 
       }
+      
+      map.setView(latLng, map.getZoom());
     }
 
     function showLocationError(error) {
@@ -612,6 +513,7 @@
 
       // Map update
       try { 
+        ensureMap(lat, lon); 
         updateMapPosition(lat, lon, acc); 
       } catch (err) { 
         console.error('Map error', err);
@@ -691,12 +593,36 @@
     // Initialize mute label correctly (in case of saved UI styles)
     updateMuteUI();
     
-    // If Google Maps API takes too long to load
-    setTimeout(() => {
-      if (!map) {
-        mapContainer.innerHTML = '<div class="note" style="height:100%;display:flex;align-items:center;justify-content:center;">Map is taking longer than expected to load...</div>';
+    // Add CSS for map loading indicator
+    const style = document.createElement('style');
+    style.textContent = `
+      .location-pulse {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #0ea5a4;
+        box-shadow: 0 0 0 0 rgba(14, 165, 164, 0.5);
+        animation: pulse 2s infinite;
+        position: relative;
       }
-    }, 5000);
+      .location-pulse::after {
+        content: '';
+        position: absolute;
+        top: -5px;
+        left: -5px;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: 2px solid #0ea5a4;
+        opacity: 0.3;
+      }
+      @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(14, 165, 164, 0.5); }
+        70% { box-shadow: 0 0 0 10px rgba(14, 165, 164, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(14, 165, 164, 0); }
+      }
+    `;
+    document.head.appendChild(style);
   </script>
 </body>
 </html>
