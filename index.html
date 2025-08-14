@@ -8,7 +8,7 @@
   <!-- Font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-  <!-- Leaflet CSS (for embedded map) -->
+  <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
   <style>
@@ -42,7 +42,7 @@
       --page-bg: #e6f2ff;
       --nav-bg: rgba(255, 251, 235, 0.92);
       --text: #1a2a3a;
-      --muted: #6d7c8d;
+      --muted: #5a6b7c;
       --accent: #ff9a00;
       --accent-2: #ff6b6b;
       --accent-light: rgba(255, 154, 0, 0.15);
@@ -71,7 +71,7 @@
       --page-bg: #fff0e6;
       --nav-bg: rgba(255, 240, 230, 0.92);
       --text: #3a1f0f;
-      --muted: #8d6d5e;
+      --muted: #7a5e4d;
       --accent: #ff6b6b;
       --accent-2: #ff9a00;
       --accent-light: rgba(255, 107, 107, 0.15);
@@ -354,7 +354,7 @@
       padding:30px 20px; 
       text-align:center; 
       box-shadow: var(--shadow); 
-      border:1px solid var(--glass-border); 
+      border:1px solid rgba(15,23,35,0.03); 
       cursor:pointer; 
       transition: transform .28s ease, box-shadow .28s ease; 
       position: relative;
@@ -504,10 +504,9 @@
       height:280px; 
       border-radius:12px; 
       overflow:hidden; 
-      border:1px solid var(--glass-border); 
-      background: linear-gradient(180deg, rgba(14,165,164,0.02), rgba(43,157,244,0.01)); 
+      border:1px solid rgba(15,23,35,0.06); 
+      background:linear-gradient(180deg, rgba(14,165,164,0.02), rgba(43,157,244,0.01)); 
       box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-      position: relative;
     }
     #map { width:100%; height:100%; display:block; background: var(--map-bg); }
     
@@ -607,10 +606,9 @@
       text-align:center;
       font-size:13px;
       color:var(--muted);
-      border-top:1px solid var(--glass-border);
+      border-top:1px solid rgba(15,23,35,0.03);
       background: linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0.25));
       margin-top: 20px;
-      backdrop-filter: blur(6px);
     }
     .footer-text {
       max-width: var(--max-width);
@@ -647,7 +645,7 @@
     /* Section divider */
     .section-divider {
       height: 1px;
-      background: linear-gradient(90deg, transparent, var(--accent-light), transparent);
+      background: linear-gradient(90deg, transparent, rgba(14, 165, 164, 0.2), transparent);
       margin: 24px 0;
     }
 
@@ -749,7 +747,7 @@
           </div>
 
           <div class="map-container" id="mapContainer" aria-hidden="true">
-            <div id="map" role="application" aria-label="Embedded map"></div>
+            <div id="map" role="application" aria-label="Embedded map">Map will appear here when location is available</div>
           </div>
 
           <div class="controls">
@@ -908,15 +906,15 @@
     <div class="footer-text">Developed by Kurdistan Innovators</div>
   </footer>
 
-  <!-- Leaflet JS (for embedded map) -->
+  <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script>
     /************************************************************************
-     * Improved Map Rendering and Tracking
-     * - Fixed audio repetition issues
-     * - Added time-based themes (morning, afternoon, evening, night)
-     * - Enhanced visual experience
+     * Enhanced Solar Hat Tracker
+     * - Fixed audio repetition issues for location and weather
+     * - Improved time-based themes with better color contrast
+     * - Enhanced map rendering and accuracy visualization
      ************************************************************************/
 
     /* ---------- Simple helpers ---------- */
@@ -960,26 +958,38 @@
     /* ---------- TTS (dedupe + cooldown) ---------- */
     let ttsEnabled = true;
     const muteBtn = q('#muteBtn');
-    if (muteBtn) muteBtn.addEventListener('click', () => { ttsEnabled = !ttsEnabled; updateMute(); if (!ttsEnabled && 'speechSynthesis' in window) speechSynthesis.cancel(); });
+    if (muteBtn) muteBtn.addEventListener('click', () => { 
+      ttsEnabled = !ttsEnabled; 
+      updateMute(); 
+      if (!ttsEnabled && 'speechSynthesis' in window) speechSynthesis.cancel(); 
+    });
+    
     function updateMute() {
       if (!muteBtn) return;
       muteBtn.textContent = ttsEnabled ? 'Mute' : 'Unmute';
       muteBtn.innerHTML = `<svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="${ttsEnabled ? 'M12 6L8 10H6v4h2l4 4V6z' : 'M17 14l-6-6m6 6l-6 6M5 14h.01M5 10h.01M9 10h.01M9 14h.01M13 10h.01M13 14h.01'}"/></svg> ${ttsEnabled ? 'Mute' : 'Unmute'}`;
     }
+    
     updateMute();
+    
     let lastSpeak = '', lastSpeakTime = 0;
     const SPEECH_COOLDOWN_MS = 4000;
+    
     function speak(text, options={}) {
-      // make sure "Solar Hat" is pronounced nicely
+      // Make sure "Solar Hat" is pronounced nicely
       text = String(text).replace(/SolarHat/g, 'Solar Hat');
       if (!ttsEnabled) return;
       if (!('speechSynthesis' in window)) return;
+      
       const now = Date.now();
       const same = String(text).trim() === lastSpeak.trim();
+      
+      // Prevent repeating the same message too quickly
       if (!options.force) {
         if (same && (now - lastSpeakTime) < SPEECH_COOLDOWN_MS) return;
         if (!same && (now - lastSpeakTime) < 800) return;
       }
+      
       try {
         speechSynthesis.cancel();
         const u = new SpeechSynthesisUtterance(text);
@@ -1013,8 +1023,10 @@
     let map = null, userMarker = null, accuracyCircle = null, accuracyVisual = null;
     const INITIAL_ZOOM = 15;
     
-    // Track last weather spoken to prevent repetition
+    // Track last spoken messages to prevent repetition
+    let lastLocationSpoken = { coords: null, time: 0, accuracy: null };
     let lastWeatherSpoken = { temp: null, condition: null, time: 0 };
+    const LOCATION_SPEAK_INTERVAL = 30000; // 30 seconds
     const WEATHER_SPEAK_INTERVAL = 30000; // 30 seconds
     
     // Theme indicator
@@ -1045,10 +1057,6 @@
       document.body.className = themeClass;
       themeIndicator.textContent = themeIcon;
       themeIndicator.title = `${themeName} Theme`;
-      
-      // Apply theme to weather glass
-      weatherGlass.classList.remove('bg-sunny','bg-cloudy','bg-rain','bg-snow');
-      weatherGlass.classList.add('bg-cloudy'); // Default
     }
     
     // Set theme on load and update every 5 minutes
@@ -1161,14 +1169,28 @@
       else if (acc <= 100) accEl.style.color = 'var(--warning)'; 
       else accEl.style.color = 'var(--error)';
 
-      // Speak only when meaningful
-      speak(`Location acquired. Accuracy within ${acc} meters.`); 
-      
       // Update the map
       try { 
         updateMap(lat, lon, acc); 
       } catch(e){ 
         console.error('Map error', e); 
+      }
+
+      // Speak location only if significant change or time passed
+      const now = Date.now();
+      const moved = lastLocationSpoken.coords ? 
+        Math.sqrt(Math.pow(lat - lastLocationSpoken.coords.lat, 2) + Math.pow(lon - lastLocationSpoken.coords.lon, 2)) * 111000 > 50 : 
+        true;
+      const accuracyImproved = !lastLocationSpoken.accuracy || (lastLocationSpoken.accuracy - acc) > 20;
+      const timePassed = now - lastLocationSpoken.time > LOCATION_SPEAK_INTERVAL;
+      
+      if (moved || accuracyImproved || timePassed) {
+        speak(`Location acquired. Accuracy within ${acc} meters.`);
+        lastLocationSpoken = { 
+          coords: {lat, lon}, 
+          time: now, 
+          accuracy: acc 
+        };
       }
 
       // Fetch weather
@@ -1253,7 +1275,7 @@
         const wind = Number(cw.windspeed);
         const code = Number(cw.weathercode);
 
-        // find nearest humidity entry from hourly arrays
+        // Find nearest humidity entry from hourly arrays
         let humidity = '—';
         if (data.hourly && data.hourly.time && data.hourly.relativehumidity_2m) {
           const times = data.hourly.time, rh = data.hourly.relativehumidity_2m;
@@ -1280,7 +1302,7 @@
         applyWeather(weather, 'Open-Meteo');
         if (tempEl) tempEl.textContent = `${temperature.toFixed(1)} °C`;
         
-        // Speak weather only if it has changed significantly
+        // Speak weather only if significant change or time passed
         const now = Date.now();
         const tempChanged = Math.abs(temperature - (lastWeatherSpoken.temp || 0)) > 2;
         const conditionChanged = conditionText !== (lastWeatherSpoken.condition || '');
@@ -1288,7 +1310,11 @@
         
         if (tempChanged || conditionChanged || timePassed) {
           speak(`Current temperature is ${temperature.toFixed(1)} degrees Celsius and ${conditionText}.`, {force:true});
-          lastWeatherSpoken = { temp: temperature, condition: conditionText, time: now };
+          lastWeatherSpoken = { 
+            temp: temperature, 
+            condition: conditionText, 
+            time: now 
+          };
         }
         
         return true;
@@ -1320,34 +1346,54 @@
       else if (c.includes('clear') || c.includes('sun')) weatherGlass.classList.add('bg-sunny');
       else weatherGlass.classList.add('bg-cloudy');
 
-      // small animation to highlight update
+      // Small animation to highlight update
       weatherGlass.animate([{ transform: 'translateY(4px)', opacity: 0.96 }, { transform: 'translateY(0)', opacity:1 }], { duration: 420, easing: 'cubic-bezier(.2,.9,.2,1)' });
     }
 
     /* ---------- Fallback simulated weather ---------- */
     function simulateWeatherFor(lat, lon) {
-      // deterministic pseudo-random based on coords so UI is consistent for same location
+      // Deterministic pseudo-random based on coords
       const seed = Math.abs(Math.floor((lat*10000) ^ (lon*10000)));
-      function rnd(min,max) { const x = Math.sin(seed + min*9973 + max*7919) * 43758.5453; const n = Math.abs(x - Math.floor(x)); return min + n*(max-min); }
+      function rnd(min,max) { 
+        const x = Math.sin(seed + min*9973 + max*7919) * 43758.5453; 
+        const n = Math.abs(x - Math.floor(x)); 
+        return min + n*(max-min); 
+      }
+      
       const latAbs = Math.abs(lat);
       const base = 28 - (latAbs/90)*40;
       const t = base + rnd(-4,4);
       const humidity = Math.max(8, Math.min(95, Math.round(50 + rnd(-28,28))));
       const wind = Math.max(0, +(rnd(0,22)).toFixed(1));
       const r = rnd(0,100);
+      
       let cond = 'Partly cloudy';
       if (r < 10 && t < 2) cond = 'Snow';
       else if (r < 25 && t < 15) cond = 'Light rain';
       else if (r < 55) cond = (t > 25 ? 'Sunny' : 'Partly cloudy');
       else cond = 'Cloudy';
-      const icon = cond.toLowerCase().includes('snow') ? '❄️' : cond.toLowerCase().includes('rain') ? '🌧️' : cond.toLowerCase().includes('cloud') ? '☁️' : '☀️';
-      return { temperatureC: Number(t.toFixed(1)), humidity: `${humidity}%`, windKmh: `${wind} km/h`, condition: cond, icon };
+      
+      const icon = cond.toLowerCase().includes('snow') ? '❄️' : 
+                  cond.toLowerCase().includes('rain') ? '🌧️' : 
+                  cond.toLowerCase().includes('cloud') ? '☁️' : '☀️';
+      
+      return { 
+        temperatureC: Number(t.toFixed(1)), 
+        humidity: `${humidity}%`, 
+        windKmh: `${wind} km/h`, 
+        condition: cond, 
+        icon 
+      };
     }
 
     /* ---------- On load: quick try to populate if permission already granted ---------- */
     (function tryOnce() {
       if ('geolocation' in navigator) {
-        navigator.geolocation.getCurrentPosition(pos => { try { updateLocationUI(pos); } catch (e) {} }, () => {}, { enableHighAccuracy:true, maximumAge:60000, timeout:6000 });
+        navigator.geolocation.getCurrentPosition(pos => { 
+          try { 
+            updateLocationUI(pos); 
+          } catch (e) {} 
+        }, () => {}, { enableHighAccuracy:true, maximumAge:60000, timeout:6000 });
       }
     })();
 
