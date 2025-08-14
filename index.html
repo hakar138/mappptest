@@ -205,7 +205,55 @@
         </button>
       </div>
     </section>
+    
+    <!-- HERO: cards (restored all original cards) -->
+    <section class="hero" aria-label="Explore sections">
+      <div class="hero-head">
+        <h2>Explore Solar Hat Features</h2>
+        <p class="lead">Tap any card to hear location-based audio guidance. Your Solar Hat will provide context-aware information as you explore.</p>
+      </div>
+      
+      <div class="cards" role="list">
+        <article class="card" role="listitem" data-key="location" data-message="You are near the main plaza. Enjoy the panoramic view of the city.">
+          <div class="card-logo g-loc" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>
+          </div>
+          <div class="title">Location Guide</div>
+          <p class="desc">Nearby points of interest</p>
+        </article>
 
+        <article class="card" role="listitem" data-key="rent" data-message="Rent a Solar Hat for your adventure. Available at multiple locations throughout the city.">
+          <div class="card-logo g-rent"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" /></svg></div>
+          <div class="title">Rent a Hat</div>
+          <p class="desc">Browse available rentals</p>
+        </article>
+
+        <article class="card" role="listitem" data-key="about" data-message="Solar Hat: Sustainable wearable technology powered by sunlight with location-aware audio.">
+          <div class="card-logo g-about"><svg viewBox="0 0 24 24" fill="none" stroke="white"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" /></svg></div>
+          <div class="title">About Us</div>
+          <p class="desc">Our vision and technology</p>
+        </article>
+
+        <article class="card" role="listitem" data-key="services" data-message="Services include audio tours, navigation assistance, and location-based information.">
+          <div class="card-logo g-serv"><svg viewBox="0 0 24 24" fill="none" stroke="white"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg></div>
+          <div class="title">Services</div>
+          <p class="desc">What Solar Hat offers</p>
+        </article>
+
+        <article class="card" role="listitem" data-key="contact" data-message="Contact Solar Hat support at support@solarhat.com or call 1-800-SOLAR-HAT.">
+          <div class="card-logo g-contact"><svg viewBox="0 0 24 24" fill="none" stroke="white"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" /></svg></div>
+          <div class="title">Contact Support</div>
+          <p class="desc">Get in touch with us</p>
+        </article>
+
+        <article class="card" role="listitem" data-key="testimonials" data-message="Our customers love the Solar Hat experience. Read testimonials from satisfied users.">
+          <div class="card-logo g-test"><svg viewBox="0 0 24 24" fill="none" stroke="white"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
+          <div class="title">Testimonials</div>
+          <p class="desc">Customer experiences</p>
+        </article>
+      </div>
+    </section>
+    
     <!-- WEATHER MODULE: live Open-Meteo (no API key) with fallback -->
     <section class="status-section">
       <div class="status-card">
@@ -238,27 +286,6 @@
       </div>
     </section>
     
-    <!-- HERO: cards -->
-    <section class="hero" aria-label="Explore sections">
-      <div class="hero-head">
-        <h2>Explore Solar Hat Features</h2>
-        <p class="lead">Tap any card to hear location-based audio guidance. Your Solar Hat will provide context-aware information as you explore.</p>
-      </div>
-      
-      <div class="cards" role="list">
-        <!-- cards omitted for brevity (kept as original) -->
-        <article class="card" role="listitem" data-key="location" data-message="You are near the main plaza. Enjoy the panoramic view of the city.">
-          <div class="card-logo g-loc" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="white"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>
-          </div>
-          <div class="title">Location Guide</div>
-          <p class="desc">Nearby points of interest</p>
-        </article>
-
-        <!-- (other cards kept identical to original) -->
-      </div>
-    </section>
-    
     <div class="note">Tip: Tap any card to hear its message. Use the Get Location button for precise GPS positioning. The embedded map will appear after your location is acquired.</div>
   </div>
 
@@ -267,11 +294,12 @@
 
   <script>
     /************************************************************************
-     * Live weather (Open-Meteo, no API key) integrated with geolocation + Leaflet
-     * - Uses browser geolocation when user clicks "Get Location"
-     * - Loads map tiles from CartoDB/OpenStreetMap (no key)
-     * - Fetches from Open-Meteo for temperature, wind. Retrieves hourly humidity and matches nearest time.
-     * - If Open-Meteo fails, falls back to local simulation so UI never breaks.
+     * Fixes implemented:
+     *  - restored all cards (they were previously omitted)
+     *  - avoid repeated TTS on frequent geolocation events:
+     *      - speak only when first fix / accuracy improves >20m / moved >50m
+     *      - weather fetch rate-limited (2 min + movement)
+     *  - prevent starting multiple geolocation watchers
      ************************************************************************/
 
     /* ---------- Mobile Menu Toggle ---------- */
@@ -316,6 +344,7 @@
     let lastSpokenText = '', lastSpokenTime = 0;
     const SPEECH_COOLDOWN_MS = 4000;
     function speak(text, options={}) {
+      // make sure product name pronounces correctly
       text = String(text).replace(/SolarHat/g, 'Solar Hat');
       if (!ttsEnabled) return;
       if (!('speechSynthesis' in window)) return;
@@ -333,10 +362,10 @@
         u.onerror = e => console.error('TTS error', e);
         speechSynthesis.speak(u);
         lastSpokenText = String(text); lastSpokenTime = now;
-      } catch(e){ console.error(e); }
+      } catch(e) { console.error('TTS exception', e); }
     }
 
-    /* ---------- Cards click speak ---------- */
+    /* ---------- Card click TTS ---------- */
     document.querySelectorAll('.card').forEach(card => {
       card.addEventListener('click', () => {
         const msg = card.dataset.message || ('Opening ' + (card.dataset.key || 'section'));
@@ -370,6 +399,37 @@
     let accuracyCircle = null;
     const INITIAL_ZOOM = 16;
 
+    // To avoid repeated speech and weather fetch
+    let lastSpokenLocation = null; // {lat, lon, acc}
+    let lastWeatherFetchTime = 0;
+    let lastWeatherCoords = null;
+    const WEATHER_FETCH_MIN_INTERVAL_MS = 120000; // 2 minutes
+
+    function locationShouldSpeak(lat, lon, acc) {
+      if (!lastSpokenLocation) return true;
+      const latDiff = Math.abs(lat - lastSpokenLocation.lat);
+      const lonDiff = Math.abs(lon - lastSpokenLocation.lon);
+      // rough meters approximation
+      const movedMetersApprox = Math.sqrt((latDiff*111320)**2 + (lonDiff*111320*Math.cos(lat*Math.PI/180))**2);
+      if (movedMetersApprox > 50) return true;
+      if ((lastSpokenLocation.acc - acc) > 20) return true;
+      return false;
+    }
+    function recordSpokenLocation(lat, lon, acc) {
+      lastSpokenLocation = { lat, lon, acc };
+    }
+
+    function shouldFetchWeather(lat, lon) {
+      const now = Date.now();
+      if (!lastWeatherCoords) return true;
+      const dt = now - lastWeatherFetchTime;
+      if (dt > WEATHER_FETCH_MIN_INTERVAL_MS) return true;
+      const latDiff = Math.abs(lat - lastWeatherCoords.lat);
+      const lonDiff = Math.abs(lon - lastWeatherCoords.lon);
+      if (latDiff > 0.001 || lonDiff > 0.001) return true;
+      return false;
+    }
+
     function ensureMap(lat, lon) {
       if (mapContainer.style.display !== 'block') { mapContainer.style.display = 'block'; mapContainer.setAttribute('aria-hidden','false'); }
       if (!map) {
@@ -402,7 +462,8 @@
       }
     }
 
-    function updateLocationUI(position) {
+    // When position updates, update UI, map and weather (rate-limited)
+    async function updateLocationUI(position) {
       const lat = position.coords.latitude;
       const lon = position.coords.longitude;
       const latFixed = lat.toFixed(6);
@@ -417,24 +478,36 @@
       else if (acc <= 100) accuracyEl.style.color = 'var(--warning)';
       else accuracyEl.style.color = 'var(--danger)';
 
-      // Speak once
-      speak(`Location acquired. Accuracy within ${acc} meters.`, {force:false});
+      // speak location only when meaningful (first fix, moved enough, or accuracy improved)
+      if (locationShouldSpeak(lat, lon, acc)) {
+        speak(`Location acquired. Accuracy within ${acc} meters.`, {force:false});
+        recordSpokenLocation(lat, lon, acc);
+      }
 
       // Map update
       try { ensureMap(lat, lon); updateMapPosition(lat, lon, acc); } catch (e) { console.error(e); mapEl.textContent = 'Failed to load map'; }
 
-      // Fetch live weather for this location
-      fetchOpenMeteoWeather(lat, lon).then(ok => {
+      // Weather: fetch only when needed
+      if (shouldFetchWeather(lat, lon)) {
+        const nowFirstFetch = !lastWeatherCoords;
+        lastWeatherCoords = {lat, lon};
+        lastWeatherFetchTime = Date.now();
+        const ok = await fetchOpenMeteoWeather(lat, lon, nowFirstFetch);
         if (!ok) {
-          // fallback to simulation if needed
           const sim = simulateWeatherForLocation(lat, lon);
           applyWeather(sim, 'Simulated (fallback)');
         }
-      });
+      }
     }
 
     function startLocationWatch() {
       if (!navigator.geolocation) { alert("Geolocation is not supported by your browser."); return; }
+      // prevent multiple watchers
+      if (watchId !== null) {
+        // already tracking
+        speak('Already tracking your location.', {force:false});
+        return;
+      }
       locBtnEl.disabled = true;
       locBtnEl.innerHTML = '<span class="loading"></span> Locating...';
       coordsEl.textContent = 'Locating...';
@@ -452,11 +525,16 @@
         locBtnEl.disabled = false;
         coordsEl.textContent = 'Failed';
         tempEl.textContent = '—';
+        // clear watchId as error prevented updates
+        if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
       }, options);
     }
 
     function stopLocationWatch() {
-      if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+      if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+      }
       stopLocBtnEl.style.display = 'none';
       speak('Location tracking stopped.', {force:false});
     }
@@ -472,19 +550,19 @@
       window.open(mapsUrl, '_blank');
     });
 
-    if (refreshTempBtn) refreshTempBtn.addEventListener('click', () => {
+    if (refreshTempBtn) refreshTempBtn.addEventListener('click', async () => {
       const txt = coordsEl.textContent;
       if (!txt || txt === '—' || txt === 'Locating...' || txt === 'Failed') { tempEl.textContent = 'No location'; return; }
       const [latStr, lonStr] = txt.split(',').map(s => s.trim());
       if (!latStr || !lonStr) return;
-      fetchOpenMeteoWeather(Number(latStr), Number(lonStr), true).then(ok => {
-        if (!ok) {
-          const sim = simulateWeatherForLocation(Number(latStr), Number(lonStr));
-          applyWeather(sim, 'Simulated (fallback)');
-          speak(`Current temperature is ${sim.temperatureC.toFixed(1)} degrees Celsius and ${sim.condition}.`, {force:true});
-          tempEl.textContent = `${sim.temperatureC.toFixed(1)} °C`;
-        }
-      });
+      // Force weather fetch and speak
+      const ok = await fetchOpenMeteoWeather(Number(latStr), Number(lonStr), true);
+      if (!ok) {
+        const sim = simulateWeatherForLocation(Number(latStr), Number(lonStr));
+        applyWeather(sim, 'Simulated (fallback)');
+        speak(`Current temperature is ${sim.temperatureC.toFixed(1)} degrees Celsius and ${sim.condition}.`, {force:true});
+        tempEl.textContent = `${sim.temperatureC.toFixed(1)} °C`;
+      }
     });
 
     document.getElementById('speakExample').addEventListener('click', () => {
@@ -492,42 +570,19 @@
     });
 
     /* ---------- Open-Meteo fetching (no API key) ---------- */
-    // weathercode -> description & icon mapping (Open-Meteo codes)
     const weatherCodeMap = {
-      0: ['Clear sky','☀️'],
-      1: ['Mainly clear','🌤️'],
-      2: ['Partly cloudy','⛅'],
-      3: ['Overcast','☁️'],
-      45: ['Fog','🌫️'],
-      48: ['Depositing rime fog','🌫️'],
-      51: ['Light drizzle','🌦️'],
-      53: ['Moderate drizzle','🌦️'],
-      55: ['Dense drizzle','🌧️'],
-      56: ['Light freezing drizzle','🌧️❄️'],
-      57: ['Dense freezing drizzle','🌧️❄️'],
-      61: ['Slight rain','🌧️'],
-      63: ['Moderate rain','🌧️'],
-      65: ['Heavy rain','🌧️'],
-      66: ['Light freezing rain','🌧️❄️'],
-      67: ['Heavy freezing rain','🌧️❄️'],
-      71: ['Slight snow fall','❄️'],
-      73: ['Moderate snow fall','❄️'],
-      75: ['Heavy snow fall','❄️'],
-      77: ['Snow grains','❄️'],
-      80: ['Slight rain showers','🌦️'],
-      81: ['Moderate rain showers','🌦️'],
-      82: ['Violent rain showers','🌧️'],
-      85: ['Slight snow showers','🌨️'],
-      86: ['Heavy snow showers','🌨️'],
-      95: ['Thunderstorm','⛈️'],
-      96: ['Thunderstorm with slight hail','⛈️'],
-      99: ['Thunderstorm with heavy hail','⛈️']
+      0: ['Clear sky','☀️'],1:['Mainly clear','🌤️'],2:['Partly cloudy','⛅'],3:['Overcast','☁️'],
+      45:['Fog','🌫️'],48:['Depositing rime fog','🌫️'],51:['Light drizzle','🌦️'],53:['Moderate drizzle','🌦️'],
+      55:['Dense drizzle','🌧️'],56:['Light freezing drizzle','🌧️❄️'],57:['Dense freezing drizzle','🌧️❄️'],
+      61:['Slight rain','🌧️'],63:['Moderate rain','🌧️'],65:['Heavy rain','🌧️'],66:['Light freezing rain','🌧️❄️'],
+      67:['Heavy freezing rain','🌧️❄️'],71:['Slight snow fall','❄️'],73:['Moderate snow fall','❄️'],
+      75:['Heavy snow fall','❄️'],77:['Snow grains','❄️'],80:['Slight rain showers','🌦️'],81:['Moderate rain showers','🌦️'],
+      82:['Violent rain showers','🌧️'],85:['Slight snow showers','🌨️'],86:['Heavy snow showers','🌨️'],
+      95:['Thunderstorm','⛈️'],96:['Thunderstorm with slight hail','⛈️'],99:['Thunderstorm with heavy hail','⛈️']
     };
 
-    // Helper to fetch current weather + hourly humidity
     async function fetchOpenMeteoWeather(lat, lon, speakOnFetch=false) {
       try {
-        // Request current_weather + hourly humidity. timezone=auto so times match local.
         const ep = `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lon)}&current_weather=true&hourly=relativehumidity_2m&timezone=auto`;
         weatherSourceEl && (weatherSourceEl.textContent = 'Open-Meteo');
         tempEl && (tempEl.innerHTML = 'Loading <span class="loading"></span>');
@@ -535,21 +590,17 @@
         const resp = await fetch(ep, {cache:'no-store'});
         if (!resp.ok) throw new Error('Open-Meteo response not ok');
         const data = await resp.json();
-
         if (data && data.current_weather) {
           const cw = data.current_weather;
           const temp = Number(cw.temperature);
           const wind = Number(cw.windspeed);
           const code = Number(cw.weathercode);
 
-          // find humidity: the hourly.time array contains ISO times; choose nearest index to current time
+          // get nearest humidity from hourly arrays
           let humidity = '—';
           if (data.hourly && data.hourly.time && data.hourly.relativehumidity_2m) {
             const times = data.hourly.time;
             const rh = data.hourly.relativehumidity_2m;
-            const nowISO = (new Date()).toISOString().slice(0,19).replace('T',' ');
-            // Open-Meteo returns times in 'YYYY-MM-DDTHH:MM' in timezone=auto format - so match by Date objects
-            // We'll find the nearest hourly index by comparing Date objects
             let minIdx = 0, minDiff = Infinity;
             for (let i=0;i<times.length;i++){
               const t = new Date(times[i]);
@@ -559,10 +610,9 @@
             humidity = (typeof rh[minIdx] !== 'undefined') ? `${Math.round(rh[minIdx])}%` : '—';
           }
 
-          const wc = weatherCodeMap[code] || ['Unknown', '🌤️'];
+          const wc = weatherCodeMap[code] || ['Unknown','🌤️'];
           const conditionText = wc[0];
           const conditionIcon = wc[1];
-
           const weather = {
             temperatureC: temp,
             humidity: humidity,
@@ -574,10 +624,10 @@
           applyWeather(weather, 'Open-Meteo');
           if (speakOnFetch) speak(`Current temperature is ${temp.toFixed(1)} degrees Celsius and ${conditionText}.`, {force:true});
           tempEl && (tempEl.textContent = `${temp.toFixed(1)} °C`);
+          lastWeatherFetchTime = Date.now();
+          lastWeatherCoords = { lat, lon };
           return true;
-        } else {
-          throw new Error('Open-Meteo missing current_weather');
-        }
+        } else throw new Error('Open-Meteo missing current_weather');
       } catch (err) {
         console.warn('Open-Meteo fetch failed:', err);
         weatherSourceEl && (weatherSourceEl.textContent = 'Simulated (fallback)');
@@ -595,7 +645,7 @@
       if (weatherSourceEl) weatherSourceEl.textContent = sourceLabel;
     }
 
-    /* ---------- Fallback simulation (keeps app working if network blocked) ---------- */
+    /* ---------- Fallback simulation ---------- */
     function simulateWeatherForLocation(lat, lon) {
       const seed = Math.abs(Math.floor((lat * 10000) ^ (lon * 10000)));
       function rand(min, max) { const x = Math.sin(seed + min * 9973 + max * 7919) * 43758.5453; const n = Math.abs((x - Math.floor(x))); return min + n * (max - min); }
@@ -633,7 +683,7 @@
     `;
     document.head.appendChild(style);
 
-    // Try a single quick geolocation on load to populate UI if user already allowed
+    // quick initial geolocation (if user already allowed) to populate UI once
     (function tryInitialGeolocation() {
       if ('geolocation' in navigator) {
         navigator.geolocation.getCurrentPosition(position => { try { updateLocationUI(position); } catch(e){} }, () => {}, {enableHighAccuracy:true, maximumAge:60000, timeout:6000});
