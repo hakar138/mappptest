@@ -4,11 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>SolarHat — Smart Wearable Guide</title>
-  
-  <!-- Font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-  <!-- Leaflet CSS (for embedded map) -->
+  <!-- Leaflet CSS for embedded map -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
   <style>
@@ -25,73 +23,111 @@
       --shadow: 0 6px 16px rgba(2, 6, 23, 0.08);
       --shadow-hover: 0 10px 25px rgba(2, 6, 23, 0.15);
     }
-    
+
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{height:100%;margin:0;font-family:'Inter',system-ui,-apple-system,"Segoe UI",Roboto,Arial;background:var(--page-bg);color:var(--text);-webkit-font-smoothing:antialiased;line-height:1.6}
     body{padding:0;display:flex;flex-direction:column;align-items:stretch}
-    
+
     .container { max-width: var(--max-width); margin: 0 auto; padding: 16px; width: 100%; }
+
+    /* HEADER */
     .header { background: var(--nav-bg); box-shadow: var(--shadow); padding: 12px 16px; position: sticky; top: 0; z-index: 100; }
     .header-inner { max-width: var(--max-width); margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
     .logo { display: flex; align-items: center; gap: 10px; }
-    .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, #0ea5a4, #2b9df4); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(14, 165, 164, 0.2); }
+    .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, #0ea5a4, #2b9df4); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(14,165,164,0.2); }
+    .logo-icon svg { width: 22px; height: 22px; fill: white; }
     .logo-text { font-weight: 800; font-size: 20px; color: var(--text); letter-spacing: -0.5px; }
 
     .menu-toggle { background: none; border: none; width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
+    .menu-toggle:active { transform: scale(0.97); }
     .menu-icon { width: 26px; height: 26px; stroke: var(--text); stroke-width: 2; }
 
-    nav { position: fixed; top: 68px; left: 0; right: 0; background: var(--nav-bg); box-shadow: 0 12px 25px rgba(0,0,0,0.1); padding: 18px; z-index: 99; transform: translateY(-150%); transition: transform 0.4s ease; border-radius: 0 0 18px 18px; }
+    nav { position: fixed; top: 68px; left: 0; right: 0; background: var(--nav-bg); box-shadow: 0 12px 25px rgba(0,0,0,0.1); padding: 18px; z-index: 99; transform: translateY(-150%); transition: transform 0.35s ease; border-radius: 0 0 18px 18px; }
     nav.active { transform: translateY(0); }
     nav ul { list-style: none; display: flex; flex-direction: column; gap: 8px; padding: 0; margin: 0; }
-    nav a { display: block; color: var(--muted); text-decoration: none; padding: 16px; border-radius: 12px; font-weight: 600; transition: all 0.2s; font-size: 16px; }
+    nav li { display: block; }
+    nav a { display: block; color: var(--muted); text-decoration: none; padding: 12px; border-radius: 12px; font-weight: 600; transition: all 0.18s; font-size: 15px; }
     nav a:hover, nav li.active a { background: var(--accent-light); color: var(--accent); }
 
-    .status-section { background: white; border-radius: var(--card-radius); padding: 20px; box-shadow: var(--shadow); margin-top: 16px; border: 1px solid rgba(15, 23, 35, 0.05); }
-    .status-card { padding: 18px; border-radius: 14px; background: rgba(14,165,164,0.03); border: 1px solid rgba(14,165,164,0.1); transition: transform 0.3s ease; }
+    /* STATUS / CARD STYLES */
+    .status-section { background: white; border-radius: var(--card-radius); padding: 20px; box-shadow: var(--shadow); margin-top: 16px; border: 1px solid rgba(15,23,35,0.05); }
+    .status-card { padding: 18px; border-radius: 14px; background: rgba(14,165,164,0.03); border: 1px solid rgba(14,165,164,0.1); transition: transform 0.28s ease; display:block; }
+    .status-card:hover { transform: translateY(-5px); }
     .status-label { font-size: 14px; color: var(--muted); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; font-weight: 600; }
     .status-value { font-weight: 700; font-size: 20px; color: var(--text); margin-top: 8px; }
 
     .temp-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 15px; }
     .temp-value { font-weight: 800; font-size: 18px; color: #0f172a; }
 
-    .controls { display: flex; gap: 16px; flex-wrap: wrap; }
-    .btn { background: var(--accent); color: white; padding: 14px 20px; border-radius: 12px; font-weight: 600; border: none; cursor: pointer; flex: 1; min-width: 160px; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.2s; box-shadow: 0 6px 12px rgba(14,165,164,0.2); font-size: 16px; }
-    .btn.gray { background: white; border: 1px solid rgba(15,23,35,0.1); color: var(--muted); box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
-    .btn.small { padding: 8px 10px; min-width: auto; font-size: 13px; }
+    .controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
 
+    .btn { background: var(--accent); color: white; padding: 12px 16px; border-radius: 12px; font-weight: 600; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.18s; box-shadow: 0 6px 12px rgba(14,165,164,0.18); font-size: 15px; }
+    .btn:active { transform: translateY(2px); }
+    .btn.gray { background: white; border: 1px solid rgba(15,23,35,0.08); color: var(--muted); box-shadow: 0 4px 8px rgba(0,0,0,0.04); }
+    .btn.small { padding: 8px 10px; font-size: 13px; min-width: auto; flex: 0 0 auto; }
+    .btn.icon { padding: 8px; width: 40px; height: 40px; border-radius: 10px; }
+
+    /* Hero / Cards */
     .hero-head { margin: 28px 0 20px; }
     .hero-head h2 { font-size: 24px; margin-bottom: 6px; font-weight: 800; color: var(--text); }
     .hero-head p.lead { color: var(--muted); font-size: 16px; max-width: 700px; }
-    .cards { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
-    .card { background: #fff; border-radius: var(--card-radius); padding: 24px 18px; display: flex; flex-direction: column; align-items: center; text-align: center; box-shadow: var(--shadow); transition: all 0.3s ease; border: 1px solid rgba(15,23,35,0.03); cursor: pointer; position: relative; overflow: hidden; }
-    .card-logo { width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; margin-bottom: 18px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
+
+    .cards { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 10px; }
+    .card { background: #fff; border-radius: var(--card-radius); padding: 24px 18px; display: flex; flex-direction: column; align-items: center; text-align: center; box-shadow: var(--shadow); transition: transform 0.26s ease, box-shadow 0.26s ease; border: 1px solid rgba(15,23,35,0.03); cursor: pointer; position: relative; overflow: hidden; }
+    .card:hover { transform: translateY(-6px); box-shadow: var(--shadow-hover); }
+    .card:active { transform: translateY(-2px) scale(0.995); }
+
+    .card-logo { width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; margin-bottom: 18px; box-shadow: 0 8px 16px rgba(0,0,0,0.08); }
+    .card-logo svg { width: 34px; height: 34px; stroke-width: 1.3; }
+
     .title { font-weight: 800; font-size: 18px; margin: 0 0 8px; color: var(--text); }
     .desc { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
 
+    /* Logo gradients */
+    .g-loc{background:linear-gradient(135deg,#2b9df4,#3ddbd9)}
+    .g-rent{background:linear-gradient(135deg,#ffb86b,#ff6b6b)}
+    .g-about{background:linear-gradient(135deg,#8b5cf6,#06b6d4)}
+    .g-serv{background:linear-gradient(135deg,#00c853,#66bb6a)}
+    .g-contact{background:linear-gradient(135deg,#ff6f91,#ff9a8b)}
+    .g-test{background:linear-gradient(135deg,#7c4dff,#536dfe)}
+
+    /* Map */
     .map-container { margin-top: 12px; height: 260px; border-radius: 12px; overflow: hidden; border: 1px solid rgba(15,23,35,0.06); display: none; }
     #map { width: 100%; height: 100%; display: block; }
-    .note { margin-top: 28px; color: var(--muted); font-size: 14px; text-align: center; padding: 16px; background: rgba(15,23,35,0.03); border-radius: 14px; border: 1px dashed rgba(15,23,35,0.08); }
 
-    @media (min-width: 768px) { .menu-toggle { display: none; } nav { position: static; transform: none; box-shadow: none; padding: 0; } nav ul { flex-direction: row; gap: 10px; } .header { padding: 16px 24px; } .controls { flex-wrap: nowrap; } .btn { min-width: auto; } }
-    @media (max-width: 480px) { .cards { grid-template-columns: 1fr; } .btn { min-width: 100%; margin-bottom: 10px; } .hero-head h2 { font-size: 22px; } }
+    .note { margin-top: 18px; color: var(--muted); font-size: 14px; text-align: center; padding: 12px; background: rgba(15,23,35,0.03); border-radius: 12px; border: 1px dashed rgba(15,23,35,0.06); }
+
+    footer { margin: 18px auto 36px; text-align:center; color:var(--muted); font-size:13px; }
+
+    @media (min-width:768px) {
+      nav { position: static; transform: none; box-shadow: none; padding: 0; }
+      nav ul { flex-direction: row; gap: 10px; }
+      .menu-toggle { display: none; }
+      .controls { gap: 14px; }
+    }
+    @media (max-width:480px) {
+      .cards { grid-template-columns: 1fr; }
+      .btn { width: 100%; justify-content: center; }
+      .controls { flex-direction: column; align-items: stretch; }
+      .btn.small { width: auto; }
+    }
   </style>
 </head>
 <body>
-  <!-- HEADER -->
   <header class="header">
     <div class="header-inner">
       <div class="logo">
-        <div class="logo-icon">
+        <div class="logo-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24"><path d="M12 3L2 12l3 3v6h5v-5h4v5h5v-6l3-3-10-9zm0 9c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"/></svg>
         </div>
         <div class="logo-text">SolarHat</div>
       </div>
-      
+
       <button class="menu-toggle" id="menuToggle" aria-label="Open menu">
         <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round"/></svg>
       </button>
     </div>
-    
+
     <nav id="mainNav" aria-hidden="true">
       <ul>
         <li class="active"><a href="#home">Home</a></li>
@@ -101,20 +137,19 @@
       </ul>
     </nav>
   </header>
-  
+
   <div class="container">
-    <!-- TOP ROW: Location + controls -->
-    <section class="status-section">
-      <!-- Location card -->
+    <section class="status-section" aria-label="Status">
       <div class="status-card" id="locCard" title="Location">
-        <div class="status-label" aria-hidden="true">
+        <div class="status-label">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" stroke-width="1.5"/><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" stroke-width="1.5"/></svg>
           Current Location
         </div>
-        <div class="status-value" id="coords" aria-live="polite">—</div>
-        
+
+        <div class="status-value" id="coords">—</div>
+
         <div class="location-details">
-          <div class="location-row">
+          <div class="location-row" style="display:flex;justify-content:space-between;margin-bottom:10px;font-size:15px;">
             <span class="location-label">Accuracy:</span>
             <span class="location-value" id="accuracy">—</span>
           </div>
@@ -128,33 +163,32 @@
           <div class="map-container" id="mapContainer" aria-hidden="true">
             <div id="map" role="application" aria-label="Embedded map"></div>
           </div>
-          
+
           <div class="controls" style="margin-top:16px">
-            <button class="btn gray" id="locBtn" title="Start location">Get Location</button>
-            <button class="btn gray" id="stopLocBtn" style="display:none" title="Stop tracking">Stop</button>
-            <button class="btn gray" id="openMapsBtn" style="display:none" title="Open in Google Maps">Open in Google Maps</button>
-            <button class="btn gray" id="muteBtn" title="Toggle voice">Mute</button>
+            <button class="btn gray" id="locBtn">Get Location</button>
+            <button class="btn gray" id="stopLocBtn" style="display:none">Stop</button>
+            <button class="btn gray" id="openMapsBtn" style="display:none">Open in Google Maps</button>
+            <button class="btn gray small" id="muteBtn" title="Toggle voice">Mute</button>
           </div>
         </div>
       </div>
-      
-      <div class="controls" style="margin-top:14px">
-        <button class="btn" id="speakExample">
-          <svg viewBox="0 0 24 24" fill="none" stroke="white"><path d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" stroke-width="1.5"/></svg>
-          Play Demo Audio
+
+      <div class="controls" style="margin-top:14px; justify-content:flex-start;">
+        <!-- smaller Play Demo Audio button -->
+        <button class="btn gray small" id="speakExample" title="Play demo audio">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+          Demo
         </button>
       </div>
     </section>
-    
-    <!-- HERO: cards -->
+
     <section class="hero" aria-label="Explore sections">
       <div class="hero-head">
         <h2>Explore SolarHat Features</h2>
         <p class="lead">Tap any card to hear location-based audio guidance. Your SolarHat will provide context-aware information as you explore.</p>
       </div>
-      
+
       <div class="cards" role="list">
-        <!-- Cards (same as before) -->
         <article class="card" role="listitem" data-key="location" data-message="You are near the main plaza. Enjoy the panoramic view of the city.">
           <div class="card-logo g-loc" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="white"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>
@@ -164,124 +198,116 @@
         </article>
 
         <article class="card" role="listitem" data-key="rent" data-message="Rent a SolarHat for your adventure. Available at multiple locations throughout the city.">
-          <div class="card-logo g-rent"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" /></svg></div>
+          <div class="card-logo g-rent" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" /></svg>
+          </div>
           <div class="title">Rent a Hat</div>
           <p class="desc">Browse available rentals</p>
         </article>
 
         <article class="card" role="listitem" data-key="about" data-message="SolarHat: Sustainable wearable technology powered by sunlight with location-aware audio.">
-          <div class="card-logo g-about"><svg viewBox="0 0 24 24" fill="none" stroke="white"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" /></svg></div>
+          <div class="card-logo g-about" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" /></svg>
+          </div>
           <div class="title">About Us</div>
           <p class="desc">Our vision and technology</p>
         </article>
 
         <article class="card" role="listitem" data-key="services" data-message="Services include audio tours, navigation assistance, and location-based information.">
-          <div class="card-logo g-serv"><svg viewBox="0 0 24 24" fill="none" stroke="white"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg></div>
+          <div class="card-logo g-serv" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg>
+          </div>
           <div class="title">Services</div>
           <p class="desc">What SolarHat offers</p>
         </article>
 
         <article class="card" role="listitem" data-key="contact" data-message="Contact SolarHat support at support@solarhat.com or call 1-800-SOLAR-HAT.">
-          <div class="card-logo g-contact"><svg viewBox="0 0 24 24" fill="none" stroke="white"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" /></svg></div>
+          <div class="card-logo g-contact" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" /></svg>
+          </div>
           <div class="title">Contact Support</div>
           <p class="desc">Get in touch with us</p>
         </article>
 
         <article class="card" role="listitem" data-key="testimonials" data-message="Our customers love the SolarHat experience. Read testimonials from satisfied users.">
-          <div class="card-logo g-test"><svg viewBox="0 0 24 24" fill="none" stroke="white"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
+          <div class="card-logo g-test" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          </div>
           <div class="title">Testimonials</div>
           <p class="desc">Customer experiences</p>
         </article>
       </div>
     </section>
-    
+
     <div class="note">Tip: Tap any card to hear its message. Use the Get Location button for precise GPS positioning. The embedded map will appear after your location is acquired.</div>
+
+    <footer>
+      Developed by the <strong>Kurdistan Innovators</strong>
+    </footer>
   </div>
 
-  <!-- Leaflet JS (for embedded map) -->
+  <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script>
     /************************************************************************
-     * Changes in this version:
-     * - Added Mute toggle and smarter TTS logic to avoid repeated audio.
-     * - Switched map tiles to CartoDB Positron (neutral basemap, no political overlays).
-     * - Speak rules: location spoken on first fix / big movement / accuracy improvement; temp spoken only on first fetch or manual refresh.
+     * Behavior:
+     * - OSM tiles (reverted)
+     * - Smaller demo button
+     * - Restored card visuals
+     * - TTS mute + dedupe + smarter speaking
+     * - Map marker & accuracy circle
+     * - Temperature via Open-Meteo
      ************************************************************************/
 
-    /* ---------- Mobile Menu Toggle ---------- */
+    /* UI references */
     const menuToggle = document.getElementById('menuToggle');
     const mainNav = document.getElementById('mainNav');
-    menuToggle.addEventListener('click', (e) => { e.stopPropagation(); mainNav.classList.toggle('active'); });
+    menuToggle.addEventListener('click', (e)=>{ e.stopPropagation(); mainNav.classList.toggle('active'); });
+    document.addEventListener('click', (e)=>{ if(!mainNav.contains(e.target) && !menuToggle.contains(e.target)) mainNav.classList.remove('active'); });
 
-    document.addEventListener('click', (e) => {
-      if (!mainNav.contains(e.target) && !menuToggle.contains(e.target)) {
-        mainNav.classList.remove('active');
-      }
-    });
-
-    /* ---------- TTS (Mute + dedupe + cooldown) ---------- */
-    let ttsEnabled = true; // default on; user can mute
+    /* TTS (mute + dedupe + cooldown) */
+    let ttsEnabled = true;
     const muteBtn = document.getElementById('muteBtn');
-    muteBtn.addEventListener('click', () => {
+    muteBtn.addEventListener('click', ()=> {
       ttsEnabled = !ttsEnabled;
       updateMuteUI();
       if (!ttsEnabled && 'speechSynthesis' in window) speechSynthesis.cancel();
     });
-    function updateMuteUI(){
-      muteBtn.textContent = ttsEnabled ? 'Mute' : 'Unmute';
-      if (!ttsEnabled) muteBtn.classList.add('muted'); else muteBtn.classList.remove('muted');
-    }
-    updateMuteUI();
+    function updateMuteUI(){ muteBtn.textContent = ttsEnabled ? 'Mute' : 'Unmute'; }
 
-    // Deduplication / cooldown
-    let lastSpokenText = '';
-    let lastSpokenTime = 0;
-    const SPEECH_COOLDOWN_MS = 4000; // 4 seconds minimum between distinct speeches
-
-    function speak(text, options = {}) {
-      // options: {force: boolean}
+    let lastSpokenText = '', lastSpokenTime = 0;
+    const SPEECH_COOLDOWN_MS = 4000;
+    function speak(text, options={}) {
       if (!ttsEnabled) return;
       if (!('speechSynthesis' in window)) return;
-
       const now = Date.now();
       const isSame = String(text).trim() === String(lastSpokenText).trim();
       const timeSince = now - lastSpokenTime;
-
       if (!options.force) {
-        // suppress if same text spoke recently
         if (isSame && timeSince < SPEECH_COOLDOWN_MS) return;
-        // suppress if any speech too recently
-        if (!isSame && timeSince < 800) return; // small throttle to avoid chatty bursts
+        if (!isSame && timeSince < 800) return;
       }
-
       try {
-        // cancel short utterances if still speaking (optional)
         speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.rate = 1;
-        utterance.pitch = 1;
-        utterance.volume = 1;
-        utterance.onerror = (e) => console.error('TTS error', e);
-        speechSynthesis.speak(utterance);
-
-        lastSpokenText = String(text);
-        lastSpokenTime = now;
-      } catch (e) {
-        console.error('TTS exception', e);
-      }
+        const u = new SpeechSynthesisUtterance(text);
+        u.rate = 1; u.pitch = 1; u.volume = 1;
+        u.onerror = (e)=> console.error('TTS error', e);
+        speechSynthesis.speak(u);
+        lastSpokenText = String(text); lastSpokenTime = now;
+      } catch(e){ console.error(e); }
     }
 
-    /* ---------- Cards: click to speak with animations ---------- */
-    document.querySelectorAll('.card').forEach(card => {
-      card.addEventListener('click', () => {
+    /* card clicks */
+    document.querySelectorAll('.card').forEach(card=>{
+      card.addEventListener('click', ()=>{
         const msg = card.dataset.message || ('Opening ' + (card.dataset.key || 'section'));
-        speak(msg, {force: false});
-        card.animate([{ transform: 'scale(0.95)' }, { transform: 'scale(1)' }], { duration: 200, easing: 'ease-out' });
+        speak(msg);
+        card.animate([{transform:'scale(0.96)'},{transform:'scale(1)'}], {duration:200, easing:'ease-out'});
       });
     });
 
-    /* ---------- Location, Temperature & Map (CartoDB tiles) ---------- */
+    /* Location, temperature, map (OSM tiles) */
     const locBtnEl = document.getElementById('locBtn');
     const stopLocBtnEl = document.getElementById('stopLocBtn');
     const coordsEl = document.getElementById('coords');
@@ -294,54 +320,41 @@
     let watchId = null;
     let lastTempFetchTime = 0;
     let lastTempCoords = null;
-    const TEMP_FETCH_MIN_INTERVAL_MS = 120000; // 2 minutes
+    const TEMP_FETCH_MIN_INTERVAL_MS = 120000; // 2 min
 
-    // Map variables
-    let map = null;
-    let userMarker = null;
-    let accuracyCircle = null;
+    let map=null, userMarker=null, accuracyCircle=null;
     const INITIAL_ZOOM = 16;
-
-    // Smarter speaking for location: only speak when first fix, accuracy improves by >20m, or moved >~50m
-    let lastSpokenLocation = null; // {lat, lon, acc}
+    let lastSpokenLocation = null;
 
     function locationShouldSpeak(lat, lon, acc) {
-      if (!lastSpokenLocation) return true; // first time
+      if (!lastSpokenLocation) return true;
       const latDiff = Math.abs(lat - lastSpokenLocation.lat);
       const lonDiff = Math.abs(lon - lastSpokenLocation.lon);
       const movedMetersApprox = Math.sqrt((latDiff*111320)**2 + (lonDiff*111320*Math.cos(lat*Math.PI/180))**2);
-      if (movedMetersApprox > 50) return true; // moved > ~50 m
-      if (lastSpokenLocation.acc - acc > 20) return true; // accuracy improved by >20 m
+      if (movedMetersApprox > 50) return true;
+      if (lastSpokenLocation.acc - acc > 20) return true;
       return false;
     }
+    function recordSpokenLocation(lat, lon, acc){ lastSpokenLocation = {lat, lon, acc}; }
 
-    function recordSpokenLocation(lat, lon, acc) {
-      lastSpokenLocation = { lat, lon, acc };
-    }
-
-    async function fetchTemperatureFor(lat, lon, speakOnFetch = false) {
+    async function fetchTemperatureFor(lat, lon, speakOnFetch=false) {
       const endpoint = `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lon)}&current_weather=true`;
       try {
         tempEl.textContent = 'Loading...';
-        const resp = await fetch(endpoint, {cache: 'no-store'});
+        const resp = await fetch(endpoint, {cache:'no-store'});
         if (!resp.ok) throw new Error('Weather API error');
         const data = await resp.json();
         if (data && data.current_weather && typeof data.current_weather.temperature !== 'undefined') {
           const t = Number(data.current_weather.temperature);
           tempEl.textContent = `${t.toFixed(1)} °C`;
           lastTempFetchTime = Date.now();
-          lastTempCoords = {lat: Number(lat), lon: Number(lon)};
-          if (speakOnFetch) speak(`Current temperature is ${t.toFixed(1)} degrees Celsius.`, {force: false});
-        } else {
-          tempEl.textContent = 'Unavailable';
-        }
-      } catch (err) {
-        console.error('Failed to fetch temperature', err);
-        tempEl.textContent = 'Unavailable';
-      }
+          lastTempCoords = {lat:Number(lat), lon:Number(lon)};
+          if (speakOnFetch) speak(`Current temperature is ${t.toFixed(1)} degrees Celsius.`);
+        } else tempEl.textContent = 'Unavailable';
+      } catch(err){ console.error('Weather fetch failed', err); tempEl.textContent = 'Unavailable'; }
     }
 
-    function shouldFetchTemp(lat, lon) {
+    function shouldFetchTemp(lat, lon){
       const now = Date.now();
       if (!lastTempCoords) return true;
       const dt = now - lastTempFetchTime;
@@ -353,16 +366,13 @@
     }
 
     function ensureMap(lat, lon) {
-      if (mapContainer.style.display !== 'block') {
-        mapContainer.style.display = 'block';
-        mapContainer.setAttribute('aria-hidden', 'false');
-      }
+      if (mapContainer.style.display !== 'block') { mapContainer.style.display = 'block'; mapContainer.setAttribute('aria-hidden','false'); }
       if (!map) {
-        // Use CartoDB Positron (neutral light basemap)
         map = L.map('map', { zoomControl: true, attributionControl: true }).setView([lat, lon], INITIAL_ZOOM);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        // Reverted to OpenStreetMap standard tiles (as requested)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           maxZoom: 19,
-          attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+          attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
       }
     }
@@ -377,20 +387,12 @@
       map.setView(latLng, map.getZoom());
     }
 
-    function showLocationError(error) {
-      switch(error.code) {
-        case error.PERMISSION_DENIED:
-          alert("Location access denied. Please enable location services in your browser settings.");
-          break;
-        case error.POSITION_UNAVAILABLE:
-          alert("Location information is unavailable.");
-          break;
-        case error.TIMEOUT:
-          alert("The request to get location timed out.");
-          break;
-        default:
-          alert("An unknown error occurred while getting location.");
-          break;
+    function showLocationError(error){
+      switch(error.code){
+        case error.PERMISSION_DENIED: alert("Location access denied. Please enable location services in your browser settings."); break;
+        case error.POSITION_UNAVAILABLE: alert("Location information is unavailable."); break;
+        case error.TIMEOUT: alert("The request to get location timed out."); break;
+        default: alert("An unknown error occurred while getting location."); break;
       }
     }
 
@@ -410,86 +412,50 @@
       else if (acc <= 100) accuracyEl.style.color = '#f59e0b';
       else accuracyEl.style.color = '#ef4444';
 
-      // Speak location only when meaningful
-      if (locationShouldSpeak(lat, lon, acc)) {
-        speak(`Location acquired. Accuracy within ${acc} meters.`);
-        recordSpokenLocation(lat, lon, acc);
-      }
+      if (locationShouldSpeak(lat, lon, acc)) { speak(`Location acquired. Accuracy within ${acc} meters.`); recordSpokenLocation(lat, lon, acc); }
 
-      // Map update
-      try { ensureMap(lat, lon); updateMapPosition(lat, lon, acc); } catch (err) { console.error('Map error', err); }
+      try { ensureMap(lat, lon); updateMapPosition(lat, lon, acc); } catch(e) { console.error('Map update error', e); }
 
-      // Temperature: fetch only if rate-limited says so; speak only on first fetch
-      if (shouldFetchTemp(lat, lon)) {
-        // speak on first fetch; subsequent fetches (auto) don't speak
-        const speakOnThis = !lastTempCoords;
-        fetchTemperatureFor(lat, lon, speakOnThis);
-      }
+      if (shouldFetchTemp(lat, lon)) { const speakOnThis = !lastTempCoords; fetchTemperatureFor(lat, lon, speakOnThis); }
     }
 
     function startLocationWatch() {
       if (!navigator.geolocation) { alert("Geolocation is not supported by your browser."); return; }
-      locBtnEl.disabled = true;
-      locBtnEl.textContent = 'Locating...';
-      coordsEl.textContent = 'Locating...';
-      accuracyEl.textContent = '—';
-      tempEl.textContent = '—';
-
+      locBtnEl.disabled = true; locBtnEl.textContent = 'Locating...';
+      coordsEl.textContent = 'Locating...'; accuracyEl.textContent = '—'; tempEl.textContent = '—';
       const options = { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 };
       watchId = navigator.geolocation.watchPosition(
-        position => {
-          updateLocationUI(position);
-          locBtnEl.textContent = 'Get Location';
-          locBtnEl.disabled = false;
-        },
-        error => {
-          showLocationError(error);
-          locBtnEl.textContent = 'Get Location';
-          locBtnEl.disabled = false;
-          coordsEl.textContent = 'Failed';
-          tempEl.textContent = '—';
-        },
+        position => { updateLocationUI(position); locBtnEl.textContent='Get Location'; locBtnEl.disabled=false; },
+        error => { showLocationError(error); locBtnEl.textContent='Get Location'; locBtnEl.disabled=false; coordsEl.textContent='Failed'; tempEl.textContent='—'; },
         options
       );
     }
 
-    function stopLocationWatch() {
-      if (watchId !== null) {
-        navigator.geolocation.clearWatch(watchId);
-        watchId = null;
-      }
-      stopLocBtnEl.style.display = 'none';
-      speak('Location tracking stopped.', {force:false});
-    }
+    function stopLocationWatch(){ if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; } stopLocBtnEl.style.display='none'; speak('Location tracking stopped.'); }
 
     locBtnEl.addEventListener('click', startLocationWatch);
     stopLocBtnEl.addEventListener('click', stopLocationWatch);
 
-    openMapsBtn.addEventListener('click', () => {
+    openMapsBtn.addEventListener('click', ()=>{
       const txt = coordsEl.textContent;
-      if (!txt || txt === '—' || txt === 'Locating...') return;
-      const [lat, lon] = txt.split(',').map(s => s.trim());
-      const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
-      window.open(mapsUrl, '_blank');
+      if (!txt || txt==='—' || txt==='Locating...') return;
+      const [lat, lon] = txt.split(',').map(s=>s.trim());
+      window.open(`https://www.google.com/maps/search/?api=1&query=${lat},${lon}`, '_blank');
     });
 
-    refreshTempBtn.addEventListener('click', () => {
+    refreshTempBtn.addEventListener('click', ()=>{
       const txt = coordsEl.textContent;
-      if (!txt || txt === '—' || txt === 'Locating...' || txt === 'Failed') {
-        tempEl.textContent = 'No location';
-        return;
-      }
-      const [latStr, lonStr] = txt.split(',').map(s => s.trim());
-      if (!latStr || !lonStr) return;
-      // manual refresh should speak the temperature
+      if (!txt || txt==='—' || txt==='Locating...' || txt==='Failed') { tempEl.textContent='No location'; return; }
+      const [latStr,lonStr] = txt.split(',').map(s=>s.trim());
+      if (!latStr||!lonStr) return;
       fetchTemperatureFor(Number(latStr), Number(lonStr), true);
     });
 
-    document.getElementById('speakExample').addEventListener('click', () => {
-      speak(`SolarHat demo. Tap any card for location-specific information.`, {force:false});
+    document.getElementById('speakExample').addEventListener('click', ()=> {
+      speak('SolarHat demo. Tap any card for location-specific information.');
     });
 
-    //Initialise mute label correctly (in case of saved UI styles)
+    // init mute UI
     updateMuteUI();
   </script>
 </body>
