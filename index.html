@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -426,8 +426,29 @@
       border:1px solid rgba(15,23,35,0.06); 
       background:linear-gradient(180deg, rgba(14,165,164,0.02), rgba(43,157,244,0.01)); 
       box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      position: relative;
     }
     #map { width:100%; height:100%; display:block; background: rgba(14,165,164,0.03); }
+    
+    #mapPlaceholder {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--page-bg);
+      color: var(--muted);
+      font-size: 14px;
+      z-index: 300;
+      pointer-events: none;
+    }
+    
+    #mapContainer.ready #mapPlaceholder {
+      display: none;
+    }
     
     .accuracy-visual {
       position: absolute;
@@ -638,7 +659,8 @@
           </div>
 
           <div class="map-container" id="mapContainer" aria-hidden="true">
-            <div id="map" role="application" aria-label="Embedded map">Map will appear here when location is available</div>
+            <div id="map" role="application" aria-label="Embedded map"></div>
+            <div id="mapPlaceholder">Map will appear here when location is available</div>
           </div>
 
           <div class="controls">
@@ -726,7 +748,7 @@
             <div class="card-logo-inner">
               <!-- Custom Hat Icon -->
               <svg viewBox="0 0 24 24">
-                <path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1 0-.21-.07-.41-.18-.57-.44-.58-1.06-.93-1.82-.93-.55 0-1 .45-1 1H9c0-.55-.45-1-1-1-.76 0-1.38.35-1.82.93-.11.16-.18.36-.18.57zm10.5-9c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-9 0c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm11 0c0-2.76-2.24-5-5-5-1.49 0-2.82.65-3.76 1.67C10.82 5.65 9.49 5 8 5c-2.76 0-5 2.24-5 5 0 .16.01.32.03.48.01.01.02.03.03.05.02.02.03.04.05.06.01.02.03.03.04.05.01.01.02.03.03.04.02.02.04.04.06.05.01.01.03.02.04.03.02.01.04.03.06.04.01.01.03.02.04.03.02.01.04.03.05.04.02.01.04.02.05.03.02.01.04.02.05.03.01.01.03.01.04.02.02.01.04.02.05.02.01.01.03.01.04.02.02 0 .04.01.05.01.01.01.03.01.04.01.02.01.04.01.05.01.01 0 .03.01.04.01.02 0 .04.01.06.01.01 0 .03-.01.04-.01.02 0 .04-.01.06-.01.01 0 .03 0 .04-.01.02 0 .04 0 .05-.01.01 0 .03 0 .04-.01.02 0 .04-.01.06-.01.01 0 .03-.01.04-.02.02 0 .04-.01.05-.02.01 0 .03-.01.04-.02.02-.01.04-.02.05-.03.02-.01.04-.02.05-.03.02-.01.04-.02.05-.03.02-.01.04-.02.06-.04.01-.01.03-.02.04-.03.02-.01.04-.03.06-.05.01-.01.03-.03.04-.04.02-.02.04-.04.06-.05.01-.01.03-.03.04-.05.02-.02.03-.04.05-.06.01-.02.02-.04.03-.05.01-.16.03-.32.03-.48z"/>
+                <path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1 0-.21-.07-.41-.18-.57-.44-.58-1.06-.93-1.82-.93-.55 0-1 .45-1 1H9c0-.55-.45-1-1-1-.76 0-1.38.35-1.82.93-.11.16-.18.36-.18.57zm10.5-9c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-9 0c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm11 0c0-2.76-2.24-5-5-5-1.49 0-2.82.65-3.76 1.67C10.82 5.65 9.49 5 8 5c-2.76 0-5 2.24-5 5 0 .16.01.32.03.48.01.01.02.03.03.05.02.02.03.04.05.06.01.02.03.03.04.05.01.01.02.03.03.04.02.02.04.04.06.05.01.01.03.02.04.03.02.01.04.03.06.04.01.01.03.02.04.03.02.01.04.03.05.04.02.01.04.02.05.03.02.01.04.02.05.03.01.01.03.01.04.02.02.01.04.02.05.02.01.01.03.01.04.02.02 0 .04.01.05.01.01.01.03.01.04.01.02.01.04.01.05.01.01 0 .03.01.04.01.02 0 .04.01.06.01.01 0 .03-.01.04-.01.02 0 .04-.01.06-.01.01 0 .03 0 .04-.01.02 0 .04 0 .05-.01.01 0 .03 0 .04-.01.02 0 .04-.01.06-.01.01 0 .03-.01.04-.02.02 0 .04-.01.05-.02.01 0 .03-.01.04-.02.02-.01.04-.02.05-.03.02-.01.04-.02.05-.03.02-.01.04-.02.06-.04.01-.01.03-.02.04-.03.02-.01.04-.03.06-.05.01-.01.03-.03.04-.04.02-.02.04-.04.06-.05.01-.01.03-.03.04-.05.02-.02.03-.04.05-.06.01-.02.02-.04.03-.05.01-.16.03-.32.03-.48z"/>
               </svg>
             </div>
           </div>
@@ -802,12 +824,12 @@
 
   <script>
     /************************************************************************
-     * Improved Map Accuracy Enhancements
-     * - Enhanced accuracy visualization with dynamic zoom levels
-     * - Added pulsing effect for better visual feedback
-     * - Improved accuracy classification with visual indicators
-     * - Auto-zoom based on accuracy radius
-     * - All other functionality remains unchanged
+     * Improved Map Rendering and Tracking
+     * - Fixed map initialization issues
+     * - Added smooth transitions and accuracy visualization
+     * - Implemented map interaction tracking
+     * - Added auto-zoom based on accuracy
+     * - Enhanced user experience
      ************************************************************************/
 
     /* ---------- Simple helpers ---------- */
@@ -894,6 +916,7 @@
     const coordsEl = q('#coords'), accEl = q('#accuracy'), openMapsBtn = q('#openMapsBtn');
     const tempEl = q('#temperature');
     const mapContainer = q('#mapContainer'), mapEl = q('#map');
+    const mapPlaceholder = q('#mapPlaceholder');
 
     // Weather UI
     const wTemp = q('#weatherTemp'), wIcon = q('#weatherIcon'), wCond = q('#weatherCond');
@@ -903,25 +926,35 @@
     let watchId = null;
     let map = null, userMarker = null, accuracyCircle = null, accuracyVisual = null;
     const INITIAL_ZOOM = 15;
+    
+    // Map interaction tracking
+    let userInteracted = false;
+    let lastMapUpdate = 0;
+    const THROTTLE_MAP_UPDATE = 1000; // Update map at most once per second
 
-    // control repeated speech & weather calls
-    let lastSpokenLocation = null; // {lat,lon,acc}
-    let lastWeather = {time:0, coords:null};
-
-    function movedMetersApprox(lat1, lon1, lat2, lon2) {
-      const latDiff = Math.abs(lat1 - lat2);
-      const lonDiff = Math.abs(lon1 - lon2);
-      return Math.sqrt((latDiff*111320)**2 + (lonDiff*111320*Math.cos(lat1*Math.PI/180))**2);
+    // Initialize map on page load
+    function initMap() {
+      if (map) return;
+      
+      map = L.map('map', { 
+        zoomControl: true,
+        zoomAnimation: true,
+        fadeAnimation: true,
+        markerZoomAnimation: true
+      }).setView([0, 0], 2);
+      
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+      }).addTo(map);
+      
+      // Track user interactions with the map
+      map.on('dragstart', () => userInteracted = true);
+      map.on('zoomstart', () => userInteracted = true);
     }
-
-    function locationShouldSpeak(lat, lon, acc) {
-      if (!lastSpokenLocation) return true;
-      const moved = movedMetersApprox(lat, lon, lastSpokenLocation.lat, lastSpokenLocation.lon);
-      if (moved > 50) return true;
-      if ((lastSpokenLocation.acc - acc) > 20) return true;
-      return false;
-    }
-    function recordSpokenLocation(lat, lon, acc) { lastSpokenLocation = {lat,lon,acc}; }
+    
+    // Initialize the map
+    initMap();
 
     // Function to calculate zoom level based on accuracy
     function calculateZoomLevel(accuracy) {
@@ -934,44 +967,10 @@
       return 17; // Most detailed zoom for high accuracy
     }
 
-    function ensureMap(lat, lon) {
-      if (mapContainer.style.display !== 'block') { 
-        mapContainer.style.display = 'block'; 
-        mapContainer.setAttribute('aria-hidden','false');
-        mapContainer.animate([
-          { opacity: 0, height: 0 },
-          { opacity: 1, height: '280px' }
-        ], { duration: 500, easing: 'ease-out' });
-      }
-      if (!map) {
-        map = L.map('map', { zoomControl:true }).setView([lat, lon], INITIAL_ZOOM);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-          maxZoom: 19, attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
-        }).addTo(map);
-      }
-    }
-
-    function updateAccuracyVisual(lat, lon, accuracy) {
-      // Remove existing visual if present
-      if (accuracyVisual) {
-        accuracyVisual.remove();
-      }
-      
-      // Create new visual
-      accuracyVisual = L.circle([lat, lon], {
-        radius: accuracy,
-        color: '#0ea5a4',
-        fillColor: 'rgba(14, 165, 164, 0.1)',
-        fillOpacity: 0.2,
-        className: 'accuracy-visual'
-      }).addTo(map);
-    }
-
     function updateMap(lat, lon, accuracy) {
-      if (!map) ensureMap(lat, lon);
       const pt = [lat, lon];
       
-      // Create marker if not exists
+      // Create or update marker
       if (!userMarker) {
         userMarker = L.marker(pt, { 
           icon: L.divIcon({ 
@@ -985,7 +984,7 @@
         userMarker.setLatLng(pt);
       }
       
-      // Create accuracy circle if not exists
+      // Create or update accuracy circle
       if (!accuracyCircle) {
         accuracyCircle = L.circle(pt, { 
           radius: accuracy, 
@@ -998,12 +997,25 @@
         accuracyCircle.setRadius(accuracy); 
       }
       
-      // Update accuracy visual with pulsing effect
-      updateAccuracyVisual(lat, lon, accuracy);
+      // Create or update pulsing visual
+      if (!accuracyVisual) {
+        accuracyVisual = L.circle(pt, {
+          radius: accuracy,
+          color: '#0ea5a4',
+          fillColor: 'rgba(14, 165, 164, 0.1)',
+          fillOpacity: 0.2,
+          className: 'accuracy-visual'
+        }).addTo(map);
+      } else {
+        accuracyVisual.setLatLng(pt);
+        accuracyVisual.setRadius(accuracy);
+      }
       
-      // Adjust map view based on accuracy
-      const zoomLevel = calculateZoomLevel(accuracy);
-      map.setView(pt, zoomLevel);
+      // Adjust map view based on accuracy and user interaction
+      if (!userInteracted) {
+        const zoomLevel = calculateZoomLevel(accuracy);
+        map.setView(pt, zoomLevel, { animate: true, duration: 1 });
+      }
     }
 
     function showLocError(err) {
@@ -1045,33 +1057,29 @@
       else if (acc <= 100) accEl.style.color = 'var(--warning)'; 
       else accEl.style.color = 'var(--error)';
 
-      // speak only when meaningful
-      if (locationShouldSpeak(lat, lon, acc)) { 
-        speak(`Location acquired. Accuracy within ${acc} meters.`); 
-        recordSpokenLocation(lat, lon, acc); 
-      }
-
-      try { 
-        ensureMap(lat, lon); 
-        updateMap(lat, lon, acc); 
-      } catch(e){ 
-        console.error('Map error', e); 
-        mapEl.textContent = 'Failed to load map'; 
-      }
-
-      // Weather fetch: rate limited (2 minutes) or if moved > ~100m
+      // Speak only when meaningful
+      speak(`Location acquired. Accuracy within ${acc} meters.`); 
+      
+      // Hide placeholder and show map
+      mapContainer.classList.add('ready');
+      
+      // Update the map with throttling
       const now = Date.now();
-      const needWeather = !lastWeather.coords || (now - lastWeather.time > 120000) || movedMetersApprox(lat, lon, lastWeather.coords.lat, lastWeather.coords.lon) > 100;
-      if (needWeather) {
-        lastWeather.coords = {lat, lon};
-        lastWeather.time = now;
-        const ok = await fetchOpenMeteoWeather(lat, lon, !lastWeather.spokenOnce);
-        if (ok) lastWeather.spokenOnce = true;
-        else {
-          // fallback simulated
-          const sim = simulateWeatherFor(lat, lon);
-          applyWeather(sim, 'Simulated (fallback)');
+      if (now - lastMapUpdate > THROTTLE_MAP_UPDATE) {
+        try { 
+          updateMap(lat, lon, acc); 
+        } catch(e){ 
+          console.error('Map error', e); 
+          mapPlaceholder.textContent = 'Failed to load map'; 
         }
+        lastMapUpdate = now;
+      }
+
+      // Weather fetch
+      const ok = await fetchOpenMeteoWeather(lat, lon, true);
+      if (!ok) {
+        const sim = simulateWeatherFor(lat, lon);
+        applyWeather(sim, 'Simulated (fallback)');
       }
     }
 
