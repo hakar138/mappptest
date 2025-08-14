@@ -200,6 +200,21 @@
       color: var(--text);
       margin-top: 8px;
     }
+
+    /* Temperature style */
+    .temp-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+      font-size: 15px;
+    }
+
+    .temp-value {
+      font-weight: 800;
+      font-size: 18px;
+      color: #0f172a;
+    }
     
     /* Controls */
     .controls {
@@ -473,6 +488,13 @@
             <span class="location-label">Accuracy:</span>
             <span class="location-value" id="accuracy">—</span>
           </div>
+
+          <!-- New temperature row -->
+          <div class="temp-row" aria-live="polite">
+            <span class="location-label">Temperature:</span>
+            <span id="temperature" class="temp-value">—</span>
+            <button class="btn gray" id="refreshTempBtn" style="margin-left:auto;min-width:auto;padding:8px 10px;font-size:13px">Refresh</button>
+          </div>
           
           <div class="controls" style="margin-top:16px">
             <button class="btn gray" id="locBtn">Get Location</button>
@@ -482,7 +504,7 @@
         </div>
       </div>
       
-      <div class="controls">
+      <div class="controls" style="margin-top:14px">
         <button class="btn" id="speakExample">
           <svg viewBox="0 0 24 24" fill="none" stroke="white"><path d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" stroke-width="1.5"/></svg>
           Play Demo Audio
@@ -577,6 +599,7 @@
      * - Speech (TTS)
      * - Card clicks speak messages
      * - Geolocation watcher
+     * - Temperature using Open-Meteo (no API key)
      ************************************************************************/
 
     /* ---------- Mobile Menu Toggle ---------- */
@@ -598,7 +621,8 @@
     /* ---------- Speech utility ---------- */
     function speak(text){
       if(!('speechSynthesis' in window)){
-        alert('Text-to-speech is not supported in your browser');
+        // silent fallback
+        console.warn('TTS not supported:', text);
         return;
       }
       try {
@@ -637,15 +661,20 @@
       });
     });
 
-    /* ---------- Location: geolocation with proper permission handling ---------- */
+    /* ---------- Location & Temperature ---------- */
     const locBtnEl = document.getElementById('locBtn');
     const stopLocBtnEl = document.getElementById('stopLocBtn');
     const coordsEl = document.getElementById('coords');
     const accuracyEl = document.getElementById('accuracy');
     const openMapsBtn = document.getElementById('openMapsBtn');
-    
+    const tempEl = document.getElementById('temperature');
+    const refreshTempBtn = document.getElementById('refreshTempBtn');
+
     let watchId = null;
-    
+    let lastTempFetchTime = 0;
+    let lastTempCoords = null;
+    const TEMP_FETCH_MIN_INTERVAL_MS = 120000; // 2 minutes
+
     function showLocationError(error) {
       switch(error.code) {
         case error.PERMISSION_DENIED:
@@ -657,18 +686,61 @@
         case error.TIMEOUT:
           alert("The request to get location timed out.");
           break;
-        case error.UNKNOWN_ERROR:
-          alert("An unknown error occurred.");
+        default:
+          alert("An unknown error occurred while getting location.");
           break;
       }
     }
-    
+
+    function shouldFetchTemp(lat, lon) {
+      const now = Date.now();
+      if (!lastTempCoords) return true;
+      const dt = now - lastTempFetchTime;
+      if (dt > TEMP_FETCH_MIN_INTERVAL_MS) return true;
+
+      const latDiff = Math.abs(lat - lastTempCoords.lat);
+      const lonDiff = Math.abs(lon - lastTempCoords.lon);
+
+      // If coordinates change more than ~0.001 degrees (~100m) -> fetch
+      if (latDiff > 0.001 || lonDiff > 0.001) return true;
+
+      return false;
+    }
+
+    async function fetchTemperatureFor(lat, lon) {
+      // Use Open-Meteo current_weather endpoint (no API key)
+      // Units: Celsius by default
+      const endpoint = `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lon)}&current_weather=true`;
+      try {
+        tempEl.textContent = 'Loading...';
+        const resp = await fetch(endpoint, {cache: 'no-store'});
+        if (!resp.ok) throw new Error('Weather API error');
+        const data = await resp.json();
+        if (data && data.current_weather && typeof data.current_weather.temperature !== 'undefined') {
+          const t = Number(data.current_weather.temperature);
+          tempEl.textContent = `${t.toFixed(1)} °C`;
+          lastTempFetchTime = Date.now();
+          lastTempCoords = {lat: Number(lat), lon: Number(lon)};
+
+          // Speak temperature (short)
+          speak(`Current temperature is ${t.toFixed(1)} degrees Celsius.`);
+        } else {
+          tempEl.textContent = 'Unavailable';
+        }
+      } catch (err) {
+        console.error('Failed to fetch temperature', err);
+        tempEl.textContent = 'Unavailable';
+      }
+    }
+
     function updateLocationUI(position) {
-      const lat = position.coords.latitude.toFixed(6);
-      const lon = position.coords.longitude.toFixed(6);
+      const lat = position.coords.latitude;
+      const lon = position.coords.longitude;
+      const latFixed = lat.toFixed(6);
+      const lonFixed = lon.toFixed(6);
       const acc = Math.round(position.coords.accuracy);
       
-      coordsEl.textContent = `${lat}, ${lon}`;
+      coordsEl.textContent = `${latFixed}, ${lonFixed}`;
       accuracyEl.textContent = `${acc} m`;
       openMapsBtn.style.display = 'inline-block';
       stopLocBtnEl.style.display = 'inline-block';
@@ -684,6 +756,11 @@
       
       // Speak location
       speak(`Location acquired. Accuracy within ${acc} meters.`);
+
+      // Fetch temperature if needed (rate-limited)
+      if (shouldFetchTemp(lat, lon)) {
+        fetchTemperatureFor(lat, lon);
+      }
     }
     
     function startLocationWatch() {
@@ -692,7 +769,8 @@
         locBtnEl.textContent = 'Locating...';
         coordsEl.textContent = 'Locating...';
         accuracyEl.textContent = '—';
-        
+        tempEl.textContent = '—';
+
         const options = {
           enableHighAccuracy: true,
           timeout: 15000,
@@ -710,6 +788,7 @@
             locBtnEl.textContent = 'Get Location';
             locBtnEl.disabled = false;
             coordsEl.textContent = 'Failed';
+            tempEl.textContent = '—';
           },
           options
         );
@@ -742,10 +821,25 @@
       window.open(mapsUrl, '_blank');
     });
 
+    /* Refresh temperature button: use last coords if available */
+    refreshTempBtn.addEventListener('click', () => {
+      const txt = coordsEl.textContent;
+      if (!txt || txt === '—' || txt === 'Locating...' || txt === 'Failed') {
+        tempEl.textContent = 'No location';
+        return;
+      }
+      const [latStr, lonStr] = txt.split(',').map(s => s.trim());
+      if (!latStr || !lonStr) return;
+      fetchTemperatureFor(Number(latStr), Number(lonStr));
+    });
+
     /* Demo speak button */
     document.getElementById('speakExample').addEventListener('click', () => {
       speak(`SolarHat demo. Tap any card for location-specific information.`);
     });
+
+    // Optional: try to read a one-time coarse location on load to show quick coordinates (permission will prompt)
+    // We won't automatically start watchPosition to respect user control; they must click Get Location.
   </script>
 </body>
 </html>
