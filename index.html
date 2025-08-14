@@ -7,7 +7,10 @@
   
   <!-- Font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  
+
+  <!-- Leaflet CSS (for embedded map) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
   <style>
     :root{
       --page-bg: #f0f9ff;
@@ -398,6 +401,22 @@
       font-weight: 700;
       color: var(--text);
     }
+
+    /* Embedded map container */
+    .map-container {
+      margin-top: 12px;
+      height: 260px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(15,23,35,0.06);
+      display: none; /* hidden until location acquired */
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
     
     /* Responsive adjustments */
     @media (min-width: 768px) {
@@ -495,11 +514,16 @@
             <span id="temperature" class="temp-value">—</span>
             <button class="btn gray" id="refreshTempBtn" style="margin-left:auto;min-width:auto;padding:8px 10px;font-size:13px">Refresh</button>
           </div>
+
+          <!-- Map container (embedded Leaflet map) -->
+          <div class="map-container" id="mapContainer" aria-hidden="true">
+            <div id="map" role="application" aria-label="Embedded map"></div>
+          </div>
           
           <div class="controls" style="margin-top:16px">
             <button class="btn gray" id="locBtn">Get Location</button>
             <button class="btn gray" id="stopLocBtn" style="display:none">Stop</button>
-            <button class="btn gray" id="openMapsBtn" style="display:none">View Map</button>
+            <button class="btn gray" id="openMapsBtn" style="display:none">Open in Google Maps</button>
           </div>
         </div>
       </div>
@@ -589,8 +613,11 @@
       </div>
     </section>
     
-    <div class="note">Tip: Tap any card to hear its message. Use the Get Location button for precise GPS positioning.</div>
+    <div class="note">Tip: Tap any card to hear its message. Use the Get Location button for precise GPS positioning. The embedded map will appear after your location is acquired.</div>
   </div>
+
+  <!-- Leaflet JS (for embedded map) -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script>
     /************************************************************************
@@ -600,6 +627,7 @@
      * - Card clicks speak messages
      * - Geolocation watcher
      * - Temperature using Open-Meteo (no API key)
+     * - Embedded Leaflet map (OpenStreetMap tiles)
      ************************************************************************/
 
     /* ---------- Mobile Menu Toggle ---------- */
@@ -661,7 +689,7 @@
       });
     });
 
-    /* ---------- Location & Temperature ---------- */
+    /* ---------- Location, Temperature & Map ---------- */
     const locBtnEl = document.getElementById('locBtn');
     const stopLocBtnEl = document.getElementById('stopLocBtn');
     const coordsEl = document.getElementById('coords');
@@ -669,11 +697,18 @@
     const openMapsBtn = document.getElementById('openMapsBtn');
     const tempEl = document.getElementById('temperature');
     const refreshTempBtn = document.getElementById('refreshTempBtn');
+    const mapContainer = document.getElementById('mapContainer');
 
     let watchId = null;
     let lastTempFetchTime = 0;
     let lastTempCoords = null;
     const TEMP_FETCH_MIN_INTERVAL_MS = 120000; // 2 minutes
+
+    // Leaflet map variables
+    let map = null;
+    let userMarker = null;
+    let accuracyCircle = null;
+    const INITIAL_ZOOM = 16;
 
     function showLocationError(error) {
       switch(error.code) {
@@ -733,6 +768,47 @@
       }
     }
 
+    function ensureMap(lat, lon) {
+      // Show map container
+      if (mapContainer.style.display !== 'block') {
+        mapContainer.style.display = 'block';
+        mapContainer.setAttribute('aria-hidden', 'false');
+      }
+
+      // Initialize map if not done yet
+      if (!map) {
+        // Create map centered on the coordinates
+        map = L.map('map', { zoomControl: true, attributionControl: true }).setView([lat, lon], INITIAL_ZOOM);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+      }
+    }
+
+    function updateMapPosition(lat, lon, accuracy) {
+      if (!map) {
+        ensureMap(lat, lon);
+      }
+      const latLng = [lat, lon];
+
+      if (!userMarker) {
+        userMarker = L.marker(latLng).addTo(map);
+      } else {
+        userMarker.setLatLng(latLng);
+      }
+
+      if (!accuracyCircle) {
+        accuracyCircle = L.circle(latLng, { radius: accuracy }).addTo(map);
+      } else {
+        accuracyCircle.setLatLng(latLng);
+        accuracyCircle.setRadius(accuracy);
+      }
+
+      // Keep map view centered around the user but only pan if marker would be out of view
+      map.setView(latLng, map.getZoom());
+    }
+
     function updateLocationUI(position) {
       const lat = position.coords.latitude;
       const lon = position.coords.longitude;
@@ -756,6 +832,14 @@
       
       // Speak location
       speak(`Location acquired. Accuracy within ${acc} meters.`);
+
+      // Initialize or update embedded map
+      try {
+        ensureMap(lat, lon);
+        updateMapPosition(lat, lon, acc);
+      } catch (err) {
+        console.error('Map error', err);
+      }
 
       // Fetch temperature if needed (rate-limited)
       if (shouldFetchTemp(lat, lon)) {
@@ -838,8 +922,7 @@
       speak(`SolarHat demo. Tap any card for location-specific information.`);
     });
 
-    // Optional: try to read a one-time coarse location on load to show quick coordinates (permission will prompt)
-    // We won't automatically start watchPosition to respect user control; they must click Get Location.
+    // Important: we do not auto-start geolocation on load to respect user control.
   </script>
 </body>
 </html>
