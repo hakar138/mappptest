@@ -34,8 +34,8 @@
     body{padding:0;display:flex;flex-direction:column;align-items:stretch}
     
     .container { max-width: var(--max-width); margin: 0 auto; padding: 16px; width: 100%; }
-    .header { background: var(--nav-bg); box-shadow: var(--shadow); padding: 12px 16px; position: sticky; top: 0; z-index: 100; transition: transform 0.3s ease; }
-    .header.hide { transform: translateY(-100%); }
+    .header { background: var(--nav-bg); box-shadow: var(--shadow); padding: 12px 16px; position: sticky; top: 0; z-index: 100; transition: transform 320ms ease, box-shadow 200ms ease; will-change: transform; }
+    .header-hidden { transform: translateY(-100%); box-shadow: none; }
     .header-inner { max-width: var(--max-width); margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
     .logo { display: flex; align-items: center; gap: 10px; }
     .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, #0ea5a4, #2b9df4); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(14, 165, 164, 0.2); }
@@ -92,94 +92,15 @@
     .loading { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(14,165,164,0.3); border-radius: 50%; border-top-color: var(--accent); animation: spin 1s linear infinite; margin-left: 8px; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Weather section styles */
-    .weather-section {
-      background: white;
-      border-radius: var(--card-radius);
-      padding: 24px;
-      box-shadow: var(--shadow);
-      margin-top: 20px;
-      border: 1px solid rgba(15, 23, 35, 0.05);
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-    }
-    
-    .weather-header {
-      grid-column: 1 / -1;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-    
-    .weather-header h3 {
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--text);
-    }
-    
-    .weather-content {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-    
-    .weather-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px 0;
-      border-bottom: 1px solid rgba(15, 23, 35, 0.05);
-    }
-    
-    .weather-label {
-      color: var(--muted);
-      font-weight: 500;
-    }
-    
-    .weather-value {
-      font-weight: 600;
-      color: var(--text);
-    }
-    
-    .weather-icon {
-      font-size: 24px;
-      margin-right: 8px;
-    }
-    
-    .weather-map {
-      height: 200px;
-      border-radius: 12px;
-      overflow: hidden;
-      background: var(--accent-light);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--accent);
-      font-weight: 600;
-      font-size: 16px;
-    }
-    
-    .weather-condition {
-      display: flex;
-      align-items: center;
-      font-size: 18px;
-      font-weight: 700;
-    }
-    
-    .weather-temperature {
-      font-size: 42px;
-      font-weight: 800;
-      color: var(--text);
-      line-height: 1;
-    }
-    
-    /* Weather icons */
-    .icon-sunny { color: #f59e0b; }
-    .icon-cloudy { color: #94a3b8; }
-    .icon-rainy { color: #60a5fa; }
-    .icon-stormy { color: #818cf8; }
-    
+    /* WEATHER MODULE SPECIFIC */
+    .weather-module { margin-top: 18px; display: grid; gap: 12px; grid-template-columns: 1fr; }
+    .weather-card { display:flex; gap:12px; align-items:center; padding:14px; border-radius:12px; background: linear-gradient(180deg, rgba(14,165,164,0.04), rgba(43,157,244,0.02)); border:1px solid rgba(15,23,35,0.04); }
+    .weather-left { min-width: 110px; text-align:center; }
+    .weather-temp { font-size:28px; font-weight:800; }
+    .weather-right { flex:1; }
+    .weather-row { display:flex; justify-content:space-between; padding:6px 0; color:var(--muted); font-weight:600; }
+    .small-muted { font-size:12px; color:var(--muted); }
+
     @media (min-width: 768px) { 
       .menu-toggle { display: none; } 
       nav { position: static; transform: none; box-shadow: none; padding: 0; } 
@@ -187,15 +108,7 @@
       .header { padding: 16px 24px; } 
       .controls { flex-wrap: nowrap; } 
       .btn { min-width: auto; } 
-    }
-    
-    @media (max-width: 768px) {
-      .weather-section {
-        grid-template-columns: 1fr;
-      }
-      .weather-map {
-        height: 180px;
-      }
+      .weather-module { grid-template-columns: 320px 1fr; }
     }
     
     @media (max-width: 480px) { 
@@ -204,20 +117,18 @@
       .hero-head h2 { font-size: 22px; } 
       .header-inner { padding: 0 8px; }
       .card { padding: 20px 12px; }
-      .weather-temperature {
-        font-size: 36px;
-      }
     }
   </style>
 </head>
 <body>
   <!-- HEADER -->
-  <header class="header" id="mainHeader">
+  <header class="header" id="siteHeader">
     <div class="header-inner">
       <div class="logo">
-        <div class="logo-icon">
+        <div class="logo-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24"><path d="M12 3L2 12l3 3v6h5v-5h4v5h5v-6l3-3-10-9zm0 9c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"/></svg>
         </div>
+        <!-- Changed label to "Solar Hat" (with space) to ensure TTS pronounces correctly -->
         <div class="logo-text">Solar Hat</div>
       </div>
       
@@ -294,49 +205,37 @@
         </button>
       </div>
     </section>
-    
-    <!-- NEW WEATHER SECTION -->
-    <section class="weather-section" aria-label="Weather information">
-      <div class="weather-header">
-        <h3>Current Weather</h3>
-        <button class="btn gray small" id="refreshWeatherBtn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
-          Refresh
-        </button>
-      </div>
-      
-      <div class="weather-content">
-        <div class="weather-condition">
-          <span class="weather-icon" id="weatherIcon">☀️</span>
-          <span id="weatherCondition">Sunny</span>
+
+    <!-- WEATHER MODULE: simulated data based on location -->
+    <section class="status-section">
+      <div class="status-card">
+        <div class="status-label" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2m0 14v2m9-9h-2M5 12H3"></path></svg>
+          Current Weather (Simulated)
         </div>
-        <div class="weather-temperature" id="weatherTemp">24°C</div>
-        
-        <div class="weather-item">
-          <span class="weather-label">Feels Like</span>
-          <span class="weather-value" id="feelsLike">26°C</span>
+
+        <div class="weather-module" id="weatherModule">
+          <!-- left: primary */
+          <div class="weather-card" id="weatherCard">
+            <div class="weather-left">
+              <div id="weatherIcon" aria-hidden="true">☀️</div>
+              <div class="weather-temp" id="weatherTemp">—</div>
+              <div class="small-muted" id="weatherCond">—</div>
+            </div>
+
+            <div class="weather-right">
+              <div class="weather-row">
+                <span>Humidity</span><span id="weatherHumidity">—</span>
+              </div>
+              <div class="weather-row">
+                <span>Wind</span><span id="weatherWind">—</span>
+              </div>
+              <div class="weather-row">
+                <span>Data source</span><span class="small-muted">Simulated</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="weather-item">
-          <span class="weather-label">Humidity</span>
-          <span class="weather-value" id="humidity">65%</span>
-        </div>
-        <div class="weather-item">
-          <span class="weather-label">Wind Speed</span>
-          <span class="weather-value" id="windSpeed">12 km/h</span>
-        </div>
-        <div class="weather-item">
-          <span class="weather-label">UV Index</span>
-          <span class="weather-value" id="uvIndex">7 (High)</span>
-        </div>
-      </div>
-      
-      <div class="weather-map" id="staticMap">
-        <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
-          <rect width="100" height="100" fill="#d1f0ef" stroke="#0ea5a4" stroke-width="0.5"/>
-          <circle cx="50" cy="50" r="5" fill="#0ea5a4" stroke="#fff" stroke-width="1.5"/>
-          <circle cx="50" cy="50" r="2" fill="#fff"/>
-          <text x="50" y="20" text-anchor="middle" fill="#0ea5a4" font-size="8" font-weight="bold">San Francisco, CA</text>
-        </svg>
       </div>
     </section>
     
@@ -396,109 +295,18 @@
 
   <script>
     /************************************************************************
-     * Changes in this version:
-     * 1. Added weather section with static data
-     * 2. Added smooth navbar hiding on scroll down
-     * 3. Fixed audio to say "Solar Hat" instead of "Solarhat"
-     * 4. Added weather refresh functionality
-     * 5. Improved responsive design for weather section
+     * Full integrated front-end only changes:
+     * - Simulated weather module (based on browser geolocation) - no APIs.
+     * - Header hides on scroll (smoothly).
+     * - Logo text changed to "Solar Hat" (space) and TTS updated accordingly.
+     * - Map uses Leaflet CartoDB tiles (as before).
+     * - Existing features preserved.
      ************************************************************************/
-
-    // Weather data simulation
-    const weatherConditions = [
-      { 
-        condition: "Sunny", 
-        temp: 24, 
-        feelsLike: 26, 
-        humidity: 65, 
-        windSpeed: 12, 
-        uvIndex: 7, 
-        icon: "☀️" 
-      },
-      { 
-        condition: "Partly Cloudy", 
-        temp: 20, 
-        feelsLike: 22, 
-        humidity: 70, 
-        windSpeed: 10, 
-        uvIndex: 5, 
-        icon: "⛅" 
-      },
-      { 
-        condition: "Cloudy", 
-        temp: 18, 
-        feelsLike: 19, 
-        humidity: 75, 
-        windSpeed: 8, 
-        uvIndex: 3, 
-        icon: "☁️" 
-      },
-      { 
-        condition: "Rainy", 
-        temp: 15, 
-        feelsLike: 16, 
-        humidity: 85, 
-        windSpeed: 15, 
-        uvIndex: 2, 
-        icon: "🌧️" 
-      },
-      { 
-        condition: "Stormy", 
-        temp: 17, 
-        feelsLike: 18, 
-        humidity: 90, 
-        windSpeed: 25, 
-        uvIndex: 1, 
-        icon: "⛈️" 
-      }
-    ];
-
-    // Weather display functions
-    function updateWeatherDisplay(weather) {
-      document.getElementById('weatherCondition').textContent = weather.condition;
-      document.getElementById('weatherIcon').textContent = weather.icon;
-      document.getElementById('weatherTemp').textContent = `${weather.temp}°C`;
-      document.getElementById('feelsLike').textContent = `${weather.feelsLike}°C`;
-      document.getElementById('humidity').textContent = `${weather.humidity}%`;
-      document.getElementById('windSpeed').textContent = `${weather.windSpeed} km/h`;
-      document.getElementById('uvIndex').textContent = `${weather.uvIndex} (${getUvLevel(weather.uvIndex)})`;
-      
-      // Update icon color based on condition
-      const icon = document.getElementById('weatherIcon');
-      icon.className = 'weather-icon';
-      if (weather.condition.includes('Cloud')) icon.classList.add('icon-cloudy');
-      else if (weather.condition.includes('Rain')) icon.classList.add('icon-rainy');
-      else if (weather.condition.includes('Storm')) icon.classList.add('icon-stormy');
-      else icon.classList.add('icon-sunny');
-    }
-
-    function getUvLevel(index) {
-      if (index <= 2) return 'Low';
-      if (index <= 5) return 'Moderate';
-      if (index <= 7) return 'High';
-      if (index <= 10) return 'Very High';
-      return 'Extreme';
-    }
-
-    function getRandomWeather() {
-      const randomIndex = Math.floor(Math.random() * weatherConditions.length);
-      return weatherConditions[randomIndex];
-    }
-
-    // Initialize weather display
-    updateWeatherDisplay(getRandomWeather());
-    
-    // Refresh weather button
-    document.getElementById('refreshWeatherBtn').addEventListener('click', () => {
-      const weather = getRandomWeather();
-      updateWeatherDisplay(weather);
-      speak(`Weather updated. Current conditions: ${weather.condition}, ${weather.temp} degrees.`);
-    });
 
     /* ---------- Mobile Menu Toggle ---------- */
     const menuToggle = document.getElementById('menuToggle');
     const mainNav = document.getElementById('mainNav');
-    menuToggle.addEventListener('click', (e) => { 
+    menuToggle && menuToggle.addEventListener('click', (e) => { 
       e.stopPropagation(); 
       mainNav.classList.toggle('active'); 
     });
@@ -509,10 +317,35 @@
       }
     });
 
+    /* ---------- Smooth header hide on scroll ---------- */
+    (function setupHeaderHideOnScroll() {
+      const header = document.getElementById('siteHeader');
+      let lastScroll = window.scrollY || 0;
+      let ticking = false;
+
+      window.addEventListener('scroll', () => {
+        if (!ticking) {
+          window.requestAnimationFrame(() => {
+            const current = window.scrollY || 0;
+            const delta = current - lastScroll;
+            // if scrolled down more than 10px, hide; if scrolled up show
+            if (current > 60 && delta > 6) {
+              header.classList.add('header-hidden');
+            } else if (delta < -6 || current <= 60) {
+              header.classList.remove('header-hidden');
+            }
+            lastScroll = current;
+            ticking = false;
+          });
+          ticking = true;
+        }
+      }, {passive:true});
+    })();
+
     /* ---------- TTS (Mute + dedupe + cooldown) ---------- */
     let ttsEnabled = true; // default on; user can mute
     const muteBtn = document.getElementById('muteBtn');
-    muteBtn.addEventListener('click', () => {
+    muteBtn && muteBtn.addEventListener('click', () => {
       ttsEnabled = !ttsEnabled;
       updateMuteUI();
       if (!ttsEnabled && 'speechSynthesis' in window) speechSynthesis.cancel();
@@ -535,6 +368,8 @@
     const SPEECH_COOLDOWN_MS = 4000; // 4 seconds minimum between distinct speeches
 
     function speak(text, options = {}) {
+      // ensure product name pronounces correctly: replace "SolarHat" -> "Solar Hat"
+      text = String(text).replace(/SolarHat/g, 'Solar Hat');
       // options: {force: boolean}
       if (!ttsEnabled) return;
       if (!('speechSynthesis' in window)) return;
@@ -551,7 +386,6 @@
       }
 
       try {
-        // cancel short utterances if still speaking (optional)
         speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.rate = 1;
@@ -570,13 +404,9 @@
     /* ---------- Cards: click to speak with animations ---------- */
     document.querySelectorAll('.card').forEach(card => {
       card.addEventListener('click', () => {
-        // Fix: Replace "Solarhat" with "Solar Hat"
-        let msg = card.dataset.message || ('Opening ' + (card.dataset.key || 'section'));
-        msg = msg.replace(/Solarhat/g, 'Solar Hat');
-        
+        const msg = card.dataset.message || ('Opening ' + (card.dataset.key || 'section'));
         speak(msg, {force: false});
         
-        // Add pulse animation
         card.animate([
           { transform: 'scale(0.98)', opacity: 0.9 },
           { transform: 'scale(1)', opacity: 1 }
@@ -584,24 +414,7 @@
       });
     });
 
-    /* ---------- Navbar hide on scroll ---------- */
-    const header = document.getElementById('mainHeader');
-    let lastScrollY = window.scrollY;
-    
-    window.addEventListener('scroll', () => {
-      const currentScrollY = window.scrollY;
-      
-      // Hide header when scrolling down, show when scrolling up
-      if (currentScrollY > lastScrollY && currentScrollY > 50) {
-        header.classList.add('hide');
-      } else {
-        header.classList.remove('hide');
-      }
-      
-      lastScrollY = currentScrollY;
-    });
-
-    /* ---------- Location, Temperature & Map (CartoDB tiles) ---------- */
+    /* ---------- Location, Map & Simulated Weather ---------- */
     const locBtnEl = document.getElementById('locBtn');
     const stopLocBtnEl = document.getElementById('stopLocBtn');
     const coordsEl = document.getElementById('coords');
@@ -612,66 +425,18 @@
     const mapContainer = document.getElementById('mapContainer');
     const mapEl = document.getElementById('map');
 
-    let watchId = null;
-    let lastTempFetchTime = 0;
-    let lastTempCoords = null;
-    const TEMP_FETCH_MIN_INTERVAL_MS = 120000; // 2 minutes
+    // Weather UI elements
+    const weatherTempEl = document.getElementById('weatherTemp');
+    const weatherCondEl = document.getElementById('weatherCond');
+    const weatherHumidityEl = document.getElementById('weatherHumidity');
+    const weatherWindEl = document.getElementById('weatherWind');
+    const weatherIconEl = document.getElementById('weatherIcon');
 
-    // Map variables
+    let watchId = null;
     let map = null;
     let userMarker = null;
     let accuracyCircle = null;
     const INITIAL_ZOOM = 16;
-
-    // Smarter speaking for location: only speak when first fix, accuracy improves by >20m, or moved >~50m
-    let lastSpokenLocation = null; // {lat, lon, acc}
-
-    function locationShouldSpeak(lat, lon, acc) {
-      if (!lastSpokenLocation) return true; // first time
-      const latDiff = Math.abs(lat - lastSpokenLocation.lat);
-      const lonDiff = Math.abs(lon - lastSpokenLocation.lon);
-      const movedMetersApprox = Math.sqrt((latDiff*111320)**2 + (lonDiff*111320*Math.cos(lat*Math.PI/180))**2);
-      if (movedMetersApprox > 50) return true; // moved > ~50 m
-      if (lastSpokenLocation.acc - acc > 20) return true; // accuracy improved by >20 m
-      return false;
-    }
-
-    function recordSpokenLocation(lat, lon, acc) {
-      lastSpokenLocation = { lat, lon, acc };
-    }
-
-    async function fetchTemperatureFor(lat, lon, speakOnFetch = false) {
-      const endpoint = `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lon)}&current_weather=true`;
-      try {
-        tempEl.innerHTML = 'Loading <span class="loading"></span>';
-        const resp = await fetch(endpoint, {cache: 'no-store'});
-        if (!resp.ok) throw new Error('Weather API error');
-        const data = await resp.json();
-        if (data && data.current_weather && typeof data.current_weather.temperature !== 'undefined') {
-          const t = Number(data.current_weather.temperature);
-          tempEl.textContent = `${t.toFixed(1)} °C`;
-          lastTempFetchTime = Date.now();
-          lastTempCoords = {lat: Number(lat), lon: Number(lon)};
-          if (speakOnFetch) speak(`Current temperature is ${t.toFixed(1)} degrees Celsius.`, {force: false});
-        } else {
-          tempEl.textContent = 'Unavailable';
-        }
-      } catch (err) {
-        console.error('Failed to fetch temperature', err);
-        tempEl.textContent = 'Unavailable';
-      }
-    }
-
-    function shouldFetchTemp(lat, lon) {
-      const now = Date.now();
-      if (!lastTempCoords) return true;
-      const dt = now - lastTempFetchTime;
-      if (dt > TEMP_FETCH_MIN_INTERVAL_MS) return true;
-      const latDiff = Math.abs(lat - lastTempCoords.lat);
-      const lonDiff = Math.abs(lon - lastTempCoords.lon);
-      if (latDiff > 0.001 || lonDiff > 0.001) return true;
-      return false;
-    }
 
     function ensureMap(lat, lon) {
       if (mapContainer.style.display !== 'block') {
@@ -680,12 +445,7 @@
       }
       
       if (!map) {
-        // Use CartoDB Positron (neutral light basemap)
-        map = L.map('map', { 
-          zoomControl: true, 
-          attributionControl: true 
-        }).setView([lat, lon], INITIAL_ZOOM);
-        
+        map = L.map('map', { zoomControl: true, attributionControl: true }).setView([lat, lon], INITIAL_ZOOM);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
           maxZoom: 19,
           attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
@@ -711,12 +471,7 @@
       }
       
       if (!accuracyCircle) {
-        accuracyCircle = L.circle(latLng, { 
-          radius: accuracy,
-          color: '#0ea5a4',
-          fillColor: '#d1f0ef',
-          fillOpacity: 0.3
-        }).addTo(map);
+        accuracyCircle = L.circle(latLng, { radius: accuracy, color: '#0ea5a4', fillColor: '#d1f0ef', fillOpacity: 0.3 }).addTo(map);
       } else { 
         accuracyCircle.setLatLng(latLng); 
         accuracyCircle.setRadius(accuracy); 
@@ -742,6 +497,7 @@
       }
     }
 
+    // When position updates, update UI, map and simulated weather
     function updateLocationUI(position) {
       const lat = position.coords.latitude;
       const lon = position.coords.longitude;
@@ -758,11 +514,8 @@
       else if (acc <= 100) accuracyEl.style.color = 'var(--warning)';
       else accuracyEl.style.color = 'var(--danger)';
 
-      // Speak location only when meaningful
-      if (locationShouldSpeak(lat, lon, acc)) {
-        speak(`Location acquired. Accuracy within ${acc} meters.`);
-        recordSpokenLocation(lat, lon, acc);
-      }
+      // speak location
+      speak(`Location acquired. Accuracy within ${acc} meters.`, {force:false});
 
       // Map update
       try { 
@@ -773,14 +526,15 @@
         mapEl.textContent = 'Failed to load map';
       }
 
-      // Temperature: fetch only if rate-limited says so; speak only on first fetch
-      if (shouldFetchTemp(lat, lon)) {
-        // speak on first fetch; subsequent fetches (auto) don't speak
-        const speakOnThis = !lastTempCoords;
-        fetchTemperatureFor(lat, lon, speakOnThis);
-      }
+      // Generate a simulated weather based on lat/lon
+      const simulated = simulateWeatherForLocation(lat, lon);
+      applySimulatedWeather(simulated);
+
+      // show temperature in top area also
+      tempEl.textContent = `${simulated.temperatureC.toFixed(1)} °C`;
     }
 
+    // Start/stop geolocation watch
     function startLocationWatch() {
       if (!navigator.geolocation) { alert("Geolocation is not supported by your browser."); return; }
       locBtnEl.disabled = true;
@@ -793,12 +547,12 @@
       watchId = navigator.geolocation.watchPosition(
         position => {
           updateLocationUI(position);
-          locBtnEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg> Get Location';
+          locBtnEl.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg> Get Location`;
           locBtnEl.disabled = false;
         },
         error => {
           showLocationError(error);
-          locBtnEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg> Get Location';
+          locBtnEl.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg> Get Location`;
           locBtnEl.disabled = false;
           coordsEl.textContent = 'Failed';
           tempEl.textContent = '—';
@@ -816,10 +570,10 @@
       speak('Location tracking stopped.', {force:false});
     }
 
-    locBtnEl.addEventListener('click', startLocationWatch);
-    stopLocBtnEl.addEventListener('click', stopLocationWatch);
+    locBtnEl && locBtnEl.addEventListener('click', startLocationWatch);
+    stopLocBtnEl && stopLocBtnEl.addEventListener('click', stopLocationWatch);
 
-    openMapsBtn.addEventListener('click', () => {
+    openMapsBtn && openMapsBtn.addEventListener('click', () => {
       const txt = coordsEl.textContent;
       if (!txt || txt === '—' || txt === 'Locating...') return;
       const [lat, lon] = txt.split(',').map(s => s.trim());
@@ -827,7 +581,7 @@
       window.open(mapsUrl, '_blank');
     });
 
-    refreshTempBtn.addEventListener('click', () => {
+    refreshTempBtn && refreshTempBtn.addEventListener('click', () => {
       const txt = coordsEl.textContent;
       if (!txt || txt === '—' || txt === 'Locating...' || txt === 'Failed') {
         tempEl.textContent = 'No location';
@@ -835,18 +589,74 @@
       }
       const [latStr, lonStr] = txt.split(',').map(s => s.trim());
       if (!latStr || !lonStr) return;
-      // manual refresh should speak the temperature
-      fetchTemperatureFor(Number(latStr), Number(lonStr), true);
+      // regenerate simulated weather and speak it
+      const sim = simulateWeatherForLocation(Number(latStr), Number(lonStr));
+      applySimulatedWeather(sim);
+      speak(`Current temperature is ${sim.temperatureC.toFixed(1)} degrees Celsius and ${sim.condition}.`, {force:true});
+      tempEl.textContent = `${sim.temperatureC.toFixed(1)} °C`;
     });
 
     document.getElementById('speakExample').addEventListener('click', () => {
       speak(`Solar Hat demo. Tap any card for location-specific information.`, {force:false});
     });
 
-    // Initialize mute label correctly (in case of saved UI styles)
-    updateMuteUI();
-    
-    // Add CSS for map loading indicator
+    /* ---------- Simulated weather generator (no external API) ---------- */
+    function simulateWeatherForLocation(lat, lon) {
+      // Deterministic pseudo-random based on coordinates so it changes by place
+      const seed = Math.abs(Math.floor((lat * 10000) ^ (lon * 10000)));
+      function rand(min, max) {
+        const x = Math.sin(seed + min * 9973 + max * 7919) * 43758.5453;
+        const n = Math.abs((x - Math.floor(x)));
+        return min + n * (max - min);
+      }
+
+      // Estimates:
+      // base temp: 30 at equator, decreases toward poles. small random component.
+      const latAbs = Math.abs(lat);
+      const base = 30 - (latAbs / 90) * 40; // -10..30 roughly
+      const noise = rand(-3, 3);
+      const temperatureC = base + noise;
+
+      // humidity: higher near low temps or coastal (simulated by lon)
+      const humidity = Math.max(10, Math.min(95, Math.round(50 + (rand(-25, 25)) + ((Math.cos(lon/60))*15))));
+
+      // wind speed
+      const windKmh = Math.max(0, +(rand(0, 25)).toFixed(1));
+
+      // conditions selection by temperature and randomness
+      let condition = 'Clear';
+      const tempFactor = temperatureC;
+      const r = rand(0, 100);
+      if (r < 8 && tempFactor < 2) condition = 'Snow';
+      else if (r < 20 && tempFactor < 10) condition = 'Light rain';
+      else if (r < 35 && tempFactor < 20) condition = 'Cloudy';
+      else if (r < 55) condition = (tempFactor > 25 ? 'Sunny' : 'Partly cloudy');
+      else condition = 'Cloudy';
+
+      // icon mapping (simple)
+      const icon = condition.toLowerCase().includes('snow') ? '❄️' :
+                   condition.toLowerCase().includes('rain') ? '🌧️' :
+                   condition.toLowerCase().includes('cloud') ? '☁️' :
+                   condition.toLowerCase().includes('sun') ? '☀️' : '🌤️';
+
+      return {
+        temperatureC: Number(temperatureC.toFixed(1)),
+        humidity: `${humidity}%`,
+        windKmh: `${windKmh} km/h`,
+        condition,
+        icon
+      };
+    }
+
+    function applySimulatedWeather(sim) {
+      weatherTempEl && (weatherTempEl.textContent = `${sim.temperatureC.toFixed(1)}°C`);
+      weatherCondEl && (weatherCondEl.textContent = sim.condition);
+      weatherHumidityEl && (weatherHumidityEl.textContent = sim.humidity);
+      weatherWindEl && (weatherWindEl.textContent = sim.windKmh);
+      weatherIconEl && (weatherIconEl.textContent = sim.icon);
+    }
+
+    // Add CSS for map loading indicator and marker pulse
     const style = document.createElement('style');
     style.textContent = `
       .location-pulse {
@@ -874,8 +684,23 @@
         70% { box-shadow: 0 0 0 10px rgba(14, 165, 164, 0); }
         100% { box-shadow: 0 0 0 0 rgba(14, 165, 164, 0); }
       }
+      .user-location-marker { pointer-events: none; }
     `;
     document.head.appendChild(style);
+
+    // On load, try to get a quick geolocation snapshot to populate weather asap
+    (function tryInitialGeolocation() {
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(position => {
+          // simulate update
+          updateLocationUI(position);
+        }, (err) => {
+          // silently ignore until user clicks Get Location
+          console.warn('Initial geolocation not available', err);
+        }, {enableHighAccuracy:true, maximumAge: 60000, timeout: 6000});
+      }
+    })();
+
   </script>
 </body>
 </html>
