@@ -12,7 +12,8 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
   <style>
-    :root{
+    :root {
+      /* Default theme (day) */
       --page-bg: #f0f9ff;
       --nav-bg: #ffffff;
       --muted: #5e718d;
@@ -29,10 +30,89 @@
       --success: #10b981;
       --warning: #f59e0b;
       --error: #ef4444;
+      --card-bg: #ffffff;
+      --status-card-bg: linear-gradient(180deg, rgba(14,165,164,0.03), rgba(43,157,244,0.02));
+      --weather-glass-bg: linear-gradient(180deg, rgba(255,255,255,0.72), rgba(255,255,255,0.6));
+      --map-bg: rgba(14,165,164,0.03);
+      --theme-icon: '☀️';
+    }
+
+    /* Morning theme (5am-11am) */
+    .theme-morning {
+      --page-bg: #e6f2ff;
+      --nav-bg: rgba(255, 251, 235, 0.92);
+      --text: #1a2a3a;
+      --muted: #6d7c8d;
+      --accent: #ff9a00;
+      --accent-2: #ff6b6b;
+      --accent-light: rgba(255, 154, 0, 0.15);
+      --shadow: 0 6px 18px rgba(255, 154, 0, 0.12);
+      --card-bg: rgba(255, 251, 235, 0.85);
+      --status-card-bg: linear-gradient(180deg, rgba(255, 154, 0, 0.05), rgba(255, 107, 107, 0.03));
+      --weather-glass-bg: linear-gradient(180deg, rgba(255, 251, 235, 0.8), rgba(255, 245, 215, 0.7));
+      --map-bg: rgba(255, 154, 0, 0.05);
+      --theme-icon: '🌅';
+    }
+
+    /* Afternoon theme (12pm-5pm) */
+    .theme-afternoon {
+      --page-bg: #f0f9ff;
+      --nav-bg: rgba(255, 255, 255, 0.92);
+      --text: #0f1a2f;
+      --muted: #5e718d;
+      --accent: #0ea5a4;
+      --accent-2: #2b9df4;
+      --accent-light: rgba(14, 165, 164, 0.15);
+      --theme-icon: '☀️';
+    }
+
+    /* Evening theme (6pm-8pm) */
+    .theme-evening {
+      --page-bg: #fff0e6;
+      --nav-bg: rgba(255, 240, 230, 0.92);
+      --text: #3a1f0f;
+      --muted: #8d6d5e;
+      --accent: #ff6b6b;
+      --accent-2: #ff9a00;
+      --accent-light: rgba(255, 107, 107, 0.15);
+      --shadow: 0 6px 18px rgba(255, 107, 107, 0.12);
+      --card-bg: rgba(255, 240, 230, 0.85);
+      --status-card-bg: linear-gradient(180deg, rgba(255, 107, 107, 0.05), rgba(255, 154, 0, 0.03));
+      --weather-glass-bg: linear-gradient(180deg, rgba(255, 240, 230, 0.8), rgba(255, 230, 210, 0.7));
+      --map-bg: rgba(255, 107, 107, 0.05);
+      --theme-icon: '🌇';
+    }
+
+    /* Night theme (9pm-4am) */
+    .theme-night {
+      --page-bg: #0f1a2f;
+      --nav-bg: rgba(26, 36, 63, 0.92);
+      --text: #f0f9ff;
+      --muted: #a0b0c0;
+      --accent: #96e6a1;
+      --accent-2: #a1c4fd;
+      --accent-light: rgba(150, 230, 161, 0.15);
+      --shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+      --glass: rgba(26, 36, 63, 0.6);
+      --glass-border: rgba(255,255,255,0.06);
+      --card-bg: rgba(26, 36, 63, 0.6);
+      --status-card-bg: linear-gradient(180deg, rgba(150, 230, 161, 0.05), rgba(161, 196, 253, 0.03));
+      --weather-glass-bg: linear-gradient(180deg, rgba(26, 36, 63, 0.7), rgba(21, 29, 51, 0.6));
+      --map-bg: rgba(150, 230, 161, 0.05);
+      --theme-icon: '🌙';
+      
+      /* Add starry background */
+      background-image: 
+        radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 10px),
+        radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 5px),
+        radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 10px);
+      background-size: 550px 550px, 350px 350px, 250px 250px;
+      background-position: 0 0, 40px 60px, 130px 270px;
+      background-attachment: fixed;
     }
 
     *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;margin:0;font-family:'Inter',system-ui,-apple-system,"Segoe UI",Roboto,Arial;background:var(--page-bg);color:var(--text);-webkit-font-smoothing:antialiased;line-height:1.5}
+    html,body{height:100%;margin:0;font-family:'Inter',system-ui,-apple-system,"Segoe UI",Roboto,Arial;background:var(--page-bg);color:var(--text);-webkit-font-smoothing:antialiased;line-height:1.5;transition: background 1s ease}
     body{display:flex;flex-direction:column;min-height:100vh}
     .container { max-width: var(--max-width); margin: 0 auto; padding: 18px; width: 100%; flex:1 }
 
@@ -45,6 +125,7 @@
       top: 0; 
       z-index: 100; 
       transition: transform 320ms ease, box-shadow 200ms ease; 
+      backdrop-filter: blur(6px);
     }
     .header-hidden { transform: translateY(-100%); box-shadow: none; }
     .header-inner { 
@@ -130,7 +211,7 @@
 
     /* main card styles */
     .status-section { 
-      background: white; 
+      background: var(--card-bg); 
       border-radius: var(--card-radius); 
       padding: 24px; 
       box-shadow: var(--shadow); 
@@ -144,7 +225,7 @@
     .status-card { 
       padding: 16px; 
       border-radius: 12px; 
-      background: linear-gradient(180deg, rgba(14,165,164,0.03), rgba(43,157,244,0.02)); 
+      background: var(--status-card-bg); 
       border: 1px solid rgba(14, 165, 164, 0.1);
     }
     .status-label { 
@@ -268,12 +349,12 @@
       margin-bottom:24px; 
     }
     .card { 
-      background:white; 
+      background: var(--card-bg); 
       border-radius:20px; 
       padding:30px 20px; 
       text-align:center; 
       box-shadow: var(--shadow); 
-      border:1px solid rgba(15,23,35,0.03); 
+      border:1px solid var(--glass-border); 
       cursor:pointer; 
       transition: transform .28s ease, box-shadow .28s ease; 
       position: relative;
@@ -318,7 +399,7 @@
     
     /* Gradient Backgrounds for Logos */
     .card[data-key="location"] .card-logo {
-      background: linear-gradient(135deg, #0ea5a4, #2b9df4);
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
       box-shadow: 0 10px 20px rgba(14, 165, 164, 0.3);
     }
     
@@ -423,37 +504,17 @@
       height:280px; 
       border-radius:12px; 
       overflow:hidden; 
-      border:1px solid rgba(15,23,35,0.06); 
-      background:linear-gradient(180deg, rgba(14,165,164,0.02), rgba(43,157,244,0.01)); 
+      border:1px solid var(--glass-border); 
+      background: linear-gradient(180deg, rgba(14,165,164,0.02), rgba(43,157,244,0.01)); 
       box-shadow: 0 4px 12px rgba(0,0,0,0.05);
       position: relative;
     }
-    #map { width:100%; height:100%; display:block; background: rgba(14,165,164,0.03); }
-    
-    #mapPlaceholder {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--page-bg);
-      color: var(--muted);
-      font-size: 14px;
-      z-index: 300;
-      pointer-events: none;
-    }
-    
-    #mapContainer.ready #mapPlaceholder {
-      display: none;
-    }
+    #map { width:100%; height:100%; display:block; background: var(--map-bg); }
     
     .accuracy-visual {
       position: absolute;
       border-radius: 50%;
-      border: 2px solid #0ea5a4;
+      border: 2px solid var(--accent);
       background-color: rgba(14, 165, 164, 0.1);
       pointer-events: none;
       z-index: 400;
@@ -486,7 +547,7 @@
       position:relative;
       overflow:hidden;
       border-radius:14px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.72), rgba(255,255,255,0.6));
+      background: var(--weather-glass-bg);
       border: 1px solid rgba(255,255,255,0.5);
       box-shadow: 0 12px 30px rgba(2,6,23,0.06);
       display:flex;
@@ -546,9 +607,10 @@
       text-align:center;
       font-size:13px;
       color:var(--muted);
-      border-top:1px solid rgba(15,23,35,0.03);
+      border-top:1px solid var(--glass-border);
       background: linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0.25));
       margin-top: 20px;
+      backdrop-filter: blur(6px);
     }
     .footer-text {
       max-width: var(--max-width);
@@ -585,8 +647,26 @@
     /* Section divider */
     .section-divider {
       height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(14, 165, 164, 0.2), transparent);
+      background: linear-gradient(90deg, transparent, var(--accent-light), transparent);
       margin: 24px 0;
+    }
+
+    /* Theme indicator */
+    .theme-indicator {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      z-index: 1000;
+      backdrop-filter: blur(5px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
 
     @media (min-width:768px) {
@@ -607,10 +687,20 @@
         width: 100%;
         justify-content: center;
       }
+      .theme-indicator {
+        bottom: 10px;
+        right: 10px;
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+      }
     }
   </style>
 </head>
 <body>
+  <!-- Theme indicator -->
+  <div class="theme-indicator" id="themeIndicator"></div>
+  
   <!-- HEADER -->
   <header class="header" id="siteHeader">
     <div class="header-inner">
@@ -660,7 +750,6 @@
 
           <div class="map-container" id="mapContainer" aria-hidden="true">
             <div id="map" role="application" aria-label="Embedded map"></div>
-            <div id="mapPlaceholder">Map will appear here when location is available</div>
           </div>
 
           <div class="controls">
@@ -825,11 +914,9 @@
   <script>
     /************************************************************************
      * Improved Map Rendering and Tracking
-     * - Fixed map initialization issues
-     * - Added smooth transitions and accuracy visualization
-     * - Implemented map interaction tracking
-     * - Added auto-zoom based on accuracy
-     * - Enhanced user experience
+     * - Fixed audio repetition issues
+     * - Added time-based themes (morning, afternoon, evening, night)
+     * - Enhanced visual experience
      ************************************************************************/
 
     /* ---------- Simple helpers ---------- */
@@ -916,7 +1003,6 @@
     const coordsEl = q('#coords'), accEl = q('#accuracy'), openMapsBtn = q('#openMapsBtn');
     const tempEl = q('#temperature');
     const mapContainer = q('#mapContainer'), mapEl = q('#map');
-    const mapPlaceholder = q('#mapPlaceholder');
 
     // Weather UI
     const wTemp = q('#weatherTemp'), wIcon = q('#weatherIcon'), wCond = q('#weatherCond');
@@ -927,12 +1013,49 @@
     let map = null, userMarker = null, accuracyCircle = null, accuracyVisual = null;
     const INITIAL_ZOOM = 15;
     
-    // Map interaction tracking
-    let userInteracted = false;
-    let lastMapUpdate = 0;
-    const THROTTLE_MAP_UPDATE = 1000; // Update map at most once per second
+    // Track last weather spoken to prevent repetition
+    let lastWeatherSpoken = { temp: null, condition: null, time: 0 };
+    const WEATHER_SPEAK_INTERVAL = 30000; // 30 seconds
+    
+    // Theme indicator
+    const themeIndicator = q('#themeIndicator');
 
-    // Initialize map on page load
+    function setTheme() {
+      const hour = new Date().getHours();
+      let themeClass, themeName, themeIcon;
+      
+      if (hour >= 5 && hour < 12) {
+        themeClass = 'theme-morning';
+        themeName = 'Morning';
+        themeIcon = '🌅';
+      } else if (hour >= 12 && hour < 17) {
+        themeClass = 'theme-afternoon';
+        themeName = 'Afternoon';
+        themeIcon = '☀️';
+      } else if (hour >= 17 && hour < 21) {
+        themeClass = 'theme-evening';
+        themeName = 'Evening';
+        themeIcon = '🌇';
+      } else {
+        themeClass = 'theme-night';
+        themeName = 'Night';
+        themeIcon = '🌙';
+      }
+      
+      document.body.className = themeClass;
+      themeIndicator.textContent = themeIcon;
+      themeIndicator.title = `${themeName} Theme`;
+      
+      // Apply theme to weather glass
+      weatherGlass.classList.remove('bg-sunny','bg-cloudy','bg-rain','bg-snow');
+      weatherGlass.classList.add('bg-cloudy'); // Default
+    }
+    
+    // Set theme on load and update every 5 minutes
+    setTheme();
+    setInterval(setTheme, 300000); // 5 minutes
+    
+    // Initialize the map
     function initMap() {
       if (map) return;
       
@@ -947,25 +1070,9 @@
         maxZoom: 19,
         attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
       }).addTo(map);
-      
-      // Track user interactions with the map
-      map.on('dragstart', () => userInteracted = true);
-      map.on('zoomstart', () => userInteracted = true);
     }
     
-    // Initialize the map
     initMap();
-
-    // Function to calculate zoom level based on accuracy
-    function calculateZoomLevel(accuracy) {
-      // Higher accuracy (larger meters) needs lower zoom level
-      if (accuracy > 1000) return 12;
-      if (accuracy > 500) return 13;
-      if (accuracy > 200) return 14;
-      if (accuracy > 100) return 15;
-      if (accuracy > 50) return 16;
-      return 17; // Most detailed zoom for high accuracy
-    }
 
     function updateMap(lat, lon, accuracy) {
       const pt = [lat, lon];
@@ -1011,11 +1118,8 @@
         accuracyVisual.setRadius(accuracy);
       }
       
-      // Adjust map view based on accuracy and user interaction
-      if (!userInteracted) {
-        const zoomLevel = calculateZoomLevel(accuracy);
-        map.setView(pt, zoomLevel, { animate: true, duration: 1 });
-      }
+      // Adjust map view
+      map.setView(pt, INITIAL_ZOOM, { animate: true, duration: 1 });
     }
 
     function showLocError(err) {
@@ -1060,30 +1164,21 @@
       // Speak only when meaningful
       speak(`Location acquired. Accuracy within ${acc} meters.`); 
       
-      // Hide placeholder and show map
-      mapContainer.classList.add('ready');
-      
-      // Update the map with throttling
-      const now = Date.now();
-      if (now - lastMapUpdate > THROTTLE_MAP_UPDATE) {
-        try { 
-          updateMap(lat, lon, acc); 
-        } catch(e){ 
-          console.error('Map error', e); 
-          mapPlaceholder.textContent = 'Failed to load map'; 
-        }
-        lastMapUpdate = now;
+      // Update the map
+      try { 
+        updateMap(lat, lon, acc); 
+      } catch(e){ 
+        console.error('Map error', e); 
       }
 
-      // Weather fetch
-      const ok = await fetchOpenMeteoWeather(lat, lon, true);
+      // Fetch weather
+      const ok = await fetchOpenMeteoWeather(lat, lon);
       if (!ok) {
         const sim = simulateWeatherFor(lat, lon);
         applyWeather(sim, 'Simulated (fallback)');
       }
     }
 
-    // Prevent multiple watchers
     function startWatch() {
       if (!('geolocation' in navigator)) { 
         speak('Geolocation not supported on this device.'); 
@@ -1140,7 +1235,7 @@
       95:['Thunderstorm','⛈️']
     };
 
-    async function fetchOpenMeteoWeather(lat, lon, speakOnFetch=false) {
+    async function fetchOpenMeteoWeather(lat, lon) {
       try {
         const ep = `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lon)}&current_weather=true&hourly=relativehumidity_2m&timezone=auto`;
         if (wSource) wSource.textContent = 'Open-Meteo';
@@ -1183,8 +1278,19 @@
         };
 
         applyWeather(weather, 'Open-Meteo');
-        if (speakOnFetch) speak(`Current temperature is ${temperature.toFixed(1)} degrees Celsius and ${conditionText}.`, {force:true});
         if (tempEl) tempEl.textContent = `${temperature.toFixed(1)} °C`;
+        
+        // Speak weather only if it has changed significantly
+        const now = Date.now();
+        const tempChanged = Math.abs(temperature - (lastWeatherSpoken.temp || 0)) > 2;
+        const conditionChanged = conditionText !== (lastWeatherSpoken.condition || '');
+        const timePassed = now - lastWeatherSpoken.time > WEATHER_SPEAK_INTERVAL;
+        
+        if (tempChanged || conditionChanged || timePassed) {
+          speak(`Current temperature is ${temperature.toFixed(1)} degrees Celsius and ${conditionText}.`, {force:true});
+          lastWeatherSpoken = { temp: temperature, condition: conditionText, time: now };
+        }
+        
         return true;
       } catch (err) {
         console.warn('Open-Meteo failed', err);
