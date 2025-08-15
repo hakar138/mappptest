@@ -410,6 +410,35 @@
             margin-top: 25px;
             justify-content: center;
         }
+        
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            margin-bottom: 20px;
+            font-size: 1rem;
+        }
+        
+        .connection-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4cd137;
+        }
+        
+        .status-text {
+            flex: 1;
+        }
+        
+        .peer-count {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -461,7 +490,7 @@
             <h3 class="card-title"><i class="fas fa-satellite"></i> Active Session</h3>
             
             <div class="connection-status">
-                <div class="status-dot" id="connection-dot"></div>
+                <div class="connection-dot" id="connection-dot"></div>
                 <div class="status-text" id="status-text">Ready to connect</div>
                 <div class="peer-count" id="peer-count">0 peers</div>
             </div>
@@ -561,7 +590,6 @@
         let peer = null;
         let conn = null;
         let myLocation = null;
-        let sessionActive = false;
         let myAlias = "User-" + Math.random().toString(36).substr(2, 4).toUpperCase();
         let myMarker = null;
         let peerMarker = null;
@@ -612,6 +640,7 @@
             // Save session code for persistence
             localStorage.setItem('session_code', sessionCode);
             localStorage.setItem('session_active', 'true');
+            localStorage.setItem('session_role', isHost ? 'host' : 'joiner');
             
             // Show session UI
             setupCard.classList.add('hidden');
@@ -641,6 +670,12 @@
                         updateStatus('Connected to host!', true);
                         peerCount.textContent = "1 peer";
                         showNotification('Connected to host!');
+                        
+                        // Send our alias
+                        conn.send({
+                            type: 'alias',
+                            alias: myAlias
+                        });
                     });
                     
                     setupDataChannel(conn);
@@ -655,6 +690,12 @@
                 
                 // Set up data channel
                 setupDataChannel(conn);
+                
+                // Send our alias
+                conn.send({
+                    type: 'alias',
+                    alias: myAlias
+                });
             });
             
             peer.on('error', (err) => {
@@ -709,24 +750,25 @@
         
         // Update peer alias
         function updatePeerAlias(data) {
-            const peerCard = `
-                <div class="user-card">
-                    <div class="user-avatar">${data.alias.charAt(0)}</div>
-                    <div class="user-info">
-                        <div class="user-name">${data.alias}</div>
-                        <div class="user-location">
-                            <i class="fas fa-location-dot"></i>
-                            Location shared
-                        </div>
-                        <div class="status">
-                            <div class="status-dot"></div>
-                            Online
-                        </div>
+            const peerCard = document.createElement('div');
+            peerCard.className = 'user-card';
+            peerCard.innerHTML = `
+                <div class="user-avatar">${data.alias.charAt(0)}</div>
+                <div class="user-info">
+                    <div class="user-name">${data.alias}</div>
+                    <div class="user-location">
+                        <i class="fas fa-location-dot"></i>
+                        Location shared
+                    </div>
+                    <div class="status">
+                        <div class="status-dot"></div>
+                        Online
                     </div>
                 </div>
             `;
             
-            userList.innerHTML = peerCard + userList.querySelector('.user-card').outerHTML;
+            // Add peer card before your own card
+            userList.insertBefore(peerCard, userList.firstChild);
         }
         
         // Share my location
@@ -769,12 +811,6 @@
                             latitude: latitude,
                             longitude: longitude
                         });
-                        
-                        // Send my alias (not real name)
-                        conn.send({
-                            type: 'alias',
-                            alias: myAlias
-                        });
                     }
                     
                     shareLocationBtn.innerHTML = `<i class="fas fa-location-dot"></i> Location Shared`;
@@ -802,6 +838,7 @@
             
             // Clear session data
             localStorage.removeItem('session_active');
+            localStorage.removeItem('session_role');
             
             // Update UI
             setupCard.classList.remove('hidden');
@@ -845,14 +882,15 @@
             const realName = localStorage.getItem('local_real_name');
             const sessionCode = localStorage.getItem('session_code');
             const sessionActive = localStorage.getItem('session_active') === 'true';
+            const sessionRole = localStorage.getItem('session_role');
             
             if (realName) {
                 realNameInput.value = realName;
             }
             
-            if (sessionCode && sessionActive) {
+            if (sessionCode && sessionActive && sessionRole) {
                 sessionCodeInput.value = sessionCode;
-                startSession(false);
+                startSession(sessionRole === 'host');
             }
         });
         
