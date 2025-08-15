@@ -37,6 +37,8 @@
     .btn{padding:12px;border-radius:10px;border:none;cursor:pointer;font-weight:700;background:linear-gradient(45deg,#ff7e5f,#feb47b);color:#fff;display:inline-flex;align-items:center;gap:8px;justify-content:center;font-size:0.95rem}
     .btn-outline{background:transparent;border:2px solid #ff7e5f;color:#ff7e5f}
     .btn-stop{background:linear-gradient(45deg,#e84118,#c23616);color:#fff}
+    .btn-update{background:linear-gradient(45deg, #4facfe, #00f2fe);}
+    .btn-unshare{background:linear-gradient(45deg, #9c88ff, #8c7ae6);}
     .small-btn{padding:8px 10px;font-size:.92rem;border-radius:8px}
 
     .code-row{display:flex;gap:10px;align-items:center;margin-top:10px}
@@ -115,6 +117,15 @@
         .form-control { padding: 10px; }
         .notification { padding: 8px 12px; font-size: 0.85rem; }
     }
+    
+    /* Toggle switch */
+    .toggle-container { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+    .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+    .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background: linear-gradient(45deg,#ff7e5f,#feb47b); }
+    input:checked + .slider:before { transform: translateX(26px); }
 </style>
 </head>
 <body>
@@ -163,6 +174,16 @@
                 <button id="copy-session-code" class="btn btn-outline small-btn">Copy</button>
             </div>
         </div>
+        
+        <!-- Show real name toggle -->
+        <div class="toggle-container">
+            <label class="switch">
+                <input type="checkbox" id="show-real-name-toggle">
+                <span class="slider"></span>
+            </label>
+            <span>Show my real name to me</span>
+        </div>
+        <div class="form-note" style="margin-top:8px">This only changes how your name appears to you locally. Others will see an anonymous alias.</div>
 
         <div class="btn-container">
             <button id="create-session" class="btn"><i class="fas fa-plus-circle"></i> Create Session</button>
@@ -194,6 +215,12 @@
             <button id="share-location" class="btn"><i class="fas fa-location-dot"></i> Share Location</button>
             <button id="stop-session" class="btn btn-stop"><i class="fas fa-power-off"></i> Stop</button>
         </div>
+        
+        <!-- Location management buttons -->
+        <div class="btn-container hidden" id="location-controls" style="margin-top:12px;grid-template-columns:1fr 1fr">
+            <button id="update-location" class="btn btn-update"><i class="fas fa-sync-alt"></i> Update Location</button>
+            <button id="stop-sharing" class="btn btn-unshare"><i class="fas fa-location-slash"></i> Stop Sharing</button>
+        </div>
 
         <div class="form-note" style="margin-top:10px">Note: you must re-type your real name to resume (local-only).</div>
     </div>
@@ -215,7 +242,7 @@
             <div class="user-card" id="you-card">
                 <div class="user-avatar">Y</div>
                 <div class="user-info">
-                    <div class="user-name">You</div>
+                    <div class="user-name" id="your-name-display">You</div>
                     <div class="user-location muted"><i class="fas fa-location-slash"></i> Location not shared</div>
                     <div style="margin-top:8px"><span class="status-dot"></span> Online</div>
                 </div>
@@ -274,6 +301,11 @@ const sessionCodeInput = document.getElementById('session-code');
 const genCodeBtn = document.getElementById('gen-code');
 const revealCodeBtn = document.getElementById('reveal-code');
 const copySessionCodeBtn = document.getElementById('copy-session-code');
+const showRealNameToggle = document.getElementById('show-real-name-toggle');
+const yourNameDisplay = document.getElementById('your-name-display');
+const locationControls = document.getElementById('location-controls');
+const updateLocationBtn = document.getElementById('update-location');
+const stopSharingBtn = document.getElementById('stop-sharing');
 
 const createSessionBtn = document.getElementById('create-session');
 const openJoinBtn = document.getElementById('open-join');
@@ -311,6 +343,7 @@ let myMarker = null;
 let peerMarker = null;
 let notificationTimeout = null;
 let sessionRoleCached = null;
+let locationShared = false;
 
 let codeRevealed = false; // reveal state for generated codes
 let autoHideTimeout = null;
@@ -529,6 +562,10 @@ function startSession(isHost){
     displayCodeInput.value = code;
     updateStatus('Connecting...', false);
     updatePeerCount(0);
+    
+    // Hide location controls initially
+    locationControls.classList.add('hidden');
+    locationShared = false;
 
     // cleanup old peer
     destroyExistingPeer();
@@ -699,6 +736,10 @@ function shareMyLocation(){
         shareLocationBtn.disabled = false;
         shareLocationBtn.innerHTML = `<i class="fas fa-location-dot"></i> Share Location`;
         showNotification('Location shared');
+        
+        // Show location management controls
+        locationControls.classList.remove('hidden');
+        locationShared = true;
     }, err => {
         console.error('Geolocation error', err);
         shareLocationBtn.disabled = false;
@@ -706,6 +747,30 @@ function shareMyLocation(){
         showNotification('Could not get location (enable location services)', true);
     }, { enableHighAccuracy:true, maximumAge:30000, timeout:10000 });
 }
+
+/* update location */
+updateLocationBtn.addEventListener('click', () => {
+    shareMyLocation();
+    updateLocationBtn.innerHTML = `<i class="fas fa-sync fa-spin"></i> Updating...`;
+    showNotification('Updating your location...');
+});
+
+/* stop sharing location */
+stopSharingBtn.addEventListener('click', () => {
+    if(myMarker) {
+        map.removeLayer(myMarker);
+        myMarker = null;
+    }
+    
+    const myCard = document.getElementById('you-card');
+    myCard.querySelector('.user-location').innerHTML = `<i class="fas fa-location-slash"></i> Location not shared`;
+    
+    // Hide location management controls
+    locationControls.classList.add('hidden');
+    locationShared = false;
+    
+    showNotification('Stopped sharing your location');
+});
 
 /* stop session */
 function stopSession(){
@@ -724,12 +789,16 @@ function stopSession(){
     if(myMarker){ map.removeLayer(myMarker); myMarker=null; }
     if(peerMarker){ map.removeLayer(peerMarker); peerMarker=null; }
 
-    userList.innerHTML = `<div class="user-card" id="you-card"><div class="user-avatar">Y</div><div class="user-info"><div class="user-name">You</div><div class="user-location muted"><i class="fas fa-location-slash"></i> Location not shared</div><div style="margin-top:8px"><span class="status-dot"></span> Online</div></div></div>`;
+    userList.innerHTML = `<div class="user-card" id="you-card"><div class="user-avatar">Y</div><div class="user-info"><div class="user-name" id="your-name-display">You</div><div class="user-location muted"><i class="fas fa-location-slash"></i> Location not shared</div><div style="margin-top:8px"><span class="status-dot"></span> Online</div></div></div>`;
 
     chatMessages.innerHTML = '';
     
     // Clear session timeout
     if(sessionTimeout) clearTimeout(sessionTimeout);
+    
+    // Hide location controls
+    locationControls.classList.add('hidden');
+    locationShared = false;
     
     showNotification('Session stopped (test-only)');
 }
@@ -758,6 +827,11 @@ window.addEventListener('keydown', (e) => { if(e.key === 'Escape' && stopConfirm
 
 /* ========= Resume & load handling ========= */
 window.addEventListener('DOMContentLoaded', () => {
+    // Load show real name preference
+    const showRealName = localStorage.getItem('show_real_name') === 'true';
+    showRealNameToggle.checked = showRealName;
+    updateYourNameDisplay();
+    
     // intentionally DO NOT auto-fill the real name
     const sessionCode = localStorage.getItem('session_code');
     const sessionActive = localStorage.getItem('session_active') === 'true';
@@ -782,6 +856,22 @@ window.addEventListener('DOMContentLoaded', () => {
         sessionCard.classList.add('hidden');
         updateStatus('Ready to connect', false);
     }
+});
+
+/* Update your name display based on preference */
+function updateYourNameDisplay() {
+    if (showRealNameToggle.checked) {
+        const realName = localStorage.getItem('local_real_name') || 'You';
+        yourNameDisplay.textContent = realName;
+    } else {
+        yourNameDisplay.textContent = 'You';
+    }
+}
+
+/* Toggle show real name preference */
+showRealNameToggle.addEventListener('change', () => {
+    localStorage.setItem('show_real_name', showRealNameToggle.checked);
+    updateYourNameDisplay();
 });
 
 /* ========= Event listeners ========= */
