@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>SecureHat — Private Location Sharing</title>
+<title>SecureHat — Private Location Sharing & Chat (Test)</title>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -11,7 +11,6 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>
-    /* Layout & theme */
     *{box-sizing:border-box;margin:0;padding:0;font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif}
     body{min-height:100vh;background:linear-gradient(135deg,#10203a,#13294f);color:#fff;padding:24px}
     .container{max-width:980px;margin:0 auto}
@@ -42,7 +41,7 @@
     .code-container{display:flex;gap:10px;margin-top:10px}
     .code-input{flex:1;padding:12px;border-radius:10px;border:none;background:rgba(255,255,255,.03);text-align:center;letter-spacing:3px;font-weight:700;color:#fff}
 
-    .map-container{height:420px;border-radius:12px;overflow:hidden;margin-top:14px;border:2px solid rgba(255,255,255,.04)}
+    .map-container{height:320px;border-radius:12px;overflow:hidden;margin-top:14px;border:2px solid rgba(255,255,255,.04)}
     #map{width:100%;height:100%}
 
     .user-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:14px}
@@ -51,20 +50,27 @@
     .user-info .user-name{font-weight:700}
     .status-dot{width:10px;height:10px;border-radius:50%;background:#4cd137;display:inline-block;margin-right:8px}
 
+    .chat-card{display:flex;flex-direction:column;height:280px}
+    .chat-messages{flex:1;overflow:auto;padding:10px;border-radius:8px;background:rgba(0,0,0,0.12);margin-bottom:8px}
+    .chat-input-row{display:flex;gap:8px}
+    .chat-input{flex:1;padding:10px;border-radius:8px;border:none}
+    .chat-send{padding:10px;border-radius:8px;border:none;background:linear-gradient(45deg,#4facfe,#00f2fe);color:#fff;cursor:pointer}
+
     .notification{position:fixed;right:18px;top:18px;background:rgba(0,0,0,.45);padding:12px 16px;border-radius:10px;backdrop-filter:blur(4px);transform:translateX(120%);transition:transform .32s;z-index:9000;color:#fff;border-left:4px solid #4cd137}
     .notification.show{transform:translateX(0)}
     .notification.error{border-left-color:#e84118}
 
     footer{text-align:center;margin-top:18px;font-size:0.9rem;opacity:.8}
 
-    /* Modal: start hidden, .show class toggles it */
+    /* Modal */
     #stop-confirmation{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.72);z-index:9999;pointer-events:none}
     #stop-confirmation.show{display:flex;pointer-events:auto}
     .confirmation-box{width:90%;max-width:520px;background:linear-gradient(135deg,#11264a,#183054);border-radius:12px;padding:22px;border:1px solid rgba(255,255,255,.06);box-shadow:0 18px 40px rgba(0,0,0,.6);text-align:center;pointer-events:auto}
     .confirmation-buttons{display:flex;gap:12px;justify-content:center;margin-top:16px}
     .hidden{display:none !important}
-    /* small helpers */
     .muted{opacity:.9;font-size:.92rem}
+    .message-me{align-self:flex-end;background:linear-gradient(45deg,#ff7e5f,#feb47b);color:#000;padding:8px 12px;border-radius:12px;margin:6px 0;max-width:70%}
+    .message-peer{align-self:flex-start;background:rgba(255,255,255,0.08);color:#fff;padding:8px 12px;border-radius:12px;margin:6px 0;max-width:70%}
 </style>
 </head>
 <body>
@@ -72,10 +78,18 @@
     <header>
         <div class="logo">
             <div class="logo-icon"><i class="fas fa-user-secret" style="font-size:20px"></i></div>
-            <div class="logo-text">SECUREHAT</div>
+            <div>
+                <div class="logo-text">SECUREHAT</div>
+                <div style="font-size:0.9rem;color:rgba(255,255,255,0.85);font-weight:600;margin-top:4px;">
+                    Private Location Sharing &amp; Chat
+                </div>
+                <div style="font-size:0.85rem;color:rgba(255,255,255,0.65);margin-top:6px;">
+                    <em>Developed by Kurdistan Innovator Team</em>
+                </div>
+            </div>
         </div>
-        <h1>Private Location Sharing</h1>
-        <div class="subtitle muted">Share your location securely — your real name stays local-only. Session persists until you press STOP.</div>
+        <h1>Private Location Sharing & Chat (Test)</h1>
+        <div class="subtitle muted">Your real name stays local-only. Session persists until you press STOP.</div>
     </header>
 
     <div class="privacy-notice">
@@ -139,9 +153,13 @@
         <div class="map-container"><div id="map"></div></div>
     </div>
 
-    <!-- Connected users -->
+    <!-- Connected users + chat -->
     <div class="card">
-        <div class="card-title"><i class="fas fa-users"></i> Connected Users</div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+            <div class="card-title"><i class="fas fa-users"></i> Connected Users</div>
+            <div class="muted">Chat & messages are anonymized</div>
+        </div>
+
         <div class="user-list" id="user-list">
             <div class="user-card" id="you-card">
                 <div class="user-avatar">Y</div>
@@ -152,9 +170,22 @@
                 </div>
             </div>
         </div>
+
+        <div style="margin-top:12px" class="chat-card">
+            <div class="chat-messages" id="chat-messages" aria-live="polite"></div>
+            <div class="chat-input-row" style="margin-top:8px">
+                <input id="chat-input" class="chat-input" placeholder="Type a message (anonymous)..." />
+                <button id="chat-send" class="chat-send"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
     </div>
 
-    <footer><div>SecureHat © test — Privacy First | No DB | Session persists until stopped</div></footer>
+    <footer>
+      <div>SecureHat © test — Privacy First | No DB | Session persists until stopped</div>
+      <div style="margin-top:6px;font-size:0.85rem;opacity:0.85;">
+        Built and maintained by <strong>Kurdistan Innovator Team</strong>
+      </div>
+    </footer>
 </div>
 
 <!-- Notification -->
@@ -194,6 +225,9 @@ const userList = document.getElementById('user-list');
 const stopConfirmation = document.getElementById('stop-confirmation');
 const confirmStopBtn = document.getElementById('confirm-stop');
 const cancelStopBtn = document.getElementById('cancel-stop');
+const chatMessages = document.getElementById('chat-messages');
+const chatInput = document.getElementById('chat-input');
+const chatSend = document.getElementById('chat-send');
 
 /* ========= State ========= */
 let peer = null;
@@ -213,26 +247,23 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 /* ========= Helpers ========= */
 function generateAnonAlias(){ return 'User-' + Math.random().toString(36).slice(2,6).toUpperCase(); }
 
-function showNotification(msg, isError=false, duration=2800){
-    if(notificationTimeout) { clearTimeout(notificationTimeout); notificationTimeout=null; }
+function showNotification(msg, isError=false, duration=3000){
+    if(notificationTimeout){ clearTimeout(notificationTimeout); notificationTimeout=null; }
     notificationMessage.textContent = msg;
     notification.classList.add('show');
     if(isError) notification.classList.add('error'); else notification.classList.remove('error');
     notificationTimeout = setTimeout(()=>{ notification.classList.remove('show'); notification.classList.remove('error'); }, duration);
 }
 
-/* update status/light */
 function updateStatus(text, connected=false){
     statusText.textContent = text;
     connectionDot.style.background = connected ? '#4cd137' : '#fbc531';
 }
 
-/* peer count */
 function updatePeerCount(n){
     peerCount.textContent = String(n);
 }
 
-/* sanitize outgoing payloads (defensive) */
 function safeSend(payload){
     if(!conn || conn.open === false) return;
     if(payload && typeof payload === 'object'){
@@ -240,10 +271,9 @@ function safeSend(payload){
         delete payload.realName;
         delete payload.name;
     }
-    try { conn.send(payload); } catch(e){ console.error('send failed', e); }
+    try { conn.send(payload); } catch(e){ console.error('send failed', e); showNotification('Send failed', true); }
 }
 
-/* destroy peer safely */
 function destroyExistingPeer(){
     if(conn){ try{ conn.close(); }catch(e){} conn=null; }
     if(peer){ try{ peer.destroy(); }catch(e){} peer=null; }
@@ -263,125 +293,146 @@ async function copyToClipboard(text){
     } catch(e){ console.error(e); showNotification('Copy failed', true); }
 }
 
-/* ========= Peer / Session logic ========= */
+/* append chat message */
+function appendMessage(text, fromMe=false){
+    const el = document.createElement('div');
+    el.className = fromMe ? 'message-me' : 'message-peer';
+    el.textContent = text;
+    chatMessages.appendChild(el);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+/* ========= Create / Join fixes ========= */
+
+/*
+ createSession(true): requires a code. If session already active locally, prevents creating again.
+ joinSession(false): requires a code. Will attempt to connect with retries and clear errors.
+ both flows set localStorage flags for test-only persistence.
+*/
+
 function startSession(isHost){
     const code = (sessionCodeInput.value || '').trim();
     const realName = (realNameInput.value || '').trim();
 
-    // Enforce typing name each time (local-only)
+    // require name typed each time
     if(!realName){
         showNotification('Type your real name (local only) to proceed', true); return;
     }
-    if(code.length < 4){
-        showNotification('Enter a valid code (min 4 chars)', true); return;
+    if(code.length < 4){ showNotification('Enter a valid code (min 4 chars)', true); return; }
+
+    // prevent creating new session if already active locally
+    if(localStorage.getItem('session_active') === 'true' && isHost){
+        showNotification('A session is already active locally. Stop it first or Resume.', true);
+        return;
     }
 
-    // persist local and session flags (test-only)
+    // persist local-only name & session flags
     localStorage.setItem('local_real_name', realName);
     localStorage.setItem('session_code', code);
     localStorage.setItem('session_active', 'true');
     localStorage.setItem('session_role', isHost ? 'host' : 'joiner');
     sessionRoleCached = isHost ? 'host' : 'joiner';
 
-    // UI changes
+    // UI update
     setupCard.classList.add('hidden');
     sessionCard.classList.remove('hidden');
     displayCodeInput.value = code;
     updateStatus('Connecting...', false);
     updatePeerCount(0);
 
-    // Reset any previous peer
+    // cleanup old peer
     destroyExistingPeer();
 
-    // Create PeerJS instance
+    // create Peer
     try {
         peer = isHost ? new Peer(code) : new Peer();
-    } catch(e){
-        console.error('Peer creation failed', e);
-        showNotification('Failed to create peer: ' + String(e), true);
-        updateStatus('Error', false);
-        return;
-    }
+    } catch(e){ console.error('Peer create failed', e); showNotification('Peer init failed', true); updateStatus('Error', false); return; }
 
-    // disable controls while establishing
     setControlsDisabled(true);
 
-    // event handlers
+    let joinAttempts = 0;
+    const MAX_JOIN_ATTEMPTS = 6;
+    const JOIN_INTERVAL_MS = 1400;
+
     peer.on('open', (id) => {
-        // if we're joiner, connect to host using session code
         if(!isHost){
-            conn = peer.connect(code);
-            conn.on('open', () => {
-                updateStatus('Connected to host', true);
-                updatePeerCount(1);
-                showNotification('Connected to host');
-                safeSend({ type:'alias', alias: myAlias });
-            });
-            conn.on('error', (err) => { console.error(err); showNotification('Connection error', true); });
-            setupDataChannel(conn);
+            // attempt connect with retry loop
+            function tryConnect(){
+                joinAttempts++;
+                try {
+                    conn = peer.connect(code, { reliable: true, serialization: 'json' });
+                } catch(err){
+                    console.warn('connect exception', err);
+                    conn = null;
+                }
+                if(conn){
+                    conn.on('open', () => {
+                        updateStatus('Connected to host', true);
+                        updatePeerCount(1);
+                        showNotification('Connected to host');
+                        safeSend({ type:'alias', alias: myAlias });
+                    });
+                    conn.on('error', (err) => { console.error('conn error', err); showNotification('Connection error', true); });
+                    setupDataChannel(conn);
+                } else {
+                    if(joinAttempts < MAX_JOIN_ATTEMPTS){
+                        updateStatus(`Trying to connect... (${joinAttempts}/${MAX_JOIN_ATTEMPTS})`, false);
+                        setTimeout(tryConnect, JOIN_INTERVAL_MS);
+                    } else {
+                        showNotification('Unable to connect to host (no host found).', true);
+                        updateStatus('Unable to connect', false);
+                        setControlsDisabled(false);
+                    }
+                }
+            }
+            // start first try
+            tryConnect();
         } else {
-            updateStatus('Hosting — waiting for peer', true);
+            updateStatus('Hosting — waiting for peers', true);
             showNotification('Hosting session — share the code');
+            setControlsDisabled(false);
         }
-        setControlsDisabled(false);
     });
 
     peer.on('connection', (connection) => {
-        // host receives a connection
+        // host receives incoming connection
         conn = connection;
         setupDataChannel(conn);
         updateStatus('Peer connected', true);
         updatePeerCount(1);
         showNotification('Peer connected');
-        // reply with alias
         safeSend({ type:'alias', alias: myAlias });
     });
 
-    peer.on('error', (err) => {
-        console.error('Peer error', err);
-        showNotification('Peer error: ' + String(err), true);
-        updateStatus('Error', false);
-        setControlsDisabled(false);
-    });
-
-    peer.on('disconnected', () => {
-        updateStatus('Disconnected', false);
-        showNotification('Network disconnected', true);
-        setControlsDisabled(false);
-    });
+    peer.on('disconnected', () => { updateStatus('Disconnected', false); showNotification('Network disconnected', true); setControlsDisabled(false); });
+    peer.on('close', () => { updateStatus('Closed', false); setControlsDisabled(false); });
+    peer.on('error', (err) => { console.error('peer error', err); showNotification('Peer error: ' + String(err), true); updateStatus('Error', false); setControlsDisabled(false); });
 }
 
-/* data channel setup & handlers */
 function setupDataChannel(connection){
     if(!connection) return;
     connection.on('data', (data) => {
-        // defensive sanitization
-        if(data && typeof data === 'object'){
-            delete data.local_real_name; delete data.realName; delete data.name;
-        }
+        // defensive: remove any name fields
+        if(data && typeof data === 'object'){ delete data.local_real_name; delete data.realName; delete data.name; }
+
         if(data.type === 'alias') updatePeerAlias(data);
         else if(data.type === 'location') updatePeerLocation(data);
+        else if(data.type === 'chat') {
+            const txt = (data && data.text) ? String(data.text) : '';
+            appendMessage((data.clientAlias ? data.clientAlias + ': ' : '') + txt, false);
+        }
     });
 
     connection.on('close', () => {
-        updateStatus('Peer disconnected', false); updatePeerCount(0);
+        updateStatus('Peer disconnected', false);
+        updatePeerCount(0);
         if(peerMarker){ map.removeLayer(peerMarker); peerMarker=null; }
         showNotification('Peer disconnected');
     });
 
-    connection.on('error', (err) => { console.error('Data channel error', err); });
+    connection.on('error', (err) => { console.error('data channel error', err); showNotification('Data channel error', true); });
 }
 
-/* show peer location on map */
-function updatePeerLocation(d){
-    const latitude = Number(d.latitude), longitude = Number(d.longitude);
-    if(isNaN(latitude) || isNaN(longitude)) return;
-    if(peerMarker) map.removeLayer(peerMarker);
-    peerMarker = L.marker([latitude, longitude]).addTo(map).bindPopup('<b>Peer Location</b>').openPopup();
-    if(!myMarker) map.setView([latitude, longitude], 13);
-}
-
-/* show peer alias in user list (anonymized only) */
 function updatePeerAlias(data){
     const alias = (data && data.alias) ? String(data.alias) : generateAnonAlias();
     // prevent duplicate
@@ -393,7 +444,15 @@ function updatePeerAlias(data){
     userList.insertBefore(div, youCard.nextSibling);
 }
 
-/* share location (sends only lat/lon and alias) */
+function updatePeerLocation(d){
+    const latitude = Number(d.latitude), longitude = Number(d.longitude);
+    if(isNaN(latitude) || isNaN(longitude)) return;
+    if(peerMarker) map.removeLayer(peerMarker);
+    peerMarker = L.marker([latitude, longitude]).addTo(map).bindPopup('<b>Peer Location</b>').openPopup();
+    if(!myMarker) map.setView([latitude, longitude], 13);
+}
+
+/* share location */
 function shareMyLocation(){
     if(!conn || conn.open === false){ showNotification('No open connection. Resume or create session first.', true); return; }
     if(!navigator.geolocation){ showNotification('Geolocation not supported', true); return; }
@@ -403,16 +462,12 @@ function shareMyLocation(){
 
     navigator.geolocation.getCurrentPosition(pos => {
         const latitude = pos.coords.latitude, longitude = pos.coords.longitude;
-        // local UI update
         const myCard = document.getElementById('you-card');
         myCard.querySelector('.user-location').innerHTML = `<i class="fas fa-location-dot"></i> Location shared`;
-        myCard.querySelector('.user-avatar').classList.add('pulse');
-
         if(myMarker) map.removeLayer(myMarker);
         myMarker = L.marker([latitude, longitude]).addTo(map).bindPopup('<b>Your Location</b>').openPopup();
         map.setView([latitude, longitude], 13);
 
-        // send payload (safeSend will sanitize)
         safeSend({ type:'location', latitude: latitude, longitude: longitude, clientAlias: myAlias });
 
         shareLocationBtn.disabled = false;
@@ -426,39 +481,35 @@ function shareMyLocation(){
     }, { enableHighAccuracy:true, maximumAge:30000, timeout:10000 });
 }
 
-/* stop session: destroys peer and clears session flags (called after confirm) */
+/* stop session */
 function stopSession(){
-    // destroy connections & peer
     destroyExistingPeer();
-
-    // clear local session flags
     localStorage.removeItem('session_active');
     localStorage.removeItem('session_role');
     localStorage.removeItem('session_code');
     sessionRoleCached = null;
 
-    // UI reset
     setupCard.classList.remove('hidden');
     sessionCard.classList.add('hidden');
     displayCodeInput.value = '';
     updateStatus('Ready to connect', false);
     updatePeerCount(0);
 
-    // clear markers & user list (preserve "You" card)
     if(myMarker){ map.removeLayer(myMarker); myMarker=null; }
     if(peerMarker){ map.removeLayer(peerMarker); peerMarker=null; }
 
     userList.innerHTML = `<div class="user-card" id="you-card"><div class="user-avatar">Y</div><div class="user-info"><div class="user-name">You</div><div class="user-location muted"><i class="fas fa-location-slash"></i> Location not shared</div><div style="margin-top:8px"><span class="status-dot"></span> Online</div></div></div>`;
 
+    chatMessages.innerHTML = '';
     showNotification('Session stopped (test-only)');
 }
 
 /* control helper */
 function setControlsDisabled(state){
-    [createSessionBtn, joinSessionBtn, shareLocationBtn, resumeSessionBtn, copyCodeBtn].forEach(b => { if(b) b.disabled = state; });
+    [createSessionBtn, joinSessionBtn, shareLocationBtn, resumeSessionBtn, copyCodeBtn, chatSend].forEach(b => { if(b) b.disabled = state; });
 }
 
-/* ========= Modal behavior (fixed) ========= */
+/* ========= Modal fixed behavior ========= */
 function showStopModal(){
     const sessionActive = localStorage.getItem('session_active') === 'true';
     if(!sessionActive){ showNotification('No active session to stop', true); return; }
@@ -468,10 +519,7 @@ function showStopModal(){
 function hideStopModal(){ stopConfirmation.classList.remove('show'); }
 
 stopSessionBtn.addEventListener('click', (e) => { showStopModal(); });
-confirmStopBtn.addEventListener('click', (e) => {
-    hideStopModal();
-    setTimeout(()=> stopSession(), 120); // small delay so modal hides smoothly
-});
+confirmStopBtn.addEventListener('click', (e) => { hideStopModal(); setTimeout(()=> stopSession(), 120); });
 cancelStopBtn.addEventListener('click', hideStopModal);
 stopConfirmation.addEventListener('click', (e) => { if(e.target === stopConfirmation) hideStopModal(); });
 const confirmationBox = stopConfirmation.querySelector('.confirmation-box');
@@ -480,22 +528,15 @@ window.addEventListener('keydown', (e) => { if(e.key === 'Escape' && stopConfirm
 
 /* ========= Resume & load handling ========= */
 window.addEventListener('DOMContentLoaded', () => {
-    // intentionally DO NOT auto-fill the real name into input
-    const storedName = localStorage.getItem('local_real_name');
-    if(storedName){
-        // we don't auto-fill the name input; keep it empty so user types it each time
-        // but optionally show a small hint comment (handled in UI text)
-    }
-
+    // intentionally DO NOT auto-fill the real name
     const sessionCode = localStorage.getItem('session_code');
     const sessionActive = localStorage.getItem('session_active') === 'true';
     const sessionRole = localStorage.getItem('session_role');
 
     if(sessionCode && sessionActive && sessionRole){
-        // Show that a session exists server-side (test-only). User must type name and press Resume to reconnect.
         displayCodeInput.value = sessionCode;
-        setupCard.classList.remove('hidden'); // show setup so user types name
-        sessionCard.classList.remove('hidden'); // also show session so they can resume
+        setupCard.classList.remove('hidden');
+        sessionCard.classList.remove('hidden');
         updateStatus('Session active (server-side). Type your name and press Resume.', false);
         updatePeerCount(0);
         sessionRoleCached = sessionRole;
@@ -506,14 +547,12 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-/* ========= Event listeners (buttons) ========= */
+/* ========= Event listeners ========= */
 createSessionBtn.addEventListener('click', () => startSession(true));
 joinSessionBtn.addEventListener('click', () => startSession(false));
 
 resumeSessionBtn.addEventListener('click', () => {
-    // require the user to type their name (do not auto-fill)
     if(!realNameInput.value.trim()){ showNotification('Type your real name to resume (local only).', true); return; }
-    // populate sessionCodeInput from persisted value if missing
     const persistedCode = localStorage.getItem('session_code') || displayCodeInput.value;
     if(persistedCode) sessionCodeInput.value = persistedCode;
     const isHost = (localStorage.getItem('session_role') === 'host');
@@ -527,11 +566,29 @@ copyCodeBtn.addEventListener('click', () => {
 
 shareLocationBtn.addEventListener('click', shareMyLocation);
 
-/* beforeunload: warn user but DO NOT auto-stop session */
+/* Chat send */
+chatSend.addEventListener('click', () => {
+    const txt = chatInput.value.trim();
+    if(!txt) return;
+    // append locally
+    appendMessage('You: ' + txt, true);
+    // send only alias + text
+    safeSend({ type:'chat', text: txt, clientAlias: myAlias });
+    chatInput.value = '';
+});
+
+/* allow Enter to send */
+chatInput.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter' && !e.shiftKey){
+        e.preventDefault();
+        chatSend.click();
+    }
+});
+
+/* beforeunload warn */
 window.addEventListener('beforeunload', (e) => {
     const sessionActive = localStorage.getItem('session_active') === 'true';
     if(sessionActive){
-        // modern browsers ignore custom message; this prevents accidental close and indicates session persists.
         e.preventDefault();
         e.returnValue = '';
     }
