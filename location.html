@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>University of Duhok - Solar Hat Location Guide</title>
+  <title>Solar Hat - Peer-to-Peer Location Sharing</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
@@ -36,6 +36,7 @@
       border-bottom: 2px solid rgba(255, 255, 255, 0.2);
       margin-bottom: 30px;
       flex-wrap: wrap;
+      position: relative;
     }
     
     .logo {
@@ -53,6 +54,13 @@
       align-items: center;
       justify-content: center;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
     }
     
     .logo-text {
@@ -333,7 +341,7 @@
     }
     
     /* Pulse animation for user location */
-    @keyframes pulse {
+    @keyframes pulse-dot {
       0% { transform: scale(1); opacity: 1; }
       70% { transform: scale(3); opacity: 0; }
       100% { transform: scale(1); opacity: 0; }
@@ -346,7 +354,7 @@
       height: 100%;
       border-radius: 50%;
       background: rgba(255, 126, 95, 0.6);
-      animation: pulse 2s infinite;
+      animation: pulse-dot 2s infinite;
       z-index: 1;
     }
     
@@ -384,13 +392,13 @@
       border-radius: 10px;
     }
     
-    .campus-image {
+    .app-image {
       width: 100%;
       height: 200px;
       border-radius: 10px;
       margin: 25px 0;
       background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), 
-                  url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80');
+                  url('https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80');
       background-size: cover;
       background-position: center;
       display: flex;
@@ -398,11 +406,25 @@
       justify-content: center;
       text-align: center;
       padding: 20px;
+      position: relative;
     }
     
-    .campus-image h2 {
-      font-size: 2rem;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    .app-image::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(45deg, rgba(26, 42, 108, 0.7), rgba(42, 82, 152, 0.7));
+      border-radius: 10px;
+    }
+    
+    .app-image h2 {
+      font-size: 2.5rem;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+      position: relative;
+      z-index: 2;
     }
     
     /* Modal styles */
@@ -437,6 +459,8 @@
       font-size: 1.5rem;
       cursor: pointer;
       color: #ff7e5f;
+      background: transparent;
+      border: none;
     }
     
     .modal-title {
@@ -498,6 +522,12 @@
       border-radius: 5px;
       cursor: pointer;
       margin-top: 10px;
+      transition: all 0.3s;
+    }
+    
+    .copy-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
     
     .peer-list {
@@ -528,6 +558,7 @@
       padding: 5px 10px;
       border-radius: 5px;
       cursor: pointer;
+      transition: all 0.3s;
     }
     
     .connect-btn:hover {
@@ -552,6 +583,54 @@
       font-size: 0.9rem;
       text-align: center;
       padding: 10px;
+      position: relative;
+    }
+    
+    .qr-placeholder::before {
+      content: 'QR Code';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 10px;
+      padding: 15px 25px;
+      border-left: 4px solid #4cd137;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      z-index: 1001;
+      transform: translateX(120%);
+      transition: transform 0.5s ease;
+    }
+    
+    .notification.show {
+      transform: translateX(0);
+    }
+    
+    .notification.error {
+      border-left-color: #e84118;
+    }
+    
+    .status-badge {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      background: #e84118;
+      color: white;
+      border-radius: 50%;
+      width: 25px;
+      height: 25px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     }
   </style>
 </head>
@@ -560,22 +639,22 @@
     <header>
       <div class="logo">
         <div class="logo-icon">
-          <i class="fas fa-hat-cowboy"></i>
+          <i class="fas fa-satellite"></i>
         </div>
         <div class="logo-text">Solar Hat</div>
       </div>
-      <h1>University of Duhok Location Guide</h1>
+      <h1>Peer-to-Peer Location Sharing</h1>
       <button class="btn btn-outline" id="settings-btn">
         <i class="fas fa-cog"></i>
         Settings
       </button>
     </header>
     
-    <div class="campus-image">
-      <h2>Find Your Friends & Colleagues</h2>
+    <div class="app-image">
+      <h2>Find Your Friends Anywhere</h2>
     </div>
     
-    <p class="subtitle">Our peer-to-peer technology allows you to share your location with others on campus without needing a central database. Locations are shared directly between devices for maximum privacy.</p>
+    <p class="subtitle">Our decentralized technology allows you to share your location directly with friends without needing a central server. Locations are shared peer-to-peer for maximum privacy and security.</p>
     
     <div class="map-container">
       <div id="map"></div>
@@ -608,7 +687,7 @@
     
     <div class="info-box">
       <h2><i class="fas fa-satellite-dish"></i> How Peer-to-Peer Location Sharing Works</h2>
-      <p>Our Solar Hat technology uses WebRTC peer-to-peer networking to enable location sharing without a central database:</p>
+      <p>Solar Hat uses advanced peer-to-peer networking to enable location sharing without any central servers:</p>
       
       <div class="features">
         <div class="feature">
@@ -627,7 +706,7 @@
           </div>
           <div class="feature-text">
             <h3>Real-Time Updates</h3>
-            <p>See locations update in real-time as people move around campus.</p>
+            <p>See locations update in real-time as people move around.</p>
           </div>
         </div>
         
@@ -654,24 +733,24 @@
     </div>
     
     <footer>
-      <p>University of Duhok &copy; 2023 | Solar Hat Location System</p>
-      <p>College of Engineering | Computer Science Department</p>
+      <p>Solar Hat &copy; 2023 | Peer-to-Peer Location Sharing</p>
+      <p>Privacy First | Zero Server Architecture</p>
     </footer>
   </div>
   
   <!-- Modal for user setup -->
   <div class="modal" id="setup-modal">
     <div class="modal-content">
-      <span class="close-modal" id="close-setup">&times;</span>
+      <button class="close-modal" id="close-setup">&times;</button>
       <h2 class="modal-title">Set Up Your Profile</h2>
       
       <div class="form-group">
-        <label for="user-name">Your Name</label>
+        <label for="user-name"><i class="fas fa-user"></i> Your Name</label>
         <input type="text" id="user-name" class="form-control" placeholder="Enter your name">
       </div>
       
       <div class="form-group">
-        <label for="user-avatar">Select Avatar Initial</label>
+        <label for="user-avatar"><i class="fas fa-user-circle"></i> Select Avatar Initial</label>
         <select id="user-avatar" class="form-control">
           <option value="A">A</option>
           <option value="B">B</option>
@@ -704,7 +783,7 @@
       
       <button id="save-profile" class="btn" style="width:100%">
         <i class="fas fa-save"></i>
-        Save Profile
+        Save Profile & Get Started
       </button>
     </div>
   </div>
@@ -712,11 +791,11 @@
   <!-- Modal for peer connection -->
   <div class="modal" id="peer-modal">
     <div class="modal-content">
-      <span class="close-modal" id="close-peer">&times;</span>
+      <button class="close-modal" id="close-peer">&times;</button>
       <h2 class="modal-title">Connect with Friends</h2>
       
       <div class="peer-id-box">
-        <p>Your Peer ID:</p>
+        <p><i class="fas fa-id-card"></i> Your Peer ID:</p>
         <div id="peer-id" class="peer-id">Generating...</div>
         <button id="copy-peer-id" class="copy-btn">
           <i class="fas fa-copy"></i> Copy to Clipboard
@@ -725,12 +804,12 @@
       
       <div class="qr-container">
         <div class="qr-placeholder">
-          Scan to connect<br>(QR code would appear here)
+          <!-- QR code placeholder -->
         </div>
       </div>
       
       <div class="form-group">
-        <label for="peer-id-input">Connect to Friend</label>
+        <label for="peer-id-input"><i class="fas fa-link"></i> Connect to Friend</label>
         <input type="text" id="peer-id-input" class="form-control" placeholder="Enter friend's Peer ID">
       </div>
       
@@ -739,138 +818,26 @@
         Connect
       </button>
       
-      <h3 style="margin-top:20px;">Nearby Peers</h3>
+      <h3 style="margin-top:20px;"><i class="fas fa-users"></i> Nearby Peers</h3>
       <div class="peer-list" id="peer-list">
-        <div class="peer-item">
-          <span>Ahmed Hassan</span>
-          <button class="connect-btn">Connect</button>
-        </div>
-        <div class="peer-item">
-          <span>Sara Mohammed</span>
-          <button class="connect-btn">Connect</button>
-        </div>
-        <div class="peer-item">
-          <span>Karim Abdullah</span>
-          <button class="connect-btn">Connect</button>
-        </div>
+        <!-- Peer items will be added dynamically -->
       </div>
     </div>
   </div>
   
+  <div class="notification" id="notification">
+    <i class="fas fa-info-circle"></i> <span id="notification-message">Notification message</span>
+  </div>
+  
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    // Initialize the map centered on University of Duhok
-    const map = L.map('map').setView([36.8625, 42.9850], 16);
+    // Initialize the map with a world view
+    const map = L.map('map').setView([20, 0], 2);
     
     // Add OpenStreetMap tiles
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
-    
-    // University of Duhok campus boundary coordinates
-    const campusBoundary = [
-      [36.8590, 42.9780],
-      [36.8590, 42.9920],
-      [36.8660, 42.9920],
-      [36.8660, 42.9780]
-    ];
-    
-    // Draw campus boundary
-    L.polygon(campusBoundary, {
-      color: '#ff7e5f',
-      weight: 2,
-      fillOpacity: 0.1
-    }).addTo(map).bindPopup('University of Duhok Campus');
-    
-    // Important campus locations
-    const locations = [
-      {name: 'Main Gate', coords: [36.8630, 42.9830], type: 'entrance', icon: 'fa-door-open'},
-      {name: 'Administration', coords: [36.8635, 42.9840], type: 'admin', icon: 'fa-building'},
-      {name: 'Engineering Faculty', coords: [36.8620, 42.9860], type: 'faculty', icon: 'fa-microchip'},
-      {name: 'Science Faculty', coords: [36.8610, 42.9820], type: 'faculty', icon: 'fa-flask'},
-      {name: 'Library', coords: [36.8640, 42.9860], type: 'library', icon: 'fa-book'},
-      {name: 'Student Center', coords: [36.8645, 42.9820], type: 'student', icon: 'fa-users'},
-      {name: 'Sports Complex', coords: [36.8600, 42.9870], type: 'sports', icon: 'fa-futbol'},
-      {name: 'Cafeteria', coords: [36.8630, 42.9850], type: 'cafeteria', icon: 'fa-utensils'},
-      {name: 'Medical Center', coords: [36.8650, 42.9880], type: 'medical', icon: 'fa-house-medical'}
-    ];
-    
-    // Add markers for important locations
-    locations.forEach(loc => {
-      const marker = L.marker(loc.coords).addTo(map);
-      
-      // Create custom icon with Font Awesome
-      const iconElement = document.createElement('i');
-      iconElement.className = `fas ${loc.icon} fa-2x`;
-      iconElement.style.color = '#ff7e5f';
-      
-      const iconDiv = document.createElement('div');
-      iconDiv.appendChild(iconElement);
-      iconDiv.style.textAlign = 'center';
-      
-      marker.bindPopup(`
-        <div style="text-align:center">
-          <div style="font-size:24px;color:#ff7e5f;margin-bottom:5px">
-            <i class="fas ${loc.icon}"></i>
-          </div>
-          <b>${loc.name}</b><br>
-          ${loc.type.replace(/^\w/, c => c.toUpperCase())}
-        </div>
-      `);
-    });
-    
-    // Add campus buildings layer
-    const buildings = [
-      {name: 'Engineering Building', coords: [
-        [36.8615, 42.9855], [36.8615, 42.9865], [36.8625, 42.9865], [36.8625, 42.9855]
-      ], color: '#3498db'},
-      {name: 'Science Building', coords: [
-        [36.8605, 42.9815], [36.8605, 42.9825], [36.8615, 42.9825], [36.8615, 42.9815]
-      ], color: '#9b59b6'},
-      {name: 'Library', coords: [
-        [36.8635, 42.9855], [36.8635, 42.9865], [36.8645, 42.9865], [36.8645, 42.9855]
-      ], color: '#e74c3c'},
-      {name: 'Student Center', coords: [
-        [36.8640, 42.9815], [36.8640, 42.9825], [36.8650, 42.9825], [36.8650, 42.9815]
-      ], color: '#f39c12'}
-    ];
-    
-    // Draw campus buildings
-    buildings.forEach(building => {
-      L.polygon(building.coords, {
-        color: building.color,
-        weight: 1,
-        fillColor: building.color,
-        fillOpacity: 0.2
-      }).addTo(map).bindPopup(building.name);
-    });
-    
-    // Add legend
-    const legend = L.control({position: 'bottomright'});
-    
-    legend.onAdd = function(map) {
-      const div = L.DomUtil.create('div', 'map-legend');
-      div.style.backgroundColor = 'rgba(0,0,0,0.7)';
-      div.style.padding = '10px';
-      div.style.borderRadius = '5px';
-      div.style.color = 'white';
-      div.style.fontSize = '14px';
-      
-      div.innerHTML = `
-        <h4 style="margin:0 0 10px;border-bottom:1px solid #ccc;padding-bottom:5px;">Campus Map</h4>
-        <div><i class="fas fa-door-open" style="color:#ff7e5f"></i> Entrance</div>
-        <div><i class="fas fa-building" style="color:#ff7e5f"></i> Administration</div>
-        <div><i class="fas fa-microchip" style="color:#ff7e5f"></i> Engineering</div>
-        <div><i class="fas fa-flask" style="color:#ff7e5f"></i> Science</div>
-        <div><i class="fas fa-book" style="color:#ff7e5f"></i> Library</div>
-        <div><i class="fas fa-users" style="color:#ff7e5f"></i> Student Center</div>
-        <div><i class="fas fa-circle" style="color:#4cd137"></i> Online User</div>
-      `;
-      
-      return div;
-    };
-    
-    legend.addTo(map);
     
     // Peer-to-Peer functionality
     // User profile
@@ -897,11 +864,30 @@
     const peerIdElement = document.getElementById('peer-id');
     const connectionStatus = document.getElementById('connection-status-text');
     const peerCountElement = document.querySelector('.peer-count');
+    const notification = document.getElementById('notification');
+    const notificationMessage = document.getElementById('notification-message');
+    
+    // Show notification
+    function showNotification(message, isError = false) {
+      notificationMessage.textContent = message;
+      notification.className = 'notification show';
+      if (isError) {
+        notification.classList.add('error');
+      } else {
+        notification.classList.remove('error');
+      }
+      
+      setTimeout(() => {
+        notification.className = 'notification';
+      }, 3000);
+    }
     
     // Check if user has a profile
     if (localStorage.getItem('userProfile')) {
       userProfile = JSON.parse(localStorage.getItem('userProfile'));
       updateUserCard();
+      connectionStatus.textContent = 'Connected to Solar Hat Network';
+      peerIdElement.textContent = userProfile.peerId;
     } else {
       // Show setup modal if no profile exists
       setupModal.style.display = 'flex';
@@ -926,7 +912,7 @@
       const userAvatar = document.getElementById('user-avatar').value;
       
       if (userName.trim() === '') {
-        alert('Please enter your name');
+        showNotification('Please enter your name', true);
         return;
       }
       
@@ -942,6 +928,8 @@
       updateUserCard();
       connectionStatus.textContent = 'Connected to Solar Hat Network';
       peerIdElement.textContent = userProfile.peerId;
+      
+      showNotification('Profile created successfully!');
     });
     
     inviteFriendsBtn.addEventListener('click', () => {
@@ -951,10 +939,14 @@
       }
       
       peerModal.style.display = 'flex';
+      
+      // Simulate discovering nearby peers
+      simulateNearbyPeers();
     });
     
     copyPeerIdBtn.addEventListener('click', () => {
       navigator.clipboard.writeText(userProfile.peerId);
+      showNotification('Peer ID copied to clipboard!');
       copyPeerIdBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
       setTimeout(() => {
         copyPeerIdBtn.innerHTML = '<i class="fas fa-copy"></i> Copy to Clipboard';
@@ -964,7 +956,7 @@
     connectToPeerBtn.addEventListener('click', () => {
       const peerIdInput = document.getElementById('peer-id-input').value;
       if (peerIdInput.trim() === '') {
-        alert('Please enter a peer ID');
+        showNotification('Please enter a peer ID', true);
         return;
       }
       
@@ -993,25 +985,72 @@
           // Update UI
           btn.innerHTML = `<i class="fas fa-location-dot"></i> Location Shared`;
           btn.classList.add('active');
-          document.querySelector('.user-avatar').classList.add('pulse-dot');
+          
+          // Center map on user's location
+          map.setView([lat, lng], 16);
+          
+          // Add user marker to map
+          addUserMarker(userProfile);
           
           // Update user card
           updateUserCard();
           
           // Simulate peer connections
           simulatePeerConnections();
+          
+          showNotification('Location sharing activated');
         }, error => {
           console.error('Geolocation error:', error);
           btn.innerHTML = `<i class="fas fa-location-dot"></i> Share My Location`;
           btn.disabled = false;
-          alert('Could not get your location. Please ensure location services are enabled.');
+          showNotification('Could not get your location. Please enable location services.', true);
         }, { enableHighAccuracy: true });
       } else {
-        alert('Geolocation is not supported by your browser');
+        showNotification('Geolocation is not supported by your browser', true);
         btn.innerHTML = `<i class="fas fa-location-dot"></i> Share My Location`;
         btn.disabled = false;
       }
     });
+    
+    // Add user marker to map
+    function addUserMarker(user) {
+      const color = user.status === 'online' ? '#4cd137' : '#fbc531';
+      
+      if (window.userMarker) {
+        window.userMarker.setLatLng(user.location);
+        return;
+      }
+      
+      window.userMarker = L.marker(user.location, {
+        icon: L.divIcon({
+          className: 'user-marker',
+          html: `
+            <div style="
+              width: 30px; 
+              height: 30px; 
+              background: ${color};
+              border: 2px solid white;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-weight: bold;
+              box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            ">${user.avatar}</div>
+          `,
+          iconSize: [30, 30],
+          iconAnchor: [15, 15]
+        })
+      }).addTo(map);
+      
+      window.userMarker.bindPopup(`
+        <div style="min-width:180px">
+          <b>${user.name}</b><br>
+          <span style="color:${color}">●</span> Online<br>
+          <small>Last update: Just now</small>
+        </div>
+      `);
+    }
     
     // Update user card in the list
     function updateUserCard() {
@@ -1019,37 +1058,74 @@
       
       // Create user card HTML
       let locationText = 'Location not shared';
+      let locationIcon = 'fa-location-slash';
       if (userProfile.location) {
-        locationText = 'Engineering Building, Room 205';
+        locationText = 'Sharing location';
+        locationIcon = 'fa-location-dot';
       }
       
-      const statusClass = userProfile.status === 'online' ? '' : userProfile.status === 'away' ? 'away' : 'busy';
+      const statusClass = userProfile.status === 'online' ? '' : 'away';
       
       userList.innerHTML = `
         <div class="user-card">
-          <div class="user-avatar ${userProfile.status === 'online' && userProfile.location ? 'pulse-dot' : ''}">${userProfile.avatar}</div>
+          <div class="user-avatar ${userProfile.status === 'online' && userProfile.location ? 'pulse-dot' : ''}">
+            ${userProfile.avatar}
+            ${userProfile.status === 'online' ? '<div class="status-badge"><i class="fas fa-wifi"></i></div>' : ''}
+          </div>
           <div class="user-info">
             <div class="user-name">${userProfile.name || 'You'}</div>
             <div class="user-location">
-              <i class="fas fa-location-dot"></i>
+              <i class="fas ${locationIcon}"></i>
               ${locationText}
             </div>
             <div class="status">
               <div class="status-dot ${statusClass}"></div>
-              ${userProfile.status === 'online' ? 'Online - Sharing location' : 'Offline'}
+              ${userProfile.status === 'online' ? 'Online - Active' : 'Offline'}
             </div>
           </div>
         </div>
       `;
     }
     
+    // Simulate nearby peers discovery
+    function simulateNearbyPeers() {
+      const peerList = document.getElementById('peer-list');
+      peerList.innerHTML = '';
+      
+      const nearbyPeers = [
+        {id: 'peer-ahmed123', name: 'Ahmed Hassan', avatar: 'A'},
+        {id: 'peer-sara456', name: 'Sara Mohammed', avatar: 'S'},
+        {id: 'peer-karim789', name: 'Karim Abdullah', avatar: 'K'}
+      ];
+      
+      nearbyPeers.forEach(peer => {
+        const peerItem = document.createElement('div');
+        peerItem.className = 'peer-item';
+        peerItem.innerHTML = `
+          <div>
+            <strong>${peer.name}</strong><br>
+            <small>${peer.id}</small>
+          </div>
+          <button class="connect-btn" data-peer-id="${peer.id}">
+            <i class="fas fa-link"></i> Connect
+          </button>
+        `;
+        peerList.appendChild(peerItem);
+        
+        // Add event listener to connect button
+        peerItem.querySelector('.connect-btn').addEventListener('click', function() {
+          connectToPeer(peer.id);
+        });
+      });
+    }
+    
     // Simulate peer connections
     function simulatePeerConnections() {
       // Simulated peers
       const simulatedPeers = [
-        {name: 'Ahmed Hassan', avatar: 'A', location: [36.8642, 42.9865], status: 'away'},
-        {name: 'Sara Mohammed', avatar: 'S', location: [36.8612, 42.9825], status: 'online'},
-        {name: 'Karim Abdullah', avatar: 'K', location: [36.8648, 42.9825], status: 'online'}
+        {name: 'Ahmed Hassan', avatar: 'A', location: [userProfile.location[0] + 0.001, userProfile.location[1] + 0.001], status: 'away'},
+        {name: 'Sara Mohammed', avatar: 'S', location: [userProfile.location[0] - 0.001, userProfile.location[1] - 0.001], status: 'online'},
+        {name: 'Karim Abdullah', avatar: 'K', location: [userProfile.location[0] + 0.002, userProfile.location[1] - 0.001], status: 'online'}
       ];
       
       // Update peer count
@@ -1062,26 +1138,27 @@
         const peerCard = document.createElement('div');
         peerCard.className = 'user-card';
         peerCard.innerHTML = `
-          <div class="user-avatar ${peer.status === 'online' ? 'pulse-dot' : ''}">${peer.avatar}</div>
+          <div class="user-avatar ${peer.status === 'online' ? 'pulse-dot' : ''}">
+            ${peer.avatar}
+            ${peer.status === 'online' ? '<div class="status-badge"><i class="fas fa-wifi"></i></div>' : ''}
+          </div>
           <div class="user-info">
             <div class="user-name">${peer.name}</div>
             <div class="user-location">
               <i class="fas fa-location-dot"></i>
-              ${peer.name === 'Ahmed Hassan' ? 'Main Library, 2nd Floor' : 
-                peer.name === 'Sara Mohammed' ? 'Science Building, Lab 3' : 
-                'Student Center, Cafeteria'}
+              ${peer.name === 'Ahmed Hassan' ? 'Library, 2nd Floor' : 
+                peer.name === 'Sara Mohammed' ? 'Science Lab' : 
+                'Cafeteria'}
             </div>
             <div class="status">
               <div class="status-dot ${peer.status === 'online' ? '' : 'away'}"></div>
-              ${peer.status === 'online' ? 'Online - Available' : 'Studying - 5 min ago'}
+              ${peer.status === 'online' ? 'Online - Active' : 'Studying - 5 min ago'}
             </div>
           </div>
         `;
         userList.appendChild(peerCard);
-      });
-      
-      // Add peer markers to map
-      simulatedPeers.forEach(peer => {
+        
+        // Add peer markers to map
         const color = peer.status === 'online' ? '#4cd137' : '#fbc531';
         
         const marker = L.marker(peer.location, {
@@ -1133,10 +1210,17 @@
         const newPeerItem = document.createElement('div');
         newPeerItem.className = 'peer-item';
         newPeerItem.innerHTML = `
-          <span>${peerId} (Connected)</span>
-          <button class="connect-btn" disabled>Connected</button>
+          <div>
+            <strong>Connected Peer</strong><br>
+            <small>${peerId}</small>
+          </div>
+          <button class="connect-btn" disabled>
+            <i class="fas fa-check"></i> Connected
+          </button>
         `;
         peerList.insertBefore(newPeerItem, peerList.firstChild);
+        
+        showNotification(`Connected to ${peerId} successfully!`);
         
         // Re-enable button after a delay
         setTimeout(() => {
@@ -1145,6 +1229,26 @@
         }, 2000);
       }, 1500);
     }
+    
+    // Simulate location updates for peers
+    function simulateLocationUpdates() {
+      if (window.peerMarkers && window.peerMarkers.length > 0) {
+        window.peerMarkers.forEach(marker => {
+          // Random small movements
+          const latChange = (Math.random() - 0.5) * 0.0005;
+          const lngChange = (Math.random() - 0.5) * 0.0005;
+          
+          const currentLatLng = marker.getLatLng();
+          const newLat = currentLatLng.lat + latChange;
+          const newLng = currentLatLng.lng + lngChange;
+          
+          marker.setLatLng([newLat, newLng]);
+        });
+      }
+    }
+    
+    // Start simulating location updates
+    setInterval(simulateLocationUpdates, 5000);
   </script>
 </body>
 </html>
