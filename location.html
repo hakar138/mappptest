@@ -277,14 +277,9 @@ let sessionRoleCached = null;
 
 let codeRevealed = false; // reveal state for generated codes
 let autoHideTimeout = null;
-let sessionTimeout = null; // For session expiration
 
 /* ========= Map init ========= */
-const map = L.map('map', { 
-    attributionControl: false,
-    center: [34.5, 45.5], // Kurdistan approximate center
-    zoom: 7
-});
+const map = L.map('map', { attributionControl: false }).setView([0,0],2);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
@@ -344,26 +339,6 @@ function appendMessage(text, fromMe=false){
     el.className = fromMe ? 'message-me' : 'message-peer';
     el.textContent = text;
     chatMessages.appendChild(el);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-    
-    // Save to localStorage only if session is active
-    if(localStorage.getItem('session_active') === 'true') {
-        const messages = JSON.parse(localStorage.getItem('session_chat') || [];
-        messages.push({text, fromMe});
-        localStorage.setItem('session_chat', JSON.stringify(messages));
-    }
-}
-
-/* Load chat messages from localStorage */
-function loadChatMessages() {
-    const messages = JSON.parse(localStorage.getItem('session_chat')) || [];
-    chatMessages.innerHTML = '';
-    messages.forEach(msg => {
-        const el = document.createElement('div');
-        el.className = msg.fromMe ? 'message-me' : 'message-peer';
-        el.textContent = msg.text;
-        chatMessages.appendChild(el);
-    });
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
@@ -505,10 +480,6 @@ function startSession(isHost){
     localStorage.setItem('session_role', isHost ? 'host' : 'joiner');
     sessionRoleCached = isHost ? 'host' : 'joiner';
 
-    // Clear previous chat messages when starting new session
-    localStorage.removeItem('session_chat');
-    chatMessages.innerHTML = '';
-
     // UI update
     setupCard.classList.add('hidden');
     sessionCard.classList.remove('hidden');
@@ -525,13 +496,6 @@ function startSession(isHost){
     } catch(e){ console.error('Peer create failed', e); showNotification('Peer init failed', true); updateStatus('Error', false); return; }
 
     setControlsDisabled(true);
-
-    // Set session timeout (30 minutes)
-    if(sessionTimeout) clearTimeout(sessionTimeout);
-    sessionTimeout = setTimeout(() => {
-        showNotification('Session expired after 30 minutes', true);
-        stopSession();
-    }, 30 * 60 * 1000);
 
     let joinAttempts = 0;
     const MAX_JOIN_ATTEMPTS = 6;
@@ -654,13 +618,8 @@ function shareMyLocation(){
         safeSend({ type:'location', latitude: latitude, longitude: longitude, clientAlias: myAlias });
 
         shareLocationBtn.disabled = false;
-        shareLocationBtn.innerHTML = `<i class="fas fa-location-dot"></i> Share My Location`;
+        shareLocationBtn.innerHTML = `<i class="fas fa-location-dot"></i> Location Shared`;
         showNotification('Location shared');
-        
-        // Reset button after 5 seconds
-        setTimeout(() => {
-            shareLocationBtn.innerHTML = `<i class="fas fa-location-dot"></i> Share My Location`;
-        }, 5000);
     }, err => {
         console.error('Geolocation error', err);
         shareLocationBtn.disabled = false;
@@ -675,7 +634,6 @@ function stopSession(){
     localStorage.removeItem('session_active');
     localStorage.removeItem('session_role');
     localStorage.removeItem('session_code');
-    localStorage.removeItem('session_chat'); // Clear chat storage
     sessionRoleCached = null;
 
     setupCard.classList.remove('hidden');
@@ -690,10 +648,6 @@ function stopSession(){
     userList.innerHTML = `<div class="user-card" id="you-card"><div class="user-avatar">Y</div><div class="user-info"><div class="user-name">You</div><div class="user-location muted"><i class="fas fa-location-slash"></i> Location not shared</div><div style="margin-top:8px"><span class="status-dot"></span> Online</div></div></div>`;
 
     chatMessages.innerHTML = '';
-    
-    // Clear session timeout
-    if(sessionTimeout) clearTimeout(sessionTimeout);
-    
     showNotification('Session stopped (test-only)');
 }
 
@@ -733,16 +687,6 @@ window.addEventListener('DOMContentLoaded', () => {
         updateStatus('Session active (server-side). Type your name and press Resume.', false);
         updatePeerCount(0);
         sessionRoleCached = sessionRole;
-        
-        // Load chat messages if session is active
-        loadChatMessages();
-        
-        // Set session timeout (30 minutes) if session is active
-        if(sessionTimeout) clearTimeout(sessionTimeout);
-        sessionTimeout = setTimeout(() => {
-            showNotification('Session expired after 30 minutes', true);
-            stopSession();
-        }, 30 * 60 * 1000);
     } else {
         setupCard.classList.remove('hidden');
         sessionCard.classList.add('hidden');
