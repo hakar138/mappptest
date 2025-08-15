@@ -37,9 +37,11 @@
     .btn{padding:12px;border-radius:10px;border:none;cursor:pointer;font-weight:700;background:linear-gradient(45deg,#ff7e5f,#feb47b);color:#fff;display:inline-flex;align-items:center;gap:8px;justify-content:center}
     .btn-outline{background:transparent;border:2px solid #ff7e5f;color:#ff7e5f}
     .btn-stop{background:linear-gradient(45deg,#e84118,#c23616);color:#fff}
+    .small-btn{padding:8px 10px;font-size:.92rem;border-radius:8px}
 
-    .code-container{display:flex;gap:10px;margin-top:10px}
+    .code-row{display:flex;gap:10px;align-items:center;margin-top:10px}
     .code-input{flex:1;padding:12px;border-radius:10px;border:none;background:rgba(255,255,255,.03);text-align:center;letter-spacing:3px;font-weight:700;color:#fff}
+    .code-meta{font-size:.85rem;color:rgba(255,255,255,.8);margin-top:6px}
 
     .map-container{height:320px;border-radius:12px;overflow:hidden;margin-top:14px;border:2px solid rgba(255,255,255,.04)}
     #map{width:100%;height:100%}
@@ -62,7 +64,12 @@
 
     footer{text-align:center;margin-top:18px;font-size:0.9rem;opacity:.8}
 
-    /* Modal */
+    /* Modal (join) */
+    #join-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.6);z-index:10000;pointer-events:none}
+    #join-modal.show{display:flex;pointer-events:auto}
+    .join-box{width:90%;max-width:480px;background:linear-gradient(135deg,#0e2340,#102e4a);padding:18px;border-radius:12px;border:1px solid rgba(255,255,255,.06)}
+
+    /* Stop confirmation modal */
     #stop-confirmation{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.72);z-index:9999;pointer-events:none}
     #stop-confirmation.show{display:flex;pointer-events:auto}
     .confirmation-box{width:90%;max-width:520px;background:linear-gradient(135deg,#11264a,#183054);border-radius:12px;padding:22px;border:1px solid rgba(255,255,255,.06);box-shadow:0 18px 40px rgba(0,0,0,.6);text-align:center;pointer-events:auto}
@@ -109,13 +116,20 @@
 
         <div class="form-group">
             <label class="form-label">Session Code</label>
-            <input id="session-code" class="form-control" type="text" placeholder="Enter 4+ character code">
-            <div class="form-note">Use the same code to create or join a session (acts as a room key).</div>
+            <div class="code-row">
+                <input id="session-code" class="code-input" type="text" placeholder="Enter or generate a secure code">
+                <button id="gen-code" class="btn small-btn" title="Generate a secure, hard-to-guess code"><i class="fas fa-lock"></i> Generate</button>
+                <button id="reveal-code" class="btn btn-outline small-btn" title="Reveal/Hide generated code">Reveal</button>
+            </div>
+            <div class="code-meta">
+                <span id="code-hint">Tip: generate a secure code to reduce guessing. Reveal shows it briefly and enables copy.</span>
+                <button id="copy-session-code" class="btn btn-outline small-btn" style="margin-left:12px;">Copy</button>
+            </div>
         </div>
 
         <div class="btn-container">
             <button id="create-session" class="btn"><i class="fas fa-plus-circle"></i> Create Session</button>
-            <button id="join-session" class="btn btn-outline"><i class="fas fa-user-friends"></i> Join Session</button>
+            <button id="open-join" class="btn btn-outline"><i class="fas fa-user-friends"></i> Join Session</button>
         </div>
     </div>
 
@@ -191,6 +205,19 @@
 <!-- Notification -->
 <div id="notification" class="notification" role="status" aria-live="polite"><i class="fas fa-info-circle"></i> <span id="notification-message">Ready</span></div>
 
+<!-- Join modal -->
+<div id="join-modal" aria-hidden="true">
+  <div class="join-box">
+    <h3 style="margin:0 0 8px"><i class="fas fa-user-friends"></i> Join Session</h3>
+    <p class="muted" style="margin:0 0 12px">Enter the session code provided by the host.</p>
+    <input id="join-code-input" class="form-control" placeholder="Enter join session code">
+    <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end">
+      <button id="join-cancel" class="btn btn-outline">Cancel</button>
+      <button id="join-now" class="btn"><i class="fas fa-sign-in-alt"></i> Join Now</button>
+    </div>
+  </div>
+</div>
+
 <!-- Stop confirmation modal -->
 <div id="stop-confirmation" role="dialog" aria-modal="true" aria-labelledby="stop-title">
     <div class="confirmation-box">
@@ -207,8 +234,17 @@
 /* ========= DOM refs ========= */
 const realNameInput = document.getElementById('real-name');
 const sessionCodeInput = document.getElementById('session-code');
+const genCodeBtn = document.getElementById('gen-code');
+const revealCodeBtn = document.getElementById('reveal-code');
+const copySessionCodeBtn = document.getElementById('copy-session-code');
+
 const createSessionBtn = document.getElementById('create-session');
-const joinSessionBtn = document.getElementById('join-session');
+const openJoinBtn = document.getElementById('open-join');
+const joinModal = document.getElementById('join-modal');
+const joinCodeInput = document.getElementById('join-code-input');
+const joinNowBtn = document.getElementById('join-now');
+const joinCancelBtn = document.getElementById('join-cancel');
+
 const setupCard = document.getElementById('setup-card');
 const sessionCard = document.getElementById('session-card');
 const displayCodeInput = document.getElementById('display-code');
@@ -228,6 +264,7 @@ const cancelStopBtn = document.getElementById('cancel-stop');
 const chatMessages = document.getElementById('chat-messages');
 const chatInput = document.getElementById('chat-input');
 const chatSend = document.getElementById('chat-send');
+const codeHint = document.getElementById('code-hint');
 
 /* ========= State ========= */
 let peer = null;
@@ -237,6 +274,9 @@ let myMarker = null;
 let peerMarker = null;
 let notificationTimeout = null;
 let sessionRoleCached = null;
+
+let codeRevealed = false; // reveal state for generated codes
+let autoHideTimeout = null;
 
 /* ========= Map init ========= */
 const map = L.map('map', { attributionControl: false }).setView([0,0],2);
@@ -302,13 +342,120 @@ function appendMessage(text, fromMe=false){
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-/* ========= Create / Join fixes ========= */
+/* ========= Code generator & reveal logic ========= */
 
 /*
- createSession(true): requires a code. If session already active locally, prevents creating again.
- joinSession(false): requires a code. Will attempt to connect with retries and clear errors.
- both flows set localStorage flags for test-only persistence.
+  Generate a secure, hard-to-guess session code using crypto.getRandomValues.
+  Output is base62-ish: A-Z a-z 0-9, length configurable.
 */
+function generateSecureCode(length = 8) {
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const arr = new Uint8Array(length);
+    window.crypto.getRandomValues(arr);
+    let s = '';
+    for (let i = 0; i < arr.length; i++) {
+        s += alphabet[arr[i] % alphabet.length];
+    }
+    return s;
+}
+
+genCodeBtn.addEventListener('click', () => {
+    const code = generateSecureCode(8);
+    sessionCodeInput.value = code;
+    // mask by default (so user must reveal to copy)
+    maskCodeDisplay();
+    showNotification('Secure code generated. Click Reveal to view and copy.');
+});
+
+function maskCodeDisplay() {
+    codeRevealed = false;
+    sessionCodeInput.type = 'password';
+    sessionCodeInput.style.letterSpacing = 'normal';
+    revealCodeBtn.textContent = 'Reveal';
+    copySessionCodeBtn.disabled = true;
+    // auto-clear previous auto-hide timer
+    if (autoHideTimeout) { clearTimeout(autoHideTimeout); autoHideTimeout = null; }
+}
+
+function revealCodeTemporarily() {
+    if (!sessionCodeInput.value) {
+        showNotification('No code to reveal', true);
+        return;
+    }
+    codeRevealed = true;
+    sessionCodeInput.type = 'text';
+    sessionCodeInput.style.letterSpacing = '3px';
+    revealCodeBtn.textContent = 'Hide';
+    copySessionCodeBtn.disabled = false;
+    // auto-hide after 20 seconds to reduce easy copying
+    if (autoHideTimeout) clearTimeout(autoHideTimeout);
+    autoHideTimeout = setTimeout(() => {
+        maskCodeDisplay();
+        showNotification('Code auto-hidden for security');
+    }, 20000);
+}
+
+revealCodeBtn.addEventListener('click', () => {
+    if (codeRevealed) {
+        maskCodeDisplay();
+    } else {
+        revealCodeTemporarily();
+    }
+});
+
+// copy session code button (near generator)
+copySessionCodeBtn.addEventListener('click', () => {
+    if (!sessionCodeInput.value) { showNotification('No code to copy', true); return; }
+    if (!codeRevealed) { showNotification('Reveal the code first to enable copying', true); return; }
+    copyToClipboard(sessionCodeInput.value);
+});
+
+/* ========= Join modal behavior ========= */
+
+openJoinBtn.addEventListener('click', () => {
+    joinModal.classList.add('show');
+    joinModal.setAttribute('aria-hidden', 'false');
+    joinCodeInput.value = '';
+    setTimeout(()=> joinCodeInput.focus(), 60);
+});
+
+joinCancelBtn.addEventListener('click', () => {
+    joinModal.classList.remove('show');
+    joinModal.setAttribute('aria-hidden', 'true');
+});
+
+joinNowBtn.addEventListener('click', () => {
+    const code = (joinCodeInput.value || '').trim();
+    if (!code || code.length < 4) {
+        showNotification('Enter a valid join code (min 4 chars)', true);
+        return;
+    }
+    // place the join code into the main session-code input (masked by default)
+    sessionCodeInput.value = code;
+    maskCodeDisplay();
+    // hide modal
+    joinModal.classList.remove('show');
+    joinModal.setAttribute('aria-hidden', 'true');
+    // start join flow (requires user to type their name first)
+    if (!realNameInput.value.trim()) {
+        showNotification('Type your real name (local only) before joining.', true);
+        // show setup card so user can type name
+        setupCard.classList.remove('hidden');
+        sessionCard.classList.add('hidden');
+        return;
+    }
+    startSession(false);
+});
+
+// close modal when clicking outside join-box
+joinModal.addEventListener('click', (e) => {
+    if (e.target === joinModal) {
+        joinModal.classList.remove('show');
+        joinModal.setAttribute('aria-hidden', 'true');
+    }
+});
+
+/* ========= Create / Join fixes (existing logic, updated to require code) ========= */
 
 function startSession(isHost){
     const code = (sessionCodeInput.value || '').trim();
@@ -389,7 +536,7 @@ function startSession(isHost){
             tryConnect();
         } else {
             updateStatus('Hosting — waiting for peers', true);
-            showNotification('Hosting session — share the code');
+            showNotification('Hosting session — share the code (reveal briefly to copy).');
             setControlsDisabled(false);
         }
     });
@@ -506,10 +653,10 @@ function stopSession(){
 
 /* control helper */
 function setControlsDisabled(state){
-    [createSessionBtn, joinSessionBtn, shareLocationBtn, resumeSessionBtn, copyCodeBtn, chatSend].forEach(b => { if(b) b.disabled = state; });
+    [createSessionBtn, openJoinBtn, shareLocationBtn, resumeSessionBtn, copyCodeBtn, chatSend].forEach(b => { if(b) b.disabled = state; });
 }
 
-/* ========= Modal fixed behavior ========= */
+/* ========= Modal fixed behavior (stop modal) ========= */
 function showStopModal(){
     const sessionActive = localStorage.getItem('session_active') === 'true';
     if(!sessionActive){ showNotification('No active session to stop', true); return; }
@@ -548,8 +695,23 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 /* ========= Event listeners ========= */
-createSessionBtn.addEventListener('click', () => startSession(true));
-joinSessionBtn.addEventListener('click', () => startSession(false));
+createSessionBtn.addEventListener('click', () => {
+    // ensure a code exists before creating
+    if(!sessionCodeInput.value.trim()){
+        showNotification('Enter or generate a session code before creating', true);
+        return;
+    }
+    startSession(true);
+});
+
+openJoinBtn.addEventListener('click', () => {
+    // handled above; this is kept for safety
+    joinModal.classList.add('show');
+    joinModal.setAttribute('aria-hidden', 'false');
+});
+
+joinNowBtn.addEventListener('click', () => { /* handled above */ });
+joinCancelBtn.addEventListener('click', () => { /* handled above */ });
 
 resumeSessionBtn.addEventListener('click', () => {
     if(!realNameInput.value.trim()){ showNotification('Type your real name to resume (local only).', true); return; }
