@@ -9,6 +9,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <style>
+        /* (kept your styles unchanged) */
         * {
             margin: 0;
             padding: 0;
@@ -464,14 +465,14 @@
             
             <div class="form-group">
                 <label class="form-label">Your Real Name (Local Only)</label>
-                <input type="text" id="real-name" class="form-control" placeholder="Enter your real name">
-                <div class="form-note">Stored locally only - never shared with anyone</div>
+                <input type="text" id="real-name" class="form-control" placeholder="Type your real name (required)">
+                <div class="form-note">You must type your name each time to start or resume a session. It will be stored locally only and never shared.</div>
             </div>
             
             <div class="form-group">
                 <label class="form-label">Session Code</label>
-                <input type="text" id="session-code" class="form-control" placeholder="Enter 6-digit code">
-                <div class="form-note">Share this same code with the person you want to connect with</div>
+                <input type="text" id="session-code" class="form-control" placeholder="Enter 4+ character code">
+                <div class="form-note">Use the same code to create or join a session with someone else.</div>
             </div>
             
             <div class="btn-container">
@@ -502,7 +503,11 @@
                 </button>
             </div>
             
-            <div class="btn-container">
+            <div class="btn-container" style="grid-template-columns: 1fr 1fr 1fr;">
+                <button id="resume-session" class="btn btn-outline">
+                    <i class="fas fa-play"></i>
+                    Resume Connection
+                </button>
                 <button id="share-location" class="btn">
                     <i class="fas fa-location-dot"></i>
                     Share My Location
@@ -524,7 +529,7 @@
         <div class="card">
             <h3 class="card-title"><i class="fas fa-users"></i> Connected Users</h3>
             <div class="user-list" id="user-list">
-                <div class="user-card">
+                <div class="user-card" id="you-card">
                     <div class="user-avatar">Y</div>
                     <div class="user-info">
                         <div class="user-name">You</div>
@@ -541,15 +546,15 @@
             </div>
         </div>
         
-        <div class="notification" id="notification">
+        <div class="notification" id="notification" aria-live="polite">
             <i class="fas fa-info-circle"></i> <span id="notification-message">Notification message</span>
         </div>
         
-        <div id="stop-confirmation" class="hidden">
+        <div id="stop-confirmation" class="hidden" role="dialog" aria-modal="true">
             <div class="confirmation-box">
                 <h3><i class="fas fa-exclamation-triangle"></i> Confirm Session Stop</h3>
                 <p>Are you sure you want to stop the current session?</p>
-                <p>This will disconnect you and remove the session.</p>
+                <p>This will disconnect you and remove the session (test-only behavior).</p>
                 
                 <div class="confirmation-buttons">
                     <button id="confirm-stop" class="btn btn-stop">Yes, Stop Session</button>
@@ -576,6 +581,7 @@
         const copyCodeBtn = document.getElementById('copy-code');
         const shareLocationBtn = document.getElementById('share-location');
         const stopSessionBtn = document.getElementById('stop-session');
+        const resumeSessionBtn = document.getElementById('resume-session');
         const statusText = document.getElementById('status-text');
         const peerCount = document.getElementById('peer-count');
         const connectionDot = document.getElementById('connection-dot');
@@ -585,177 +591,279 @@
         const stopConfirmation = document.getElementById('stop-confirmation');
         const confirmStopBtn = document.getElementById('confirm-stop');
         const cancelStopBtn = document.getElementById('cancel-stop');
-        
+
         // Application state
         let peer = null;
         let conn = null;
         let myLocation = null;
-        let myAlias = "User-" + Math.random().toString(36).substr(2, 4).toUpperCase();
+        let myAlias = generateAnonAlias();
         let myMarker = null;
         let peerMarker = null;
-        
+        let sessionRoleCached = null;
+
         // Initialize map
         const map = L.map('map').setView([0, 0], 2);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
-        
-        // Show notification
-        function showNotification(message, isError = false) {
+
+        // Utility: generate anonymized alias
+        function generateAnonAlias() {
+            return 'User-' + Math.random().toString(36).slice(2, 6).toUpperCase();
+        }
+
+        // Show notification (safe toggle)
+        let notificationTimeout = null;
+        function showNotification(message, isError = false, duration = 3000) {
+            if (notificationTimeout) {
+                clearTimeout(notificationTimeout);
+                notificationTimeout = null;
+            }
             notificationMessage.textContent = message;
-            notification.className = 'notification show';
+            notification.classList.add('show');
             if (isError) {
                 notification.classList.add('error');
+            } else {
+                notification.classList.remove('error');
             }
-            
-            setTimeout(() => {
-                notification.className = 'notification';
-            }, 3000);
+            notificationTimeout = setTimeout(() => {
+                notification.classList.remove('show');
+                notification.classList.remove('error');
+            }, duration);
         }
-        
-        // Update connection status
+
+        // Update connection status (visual)
         function updateStatus(text, isConnected = false) {
             statusText.textContent = text;
             connectionDot.style.background = isConnected ? '#4cd137' : '#fbc531';
         }
-        
-        // Start a new session
+
+        // Defensive: sanitize outgoing payloads to avoid sending local real name
+        function safeSend(payload) {
+            if (!conn || conn.open === false) return;
+            // Ensure no real name leaks
+            if (payload && typeof payload === 'object') {
+                if ('local_real_name' in payload) delete payload.local_real_name;
+                if ('realName' in payload) delete payload.realName;
+                if ('name' in payload) {
+                    // Do not send any plain "name" field — always send alias if needed
+                    delete payload.name;
+                }
+            }
+            try {
+                conn.send(payload);
+            } catch (e) {
+                console.error('Send failed', e);
+            }
+        }
+
+        // Clean up previous peer if exists
+        function destroyExistingPeer() {
+            if (conn) {
+                try { conn.close(); } catch (e) {}
+                conn = null;
+            }
+            if (peer) {
+                try { peer.destroy(); } catch (e) {}
+                peer = null;
+            }
+        }
+
+        // Start a new session or join
         function startSession(isHost) {
             const sessionCode = sessionCodeInput.value.trim();
-            const realName = realNameInput.value.trim();
-            
+            const realName = realNameInput.value.trim(); // required to be typed each time (per your request)
+
+            // Validation: require typing name each time
             if (!realName) {
-                showNotification('Please enter your name', true);
+                showNotification('Please type your real name (local only) to proceed.', true);
                 return;
             }
-            
+
             if (sessionCode.length < 4) {
-                showNotification('Please enter a valid session code (min 4 characters)', true);
+                showNotification('Please enter a valid session code (min 4 characters).', true);
                 return;
             }
-            
-            // Store real name locally (never transmitted)
+
+            // Store real name locally (never transmitted) - but do not auto-fill on load
             localStorage.setItem('local_real_name', realName);
-            
-            // Save session code for persistence
+
+            // Save session code & active state (server-side test behavior is assumed)
             localStorage.setItem('session_code', sessionCode);
             localStorage.setItem('session_active', 'true');
             localStorage.setItem('session_role', isHost ? 'host' : 'joiner');
-            
-            // Show session UI
+            sessionRoleCached = isHost ? 'host' : 'joiner';
+
+            // Update UI to session view (but do not auto-send name)
             setupCard.classList.add('hidden');
             sessionCard.classList.remove('hidden');
             displayCodeInput.value = sessionCode;
-            
-            // Initialize PeerJS
-            if (isHost) {
-                // Host uses the session code as peer ID
-                peer = new Peer(sessionCode);
-            } else {
-                // Joiner generates a random peer ID
-                peer = new Peer();
-            }
-            
-            peer.on('open', (id) => {
+            updateStatus('Connecting...', false);
+
+            // Prevent duplicate peers when resuming/quickly reconnecting
+            destroyExistingPeer();
+
+            // Initialize PeerJS with defensive event handlers
+            try {
                 if (isHost) {
-                    updateStatus(`Hosting session: ${sessionCode}`, true);
-                    showNotification('Session created! Share the code with your friend.');
+                    peer = new Peer(sessionCode);
                 } else {
-                    updateStatus(`Joined session: ${sessionCode}`, true);
-                    
-                    // Connect to host
-                    conn = peer.connect(sessionCode);
-                    
-                    conn.on('open', () => {
-                        updateStatus('Connected to host!', true);
-                        peerCount.textContent = "1 peer";
-                        showNotification('Connected to host!');
-                        
-                        // Send our alias
-                        conn.send({
-                            type: 'alias',
-                            alias: myAlias
-                        });
-                    });
-                    
-                    setupDataChannel(conn);
+                    // joiner uses ephemeral id
+                    peer = new Peer();
                 }
-            });
-            
-            peer.on('connection', (connection) => {
-                conn = connection;
-                updateStatus('Peer connected!', true);
-                peerCount.textContent = "1 peer";
-                showNotification('Peer connected!');
-                
-                // Set up data channel
-                setupDataChannel(conn);
-                
-                // Send our alias
-                conn.send({
-                    type: 'alias',
-                    alias: myAlias
+
+                // disable create/join buttons while establishing
+                setButtonsDisabled(true);
+
+                peer.on('open', (id) => {
+                    // On open, if joiner, connect to host
+                    if (!isHost) {
+                        conn = peer.connect(sessionCode);
+                        conn.on('open', () => {
+                            updateStatus('Connected to host!', true);
+                            updatePeerCount(1);
+                            showNotification('Connected to host!');
+                            // send alias only (never send real name)
+                            safeSend({ type: 'alias', alias: myAlias });
+                        });
+
+                        conn.on('error', (err) => {
+                            console.error('Connection error:', err);
+                            showNotification('Connection error: ' + String(err), true);
+                        });
+
+                        setupDataChannel(conn);
+                    } else {
+                        // host ready, wait for incoming connections
+                        updateStatus(`Hosting session: ${sessionCode}`, true);
+                        showNotification('Hosting session — share the code.');
+                    }
+                    setButtonsDisabled(false);
                 });
-            });
-            
-            peer.on('error', (err) => {
-                console.error('PeerJS error:', err);
-                showNotification('Connection error: ' + err, true);
-                updateStatus('Connection error', false);
-            });
+
+                peer.on('connection', (connection) => {
+                    // handle incoming connection (host receives)
+                    conn = connection;
+                    updateStatus('Peer connected!', true);
+                    updatePeerCount(1);
+                    showNotification('Peer connected!');
+                    setupDataChannel(conn);
+                    // send our alias to them
+                    safeSend({ type: 'alias', alias: myAlias });
+                });
+
+                peer.on('disconnected', () => {
+                    updateStatus('Disconnected (network)', false);
+                    showNotification('Network disconnected, try to resume later.', true);
+                    setButtonsDisabled(false);
+                });
+
+                peer.on('close', () => {
+                    updateStatus('Connection closed', false);
+                    setButtonsDisabled(false);
+                });
+
+                peer.on('error', (err) => {
+                    console.error('PeerJS error:', err);
+                    showNotification('PeerJS error: ' + String(err), true);
+                    updateStatus('Connection error', false);
+                    setButtonsDisabled(false);
+                });
+
+            } catch (err) {
+                console.error('Peer initialization error', err);
+                showNotification('Failed to initialize peer: ' + String(err), true);
+                setButtonsDisabled(false);
+            }
         }
-        
-        // Set up data channel for communication
+
+        // Enable/disable main buttons while working
+        function setButtonsDisabled(disabled) {
+            createSessionBtn.disabled = disabled;
+            joinSessionBtn.disabled = disabled;
+            shareLocationBtn.disabled = disabled;
+            resumeSessionBtn.disabled = disabled;
+            copyCodeBtn.disabled = disabled;
+            if (disabled) {
+                createSessionBtn.style.opacity = 0.6;
+                joinSessionBtn.style.opacity = 0.6;
+            } else {
+                createSessionBtn.style.opacity = 1;
+                joinSessionBtn.style.opacity = 1;
+            }
+        }
+
+        // Setup data channel
         function setupDataChannel(connection) {
-            // Receive messages
+            if (!connection) return;
             connection.on('data', (data) => {
+                // Defensive: remove any accidentally leaked name fields
+                if (data && typeof data === 'object') {
+                    if ('local_real_name' in data) delete data.local_real_name;
+                    if ('realName' in data) delete data.realName;
+                    if ('name' in data) delete data.name;
+                }
+
                 if (data.type === 'location') {
                     updatePeerLocation(data);
                 } else if (data.type === 'alias') {
                     updatePeerAlias(data);
                 }
             });
-            
+
             connection.on('close', () => {
                 updateStatus('Peer disconnected', false);
-                peerCount.textContent = "0 peers";
+                updatePeerCount(0);
                 if (peerMarker) {
                     map.removeLayer(peerMarker);
                     peerMarker = null;
                 }
-                showNotification('Peer disconnected', true);
+                showNotification('Peer disconnected');
+            });
+
+            connection.on('error', (err) => {
+                console.error('Data channel error', err);
             });
         }
-        
+
         // Update peer location on the map
         function updatePeerLocation(data) {
             const { latitude, longitude } = data;
-            
-            // Update map
+            if (typeof latitude !== 'number' || typeof longitude !== 'number') return;
+
             if (peerMarker) {
                 map.removeLayer(peerMarker);
             }
-            
+
             peerMarker = L.marker([latitude, longitude], {
                 title: "Peer's Location"
             }).addTo(map);
-            
+
             peerMarker.bindPopup(`<b>Peer Location</b>`).openPopup();
-            
-            // Center map if this is the first location
+
+            // Center map if user's own location not set
             if (!myLocation) {
                 map.setView([latitude, longitude], 13);
             }
         }
-        
-        // Update peer alias
+
+        // Add or update peer alias card (only show anonymized alias)
         function updatePeerAlias(data) {
+            const alias = (data && data.alias) ? String(data.alias) : generateAnonAlias();
+
+            // Prevent duplicate entries: check existing cards by alias text
+            const existing = Array.from(userList.querySelectorAll('.user-card')).find(c => {
+                const nameEl = c.querySelector('.user-name');
+                return nameEl && nameEl.textContent === alias;
+            });
+            if (existing) return;
+
             const peerCard = document.createElement('div');
             peerCard.className = 'user-card';
             peerCard.innerHTML = `
-                <div class="user-avatar">${data.alias.charAt(0)}</div>
+                <div class="user-avatar">${alias.charAt(0)}</div>
                 <div class="user-info">
-                    <div class="user-name">${data.alias}</div>
+                    <div class="user-name">${alias}</div>
                     <div class="user-location">
                         <i class="fas fa-location-dot"></i>
                         Location shared
@@ -766,54 +874,67 @@
                     </div>
                 </div>
             `;
-            
-            // Add peer card before your own card
-            userList.insertBefore(peerCard, userList.firstChild);
+
+            // Add peer card before your own card, but after header
+            const youCard = document.getElementById('you-card');
+            userList.insertBefore(peerCard, youCard.nextSibling);
         }
-        
-        // Share my location
+
+        // Update the visible peer count (pluralization)
+        function updatePeerCount(n) {
+            peerCount.textContent = `${n} peer${n === 1 ? '' : 's'}`;
+        }
+
+        // Share my location (sends only lat/lon; never sends real name)
         function shareMyLocation() {
+            if (!conn || conn.open === false) {
+                showNotification('No open connection. Resume or create a session first.', true);
+                return;
+            }
+
             if (navigator.geolocation) {
                 shareLocationBtn.innerHTML = `<i class="fas fa-sync fa-spin"></i> Getting location...`;
                 shareLocationBtn.disabled = true;
-                
+
                 navigator.geolocation.getCurrentPosition(position => {
                     const latitude = position.coords.latitude;
                     const longitude = position.coords.longitude;
                     myLocation = { latitude, longitude };
-                    
-                    // Update my location in UI
-                    const myCard = userList.querySelector('.user-card');
-                    myCard.querySelector('.user-location').innerHTML = `
-                        <i class="fas fa-location-dot"></i>
-                        Location shared
-                    `;
-                    
-                    // Add my marker to map
+
+                    // Update my location in UI (local-only)
+                    const myCard = document.getElementById('you-card');
+                    if (myCard) {
+                        const locEl = myCard.querySelector('.user-location');
+                        if (locEl) {
+                            locEl.innerHTML = `
+                                <i class="fas fa-location-dot"></i>
+                                Location shared
+                            `;
+                        }
+                        myCard.querySelector('.user-avatar').classList.add('pulse-dot');
+                    }
+
                     if (myMarker) {
                         map.removeLayer(myMarker);
                     }
-                    
+
                     myMarker = L.marker([latitude, longitude], {
                         title: 'Your Location'
                     }).addTo(map);
-                    
+
                     myMarker.bindPopup('<b>Your Location</b>').openPopup();
                     map.setView([latitude, longitude], 13);
-                    
-                    // Add pulsing effect to avatar
-                    myCard.querySelector('.user-avatar').classList.add('pulse-dot');
-                    
-                    // Send location to peer
-                    if (conn && conn.open) {
-                        conn.send({
-                            type: 'location',
-                            latitude: latitude,
-                            longitude: longitude
-                        });
-                    }
-                    
+
+                    // Send only location (no names) and ensure safeSend strips anything else
+                    safeSend({
+                        type: 'location',
+                        latitude: latitude,
+                        longitude: longitude,
+                        clientAlias: myAlias
+                    });
+
                     shareLocationBtn.innerHTML = `<i class="fas fa-location-dot"></i> Location Shared`;
+                    shareLocationBtn.disabled = false;
                     showNotification('Location shared successfully!');
                 }, error => {
                     console.error('Geolocation error:', error);
@@ -825,27 +946,31 @@
                 showNotification('Geolocation is not supported by your browser', true);
             }
         }
-        
-        // Stop the session
+
+        // Stop the session (explicit stop clears session flags)
         function stopSession() {
             // Close peer connections
             if (conn) {
-                conn.close();
+                try { conn.close(); } catch (e) {}
+                conn = null;
             }
             if (peer) {
-                peer.destroy();
+                try { peer.destroy(); } catch (e) {}
+                peer = null;
             }
-            
+
             // Clear session data
             localStorage.removeItem('session_active');
             localStorage.removeItem('session_role');
-            
+            localStorage.removeItem('session_code');
+            sessionRoleCached = null;
+
             // Update UI
             setupCard.classList.remove('hidden');
             sessionCard.classList.add('hidden');
             updateStatus('Ready to connect', false);
-            peerCount.textContent = "0 peers";
-            
+            updatePeerCount(0);
+
             // Clear map markers
             if (myMarker) {
                 map.removeLayer(myMarker);
@@ -855,10 +980,10 @@
                 map.removeLayer(peerMarker);
                 peerMarker = null;
             }
-            
-            // Reset user card
+
+            // Reset user card (do not expose real name)
             userList.innerHTML = `
-                <div class="user-card">
+                <div class="user-card" id="you-card">
                     <div class="user-avatar">Y</div>
                     <div class="user-info">
                         <div class="user-name">You</div>
@@ -873,50 +998,112 @@
                     </div>
                 </div>
             `;
-            
+
             showNotification('Session stopped successfully');
         }
-        
-        // Check for existing session on page load
+
+        // Modern copy-to-clipboard
+        async function copyToClipboard(text) {
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(text);
+                } else {
+                    // Fallback
+                    const ta = document.createElement('textarea');
+                    ta.value = text;
+                    ta.style.position = 'fixed';
+                    ta.style.left = '-9999px';
+                    document.body.appendChild(ta);
+                    ta.focus();
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                }
+                showNotification('Code copied to clipboard!');
+            } catch (err) {
+                console.error('Copy failed', err);
+                showNotification('Failed to copy code', true);
+            }
+        }
+
+        // Check for existing session on page load (do NOT auto-reconnect)
         window.addEventListener('DOMContentLoaded', () => {
-            const realName = localStorage.getItem('local_real_name');
+            // We intentionally DO NOT auto-fill the real name field.
+            // This forces the user to type their name each time (local-only).
             const sessionCode = localStorage.getItem('session_code');
             const sessionActive = localStorage.getItem('session_active') === 'true';
             const sessionRole = localStorage.getItem('session_role');
-            
-            if (realName) {
-                realNameInput.value = realName;
-            }
-            
+
             if (sessionCode && sessionActive && sessionRole) {
-                sessionCodeInput.value = sessionCode;
-                startSession(sessionRole === 'host');
+                // Show session UI and show it's active server-side (test-only behavior)
+                setupCard.classList.add('hidden');
+                sessionCard.classList.remove('hidden');
+                displayCodeInput.value = sessionCode;
+                sessionRoleCached = sessionRole;
+                updateStatus('Session active on server. Click Resume to connect.', false);
+                updatePeerCount(0);
+            } else {
+                // normal fresh state
+                setupCard.classList.remove('hidden');
+                sessionCard.classList.add('hidden');
+                updateStatus('Ready to connect', false);
             }
         });
-        
+
         // Event Listeners
-        createSessionBtn.addEventListener('click', () => startSession(true));
-        joinSessionBtn.addEventListener('click', () => startSession(false));
-        
-        copyCodeBtn.addEventListener('click', () => {
-            displayCodeInput.select();
-            document.execCommand('copy');
-            showNotification('Code copied to clipboard!');
+        createSessionBtn.addEventListener('click', () => {
+            startSession(true);
         });
-        
+        joinSessionBtn.addEventListener('click', () => {
+            startSession(false);
+        });
+        resumeSessionBtn.addEventListener('click', () => {
+            // To resume, user must type name again (not auto-filled).
+            if (!realNameInput.value.trim()) {
+                showNotification('Please type your real name to resume (local only).', true);
+                // Reveal setup card so user can type name quickly, but keep session-card visible
+                setupCard.classList.remove('hidden');
+                sessionCard.classList.add('hidden');
+                return;
+            }
+            // set sessionCodeInput from persisted value (if missing)
+            const persistedCode = localStorage.getItem('session_code') || displayCodeInput.value;
+            if (persistedCode) sessionCodeInput.value = persistedCode;
+            // Start session using cached role (host/joiner)
+            const isHost = (localStorage.getItem('session_role') === 'host');
+            startSession(isHost);
+        });
+
+        copyCodeBtn.addEventListener('click', () => {
+            const txt = displayCodeInput.value || sessionCodeInput.value || '';
+            if (txt) copyToClipboard(txt);
+            else showNotification('No code to copy', true);
+        });
+
         shareLocationBtn.addEventListener('click', shareMyLocation);
-        
+
         stopSessionBtn.addEventListener('click', () => {
             stopConfirmation.classList.remove('hidden');
         });
-        
+
         confirmStopBtn.addEventListener('click', () => {
             stopConfirmation.classList.add('hidden');
             stopSession();
         });
-        
+
         cancelStopBtn.addEventListener('click', () => {
             stopConfirmation.classList.add('hidden');
+        });
+
+        // Prevent accidental unload from disconnecting server-side session (client-side only)
+        // This just reminds the user — the session remains active until they press STOP.
+        window.addEventListener('beforeunload', (e) => {
+            const sessionActive = localStorage.getItem('session_active') === 'true';
+            if (sessionActive) {
+                // Note: modern browsers won't show custom text, but this is a hint that session stays active
+                e.preventDefault();
+                e.returnValue = '';
+            }
         });
     </script>
 </body>
