@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>SecureHat — Private Location Sharing & Chat (Test) — Fixed</title>
+<title>SecureHat — Private Location Sharing & Chat (Test)</title>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -154,7 +154,7 @@
 
         <div class="btn-container" style="margin-top:12px;grid-template-columns:1fr 1fr 1fr">
             <button id="resume-session" class="btn btn-outline"><i class="fas fa-play"></i> Resume</button>
-            <button id="share-location" class="btn" disabled><i class="fas fa-location-dot"></i> Share My Location</button>
+            <button id="share-location" class="btn"><i class="fas fa-location-dot"></i> Share My Location</button>
             <button id="stop-session" class="btn btn-stop"><i class="fas fa-power-off"></i> Stop Session</button>
         </div>
 
@@ -189,7 +189,7 @@
             <div class="chat-messages" id="chat-messages" aria-live="polite"></div>
             <div class="chat-input-row" style="margin-top:8px">
                 <input id="chat-input" class="chat-input" placeholder="Type a message (anonymous)..." />
-                <button id="chat-send" class="chat-send" disabled><i class="fas fa-paper-plane"></i></button>
+                <button id="chat-send" class="chat-send"><i class="fas fa-paper-plane"></i></button>
             </div>
         </div>
     </div>
@@ -268,28 +268,23 @@ const codeHint = document.getElementById('code-hint');
 
 /* ========= State ========= */
 let peer = null;
-let conns = []; // <— support multiple peers
+let conn = null;
 let myAlias = generateAnonAlias();
 let myMarker = null;
-let peerMarkers = new Map(); // id -> marker
+let peerMarker = null;
 let notificationTimeout = null;
 let sessionRoleCached = null;
 
 let codeRevealed = false; // reveal state for generated codes
 let autoHideTimeout = null;
-let heartbeatTimer = null;
-
-// Better ICE (no DB, but WebRTC still needs STUN/TURN for NAT traversal)
-const RTC_CONFIG = {
-  iceServers: [
-    { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' }
-    // TIP: For reliability across strict NATs, add your TURN server here later.
-  ]
-};
+let sessionTimeout = null; // For session expiration
 
 /* ========= Map init ========= */
-const map = L.map('map', { attributionControl: false }).setView([0,0],2);
+const map = L.map('map', { 
+    attributionControl: false,
+    center: [34.5, 45.5], // Kurdistan approximate center
+    zoom: 7
+});
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
@@ -310,35 +305,23 @@ function updateStatus(text, connected=false){
     connectionDot.style.background = connected ? '#4cd137' : '#fbc531';
 }
 
-function updatePeerCount(){
-    // only count open connections
-    const n = conns.filter(c => c && c.open).length;
+function updatePeerCount(n){
     peerCount.textContent = String(n);
-    refreshControls();
 }
 
-function refreshControls(){
-    const anyOpen = conns.some(c => c && c.open);
-    shareLocationBtn.disabled = !anyOpen;
-    chatSend.disabled = !anyOpen;
-}
-
-function safeBroadcast(payload){
-    // scrub any accidental name fields
+function safeSend(payload){
+    if(!conn || conn.open === false) return;
     if(payload && typeof payload === 'object'){
-        delete payload.local_real_name; delete payload.realName; delete payload.name;
+        delete payload.local_real_name;
+        delete payload.realName;
+        delete payload.name;
     }
-    conns.forEach(c => {
-        if(!c || !c.open) return;
-        try{ c.send(payload); }catch(e){ console.warn('send failed', e); }
-    });
+    try { conn.send(payload); } catch(e){ console.error('send failed', e); showNotification('Send failed', true); }
 }
 
 function destroyExistingPeer(){
-    conns.forEach(c => { try{ c.close(); }catch(e){} });
-    conns = [];
+    if(conn){ try{ conn.close(); }catch(e){} conn=null; }
     if(peer){ try{ peer.destroy(); }catch(e){} peer=null; }
-    if(heartbeatTimer){ clearInterval(heartbeatTimer); heartbeatTimer=null; }
 }
 
 /* copy helper modern */
@@ -365,18 +348,26 @@ function appendMessage(text, fromMe=false){
 }
 
 /* ========= Code generator & reveal logic ========= */
+
+/*
+  Generate a secure, hard-to-guess session code using crypto.getRandomValues.
+  Output is base62-ish: A-Z a-z 0-9, length configurable.
+*/
 function generateSecureCode(length = 8) {
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     const arr = new Uint8Array(length);
     window.crypto.getRandomValues(arr);
     let s = '';
-    for (let i = 0; i < arr.length; i++) s += alphabet[arr[i] % alphabet.length];
+    for (let i = 0; i < arr.length; i++) {
+        s += alphabet[arr[i] % alphabet.length];
+    }
     return s;
 }
 
 genCodeBtn.addEventListener('click', () => {
     const code = generateSecureCode(8);
     sessionCodeInput.value = code;
+    // mask by default (so user must reveal to copy)
     maskCodeDisplay();
     showNotification('Secure code generated. Click Reveal to view and copy.');
 });
@@ -387,166 +378,204 @@ function maskCodeDisplay() {
     sessionCodeInput.style.letterSpacing = 'normal';
     revealCodeBtn.textContent = 'Reveal';
     copySessionCodeBtn.disabled = true;
+    // auto-clear previous auto-hide timer
     if (autoHideTimeout) { clearTimeout(autoHideTimeout); autoHideTimeout = null; }
 }
 
 function revealCodeTemporarily() {
-    if (!sessionCodeInput.value) { showNotification('No code to reveal', true); return; }
+    if (!sessionCodeInput.value) {
+        showNotification('No code to reveal', true);
+        return;
+    }
     codeRevealed = true;
     sessionCodeInput.type = 'text';
     sessionCodeInput.style.letterSpacing = '3px';
     revealCodeBtn.textContent = 'Hide';
     copySessionCodeBtn.disabled = false;
+    // auto-hide after 20 seconds to reduce easy copying
     if (autoHideTimeout) clearTimeout(autoHideTimeout);
-    autoHideTimeout = setTimeout(() => { maskCodeDisplay(); showNotification('Code auto-hidden for security'); }, 20000);
+    autoHideTimeout = setTimeout(() => {
+        maskCodeDisplay();
+        showNotification('Code auto-hidden for security');
+    }, 20000);
 }
 
-revealCodeBtn.addEventListener('click', () => { codeRevealed ? maskCodeDisplay() : revealCodeTemporarily(); });
+revealCodeBtn.addEventListener('click', () => {
+    if (codeRevealed) {
+        maskCodeDisplay();
+    } else {
+        revealCodeTemporarily();
+    }
+});
+
+// copy session code button (near generator)
 copySessionCodeBtn.addEventListener('click', () => {
-    if (!sessionCodeInput.value) return showNotification('No code to copy', true);
-    if (!codeRevealed) return showNotification('Reveal the code first to enable copying', true);
+    if (!sessionCodeInput.value) { showNotification('No code to copy', true); return; }
+    if (!codeRevealed) { showNotification('Reveal the code first to enable copying', true); return; }
     copyToClipboard(sessionCodeInput.value);
 });
 
 /* ========= Join modal behavior ========= */
+
 openJoinBtn.addEventListener('click', () => {
     joinModal.classList.add('show');
     joinModal.setAttribute('aria-hidden', 'false');
     joinCodeInput.value = '';
     setTimeout(()=> joinCodeInput.focus(), 60);
 });
-joinCancelBtn.addEventListener('click', () => { joinModal.classList.remove('show'); joinModal.setAttribute('aria-hidden', 'true'); });
+
+joinCancelBtn.addEventListener('click', () => {
+    joinModal.classList.remove('show');
+    joinModal.setAttribute('aria-hidden', 'true');
+});
+
 joinNowBtn.addEventListener('click', () => {
     const code = (joinCodeInput.value || '').trim();
-    if (!code || code.length < 4) return showNotification('Enter a valid join code (min 4 chars)', true);
-    sessionCodeInput.value = code; maskCodeDisplay();
-    joinModal.classList.remove('show'); joinModal.setAttribute('aria-hidden', 'true');
+    if (!code || code.length < 4) {
+        showNotification('Enter a valid join code (min 4 chars)', true);
+        return;
+    }
+    // place the join code into the main session-code input (masked by default)
+    sessionCodeInput.value = code;
+    maskCodeDisplay();
+    // hide modal
+    joinModal.classList.remove('show');
+    joinModal.setAttribute('aria-hidden', 'true');
+    // start join flow (requires user to type their name first)
     if (!realNameInput.value.trim()) {
         showNotification('Type your real name (local only) before joining.', true);
-        setupCard.classList.remove('hidden'); sessionCard.classList.add('hidden');
+        // show setup card so user can type name
+        setupCard.classList.remove('hidden');
+        sessionCard.classList.add('hidden');
         return;
     }
     startSession(false);
 });
-joinModal.addEventListener('click', (e) => { if (e.target === joinModal) { joinModal.classList.remove('show'); joinModal.setAttribute('aria-hidden', 'true'); } });
 
-/* ========= Create / Join with robust connection handling ========= */
+// close modal when clicking outside join-box
+joinModal.addEventListener('click', (e) => {
+    if (e.target === joinModal) {
+        joinModal.classList.remove('show');
+        joinModal.setAttribute('aria-hidden', 'true');
+    }
+});
+
+/* ========= Create / Join fixes (existing logic, updated to require code) ========= */
+
 function startSession(isHost){
     const code = (sessionCodeInput.value || '').trim();
     const realName = (realNameInput.value || '').trim();
 
-    if(!realName) return showNotification('Type your real name (local only) to proceed', true);
-    if(code.length < 4) return showNotification('Enter a valid code (min 4 chars)', true);
+    // require name typed each time
+    if(!realName){
+        showNotification('Type your real name (local only) to proceed', true); return;
+    }
+    if(code.length < 4){ showNotification('Enter a valid code (min 4 chars)', true); return; }
 
+    // prevent creating new session if already active locally
     if(localStorage.getItem('session_active') === 'true' && isHost){
-        return showNotification('A session is already active locally. Stop it first or Resume.', true);
+        showNotification('A session is already active locally. Stop it first or Resume.', true);
+        return;
     }
 
+    // persist local-only name & session flags
     localStorage.setItem('local_real_name', realName);
     localStorage.setItem('session_code', code);
     localStorage.setItem('session_active', 'true');
     localStorage.setItem('session_role', isHost ? 'host' : 'joiner');
     sessionRoleCached = isHost ? 'host' : 'joiner';
 
+    // UI update
     setupCard.classList.add('hidden');
     sessionCard.classList.remove('hidden');
     displayCodeInput.value = code;
     updateStatus('Connecting...', false);
-    updatePeerCount();
+    updatePeerCount(0);
 
+    // cleanup old peer
     destroyExistingPeer();
 
+    // create Peer
     try {
-        const peerOpts = {
-          debug: 1,
-          config: RTC_CONFIG,
-          // Using the public PeerJS cloud. For your own signaling, provide host/port/secure.
-          // host: '0.peerjs.com', port: 443, path: '/', secure: true
-        };
-        peer = isHost ? new Peer(code, peerOpts) : new Peer(undefined, peerOpts);
+        peer = isHost ? new Peer(code) : new Peer();
     } catch(e){ console.error('Peer create failed', e); showNotification('Peer init failed', true); updateStatus('Error', false); return; }
 
     setControlsDisabled(true);
 
+    // Set session timeout (30 minutes)
+    if(sessionTimeout) clearTimeout(sessionTimeout);
+    sessionTimeout = setTimeout(() => {
+        showNotification('Session expired after 30 minutes', true);
+        stopSession();
+    }, 30 * 60 * 1000);
+
+    let joinAttempts = 0;
+    const MAX_JOIN_ATTEMPTS = 6;
+    const JOIN_INTERVAL_MS = 1400;
+
     peer.on('open', (id) => {
         if(!isHost){
-            connectToHostWithRetry(code);
+            // attempt connect with retry loop
+            function tryConnect(){
+                joinAttempts++;
+                try {
+                    conn = peer.connect(code, { reliable: true, serialization: 'json' });
+                } catch(err){
+                    console.warn('connect exception', err);
+                    conn = null;
+                }
+                if(conn){
+                    conn.on('open', () => {
+                        updateStatus('Connected to host', true);
+                        updatePeerCount(1);
+                        showNotification('Connected to host');
+                        safeSend({ type:'alias', alias: myAlias });
+                    });
+                    conn.on('error', (err) => { console.error('conn error', err); showNotification('Connection error', true); });
+                    setupDataChannel(conn);
+                } else {
+                    if(joinAttempts < MAX_JOIN_ATTEMPTS){
+                        updateStatus(`Trying to connect... (${joinAttempts}/${MAX_JOIN_ATTEMPTS})`, false);
+                        setTimeout(tryConnect, JOIN_INTERVAL_MS);
+                    } else {
+                        showNotification('Unable to connect to host (no host found).', true);
+                        updateStatus('Unable to connect', false);
+                        setControlsDisabled(false);
+                    }
+                }
+            }
+            // start first try
+            tryConnect();
         } else {
             updateStatus('Hosting — waiting for peers', true);
             showNotification('Hosting session — share the code (reveal briefly to copy).');
             setControlsDisabled(false);
-            refreshControls();
         }
     });
 
     peer.on('connection', (connection) => {
-        // Host receives incoming connection
-        attachConnection(connection);
+        // host receives incoming connection
+        conn = connection;
+        setupDataChannel(conn);
         updateStatus('Peer connected', true);
+        updatePeerCount(1);
         showNotification('Peer connected');
+        safeSend({ type:'alias', alias: myAlias });
     });
 
-    peer.on('disconnected', () => { updateStatus('Disconnected', false); showNotification('Network disconnected', true); setControlsDisabled(false); refreshControls(); });
-    peer.on('close', () => { updateStatus('Closed', false); setControlsDisabled(false); refreshControls(); });
-    peer.on('error', (err) => { console.error('peer error', err); showNotification('Peer error: ' + String(err), true); updateStatus('Error', false); setControlsDisabled(false); refreshControls(); });
+    peer.on('disconnected', () => { updateStatus('Disconnected', false); showNotification('Network disconnected', true); setControlsDisabled(false); });
+    peer.on('close', () => { updateStatus('Closed', false); setControlsDisabled(false); });
+    peer.on('error', (err) => { console.error('peer error', err); showNotification('Peer error: ' + String(err), true); updateStatus('Error', false); setControlsDisabled(false); });
 }
 
-// Joiner: robust retry. We retry even if a DataConnection object exists but never opens.
-function connectToHostWithRetry(code){
-    let attempts = 0;
-    const MAX = 10;
-    const GAP = 1500;
-
-    function once(){
-        attempts++;
-        // close any stale connections
-        conns.forEach(c => { try{ c.close(); }catch(_){} });
-        conns = [];
-
-        let c;
-        try{ c = peer.connect(code, { reliable: true, serialization: 'json' }); }
-        catch(err){ console.warn('connect threw', err); c = null; }
-
-        if(!c){
-            if(attempts < MAX){ updateStatus(`Trying to connect... (${attempts}/${MAX})`, false); return setTimeout(once, GAP);
-            } else { updateStatus('Unable to connect', false); showNotification('Unable to connect to host (no host found).', true); setControlsDisabled(false); refreshControls(); return; }
-        }
-
-        attachConnection(c);
-
-        // If it never opens within a timeout, try again.
-        const OPEN_WAIT = 3500;
-        const t = setTimeout(() => {
-            if(!c.open){ try{ c.close(); }catch(_){} }
-            if(conns.every(x => !x.open)){
-                if(attempts < MAX){ updateStatus(`Retrying... (${attempts}/${MAX})`, false); once(); }
-                else { updateStatus('Unable to connect', false); showNotification('Unable to connect to host (timeout).', true); setControlsDisabled(false); refreshControls(); }
-            }
-        }, OPEN_WAIT);
-    }
-
-    once();
-}
-
-function attachConnection(connection){
+function setupDataChannel(connection){
     if(!connection) return;
-    conns.push(connection);
-
-    connection.on('open', () => {
-        updateStatus('Connected', true);
-        updatePeerCount();
-        showNotification('Connection open');
-        safeBroadcast({ type:'alias', alias: myAlias });
-        setControlsDisabled(false);
-        refreshControls();
-        startHeartbeat();
-    });
-
     connection.on('data', (data) => {
+        // defensive: remove any name fields
         if(data && typeof data === 'object'){ delete data.local_real_name; delete data.realName; delete data.name; }
 
-        if(data.type === 'alias') updatePeerAlias(data, connection);
-        else if(data.type === 'location') updatePeerLocation(data, connection);
+        if(data.type === 'alias') updatePeerAlias(data);
+        else if(data.type === 'location') updatePeerLocation(data);
         else if(data.type === 'chat') {
             const txt = (data && data.text) ? String(data.text) : '';
             appendMessage((data.clientAlias ? data.clientAlias + ': ' : '') + txt, false);
@@ -554,28 +583,16 @@ function attachConnection(connection){
     });
 
     connection.on('close', () => {
-        // remove from list
-        conns = conns.filter(c => c !== connection);
-        updatePeerCount();
-        const m = peerMarkers.get(connection.peer);
-        if(m){ map.removeLayer(m); peerMarkers.delete(connection.peer); }
+        updateStatus('Peer disconnected', false);
+        updatePeerCount(0);
+        if(peerMarker){ map.removeLayer(peerMarker); peerMarker=null; }
         showNotification('Peer disconnected');
-        if(conns.length === 0) updateStatus('No peers', false);
     });
 
     connection.on('error', (err) => { console.error('data channel error', err); showNotification('Data channel error', true); });
 }
 
-function startHeartbeat(){
-    if(heartbeatTimer) return;
-    heartbeatTimer = setInterval(() => {
-        // Drop dead connections from the array.
-        conns = conns.filter(c => c && !c.destroyed);
-        updatePeerCount();
-    }, 3000);
-}
-
-function updatePeerAlias(data, connection){
+function updatePeerAlias(data){
     const alias = (data && data.alias) ? String(data.alias) : generateAnonAlias();
     // prevent duplicate
     const existing = Array.from(userList.querySelectorAll('.user-name')).some(el => el.textContent === alias);
@@ -586,22 +603,22 @@ function updatePeerAlias(data, connection){
     userList.insertBefore(div, youCard.nextSibling);
 }
 
-function updatePeerLocation(d, connection){
+function updatePeerLocation(d){
     const latitude = Number(d.latitude), longitude = Number(d.longitude);
     if(isNaN(latitude) || isNaN(longitude)) return;
-
-    // remove & replace this peer's marker
-    const old = peerMarkers.get(connection.peer);
-    if(old){ map.removeLayer(old); }
-    const marker = L.marker([latitude, longitude]).addTo(map).bindPopup('<b>Peer Location</b>');
-    peerMarkers.set(connection.peer, marker);
+    if(peerMarker) map.removeLayer(peerMarker);
+    peerMarker = L.marker([latitude, longitude]).addTo(map).bindPopup('<b>Peer Location</b>').openPopup();
     if(!myMarker) map.setView([latitude, longitude], 13);
 }
 
 /* share location */
 function shareMyLocation(){
-    const anyOpen = conns.some(c => c && c.open);
-    if(!anyOpen){ showNotification('No open connection. Resume or create session first.', true); return; }
+    // Allow location sharing even if connection is temporarily lost
+    if(!peer) {
+        showNotification('No active session. Create or join a session first.', true);
+        return;
+    }
+    
     if(!navigator.geolocation){ showNotification('Geolocation not supported', true); return; }
 
     shareLocationBtn.disabled = true;
@@ -615,10 +632,13 @@ function shareMyLocation(){
         myMarker = L.marker([latitude, longitude]).addTo(map).bindPopup('<b>Your Location</b>').openPopup();
         map.setView([latitude, longitude], 13);
 
-        safeBroadcast({ type:'location', latitude, longitude, clientAlias: myAlias });
+        // Try to send even if connection might be temporarily down
+        if(conn && conn.open) {
+            safeSend({ type:'location', latitude: latitude, longitude: longitude, clientAlias: myAlias });
+        }
 
         shareLocationBtn.disabled = false;
-        shareLocationBtn.innerHTML = `<i class="fas fa-location-dot"></i> Location Shared`;
+        shareLocationBtn.innerHTML = `<i class="fas fa-location-dot"></i> Share My Location`;
         showNotification('Location shared');
     }, err => {
         console.error('Geolocation error', err);
@@ -640,21 +660,24 @@ function stopSession(){
     sessionCard.classList.add('hidden');
     displayCodeInput.value = '';
     updateStatus('Ready to connect', false);
-    peerCount.textContent = '0';
+    updatePeerCount(0);
 
     if(myMarker){ map.removeLayer(myMarker); myMarker=null; }
-    peerMarkers.forEach(m => map.removeLayer(m));
-    peerMarkers.clear();
+    if(peerMarker){ map.removeLayer(peerMarker); peerMarker=null; }
 
     userList.innerHTML = `<div class="user-card" id="you-card"><div class="user-avatar">Y</div><div class="user-info"><div class="user-name">You</div><div class="user-location muted"><i class="fas fa-location-slash"></i> Location not shared</div><div style="margin-top:8px"><span class="status-dot"></span> Online</div></div></div>`;
 
     chatMessages.innerHTML = '';
+    
+    // Clear session timeout
+    if(sessionTimeout) clearTimeout(sessionTimeout);
+    
     showNotification('Session stopped (test-only)');
 }
 
 /* control helper */
 function setControlsDisabled(state){
-    [createSessionBtn, openJoinBtn, shareLocationBtn, resumeSessionBtn, copyCodeBtn, chatSend].forEach(b => { if(b) b.disabled = state; });
+    [createSessionBtn, openJoinBtn, resumeSessionBtn, copyCodeBtn].forEach(b => { if(b) b.disabled = state; });
 }
 
 /* ========= Modal fixed behavior (stop modal) ========= */
@@ -676,6 +699,7 @@ window.addEventListener('keydown', (e) => { if(e.key === 'Escape' && stopConfirm
 
 /* ========= Resume & load handling ========= */
 window.addEventListener('DOMContentLoaded', () => {
+    // intentionally DO NOT auto-fill the real name
     const sessionCode = localStorage.getItem('session_code');
     const sessionActive = localStorage.getItem('session_active') === 'true';
     const sessionRole = localStorage.getItem('session_role');
@@ -685,28 +709,53 @@ window.addEventListener('DOMContentLoaded', () => {
         setupCard.classList.remove('hidden');
         sessionCard.classList.remove('hidden');
         updateStatus('Session active (server-side). Type your name and press Resume.', false);
+        updatePeerCount(0);
         sessionRoleCached = sessionRole;
-        refreshControls();
+        
+        // Set session timeout (30 minutes) if session is active
+        if(sessionTimeout) clearTimeout(sessionTimeout);
+        sessionTimeout = setTimeout(() => {
+            showNotification('Session expired after 30 minutes', true);
+            stopSession();
+        }, 30 * 60 * 1000);
     } else {
         setupCard.classList.remove('hidden');
         sessionCard.classList.add('hidden');
         updateStatus('Ready to connect', false);
-        refreshControls();
     }
 });
 
 /* ========= Event listeners ========= */
 createSessionBtn.addEventListener('click', () => {
-    if(!sessionCodeInput.value.trim()) return showNotification('Enter or generate a session code before creating', true);
+    // ensure a code exists before creating
+    if(!sessionCodeInput.value.trim()){
+        showNotification('Enter or generate a session code before creating', true);
+        return;
+    }
     startSession(true);
 });
 
-openJoinBtn.addEventListener('click', () => { joinModal.classList.add('show'); joinModal.setAttribute('aria-hidden', 'false'); });
+openJoinBtn.addEventListener('click', () => {
+    // handled above; this is kept for safety
+    joinModal.classList.add('show');
+    joinModal.setAttribute('aria-hidden', 'false');
+});
+
+joinNowBtn.addEventListener('click', () => { /* handled above */ });
+joinCancelBtn.addEventListener('click', () => { /* handled above */ });
 
 resumeSessionBtn.addEventListener('click', () => {
-    if(!realNameInput.value.trim()) return showNotification('Type your real name to resume (local only).', true);
+    const persistedName = localStorage.getItem('local_real_name') || '';
+    if (persistedName) realNameInput.value = persistedName;
+    
+    if (!realNameInput.value.trim()) {
+        showNotification('Type your real name to resume (local only).', true);
+        return;
+    }
+    
     const persistedCode = localStorage.getItem('session_code') || displayCodeInput.value;
-    if(persistedCode) sessionCodeInput.value = persistedCode;
+    if (persistedCode) sessionCodeInput.value = persistedCode;
+    
     const isHost = (localStorage.getItem('session_role') === 'host');
     startSession(isHost);
 });
@@ -722,20 +771,30 @@ shareLocationBtn.addEventListener('click', shareMyLocation);
 chatSend.addEventListener('click', () => {
     const txt = chatInput.value.trim();
     if(!txt) return;
+    // append locally
     appendMessage('You: ' + txt, true);
-    safeBroadcast({ type:'chat', text: txt, clientAlias: myAlias });
+    // send only alias + text
+    if (conn && conn.open) {
+        safeSend({ type:'chat', text: txt, clientAlias: myAlias });
+    }
     chatInput.value = '';
 });
 
 /* allow Enter to send */
 chatInput.addEventListener('keydown', (e) => {
-    if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); chatSend.click(); }
+    if(e.key === 'Enter' && !e.shiftKey){
+        e.preventDefault();
+        chatSend.click();
+    }
 });
 
 /* beforeunload warn */
 window.addEventListener('beforeunload', (e) => {
     const sessionActive = localStorage.getItem('session_active') === 'true';
-    if(sessionActive){ e.preventDefault(); e.returnValue = ''; }
+    if(sessionActive){
+        e.preventDefault();
+        e.returnValue = '';
+    }
 });
 </script>
 </body>
