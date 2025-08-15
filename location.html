@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>SecureHat — Private Location Sharing & Chat (Test)</title>
+<title>SecureHat — Private Location Sharing & Chat</title>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -12,7 +12,7 @@
 
 <style>
     *{box-sizing:border-box;margin:0;padding:0;font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif}
-    body{min-height:100vh;background:linear-gradient(135deg,#10203a,#13294f);color:#fff;padding:16px 12px}
+    body{min-height:100vh;background:linear-gradient(135deg,#0d1c33,#10294f);color:#fff;padding:16px 12px}
     .container{max-width:980px;margin:0 auto}
 
     header{text-align:center;margin-bottom:16px}
@@ -23,18 +23,20 @@
     .subtitle{opacity:.9;font-size:0.95rem}
 
     .privacy-notice{background:rgba(255,255,255,.05);padding:10px;border-radius:10px;border-left:4px solid #4cd137;margin:12px 0;display:flex;align-items:center;gap:8px;font-size:0.9rem}
-    .card{background:rgba(255,255,255,.04);padding:16px;border-radius:12px;margin:10px 0;border:1px solid rgba(255,255,255,.06)}
+    .card{background:rgba(255,255,255,.04);padding:16px;border-radius:12px;margin:10px 0;border:1px solid rgba(255,255,255,.06);box-shadow:0 4px 12px rgba(0,0,0,.15)}
     .card-title{display:flex;align-items:center;gap:10px;color:#feb47b;font-weight:700;margin-bottom:10px;font-size:1.1rem}
 
     .form-group{margin-bottom:12px}
     .form-label{display:block;font-weight:700;margin-bottom:6px;font-size:0.95rem}
     .form-note{font-size:.85rem;opacity:.85;margin-top:6px}
-    .form-control{width:100%;padding:12px;border-radius:10px;border:none;background:rgba(255,255,255,.04);color:#fff;font-size:1rem}
-    .form-control:focus{outline:2px solid rgba(255,126,95,.4);background:rgba(255,255,255,.06)}
+    .form-control{width:100%;padding:12px;border-radius:10px;border:none;background:rgba(255,255,255,.04);color:#fff;font-size:1rem;transition:all 0.3s ease}
+    .form-control:focus{outline:2px solid rgba(255,126,95,.4);background:rgba(255,255,255,.06);box-shadow:0 0 0 3px rgba(255,126,95,.2)}
 
     .btn-container{display:grid;grid-template-columns:1fr 1fr;gap:10px}
     @media (max-width:720px){.btn-container{grid-template-columns:1fr}}
-    .btn{padding:12px;border-radius:10px;border:none;cursor:pointer;font-weight:700;background:linear-gradient(45deg,#ff7e5f,#feb47b);color:#fff;display:inline-flex;align-items:center;gap:8px;justify-content:center;font-size:0.95rem}
+    .btn{padding:12px;border-radius:10px;border:none;cursor:pointer;font-weight:700;background:linear-gradient(45deg,#ff7e5f,#feb47b);color:#fff;display:inline-flex;align-items:center;gap:8px;justify-content:center;font-size:0.95rem;transition:all 0.2s ease;box-shadow:0 4px 6px rgba(0,0,0,.1)}
+    .btn:hover{transform:translateY(-2px);box-shadow:0 6px 8px rgba(0,0,0,.15)}
+    .btn:active{transform:translateY(1px)}
     .btn-outline{background:transparent;border:2px solid #ff7e5f;color:#ff7e5f}
     .btn-stop{background:linear-gradient(45deg,#e84118,#c23616);color:#fff}
     .btn-update{background:linear-gradient(45deg, #4facfe, #00f2fe);}
@@ -49,8 +51,9 @@
     #map{width:100%;height:100%}
 
     .user-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-top:12px}
-    .user-card{display:flex;gap:12px;align-items:center;padding:10px;border-radius:10px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.03)}
-    .user-avatar{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(45deg,#4facfe,#00f2fe);font-weight:800}
+    .user-card{display:flex;gap:12px;align-items:center;padding:10px;border-radius:10px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.03);transition:all 0.3s ease}
+    .user-card:hover{background:rgba(255,255,255,.05);transform:translateY(-2px)}
+    .user-avatar{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(45deg,#4facfe,#00f2fe);font-weight:800;font-size:1.2rem}
     .user-info .user-name{font-weight:700;font-size:0.95rem}
     .status-dot{width:10px;height:10px;border-radius:50%;background:#4cd137;display:inline-block;margin-right:8px}
 
@@ -58,7 +61,8 @@
     .chat-messages{flex:1;overflow:auto;padding:10px;border-radius:8px;background:rgba(0,0,0,0.12);margin-bottom:8px;font-size:0.95rem}
     .chat-input-row{display:flex;gap:8px}
     .chat-input{flex:1;padding:10px;border-radius:8px;border:none;font-size:0.95rem}
-    .chat-send{padding:10px;border-radius:8px;border:none;background:linear-gradient(45deg,#4facfe,#00f2fe);color:#fff;cursor:pointer;font-size:0.95rem}
+    .chat-send{padding:10px;border-radius:8px;border:none;background:linear-gradient(45deg,#4facfe,#00f2fe);color:#fff;cursor:pointer;font-size:0.95rem;transition:all 0.2s ease}
+    .chat-send:hover{background:linear-gradient(45deg,#3a9cf7,#00d9f2)}
 
     .notification{position:fixed;right:12px;top:12px;background:rgba(0,0,0,.45);padding:10px 14px;border-radius:10px;backdrop-filter:blur(4px);transform:translateX(120%);transition:transform .32s;z-index:9000;color:#fff;border-left:4px solid #4cd137;max-width:calc(100% - 24px);font-size:0.9rem}
     .notification.show{transform:translateX(0)}
@@ -69,7 +73,7 @@
     /* Modal (join) */
     #join-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.6);z-index:10000;pointer-events:none}
     #join-modal.show{display:flex;pointer-events:auto}
-    .join-box{width:90%;max-width:480px;background:linear-gradient(135deg,#0e2340,#102e4a);padding:18px;border-radius:12px;border:1px solid rgba(255,255,255,.06)}
+    .join-box{width:90%;max-width:480px;background:linear-gradient(135deg,#0e2340,#102e4a);padding:18px;border-radius:12px;border:1px solid rgba(255,255,255,.06);box-shadow:0 20px 50px rgba(0,0,0,.5)}
 
     /* Stop confirmation modal */
     #stop-confirmation{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.72);z-index:9999;pointer-events:none}
@@ -130,6 +134,13 @@
     .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
     input:checked + .slider { background: linear-gradient(45deg,#ff7e5f,#feb47b); }
     input:checked + .slider:before { transform: translateX(26px); }
+    
+    /* Animation */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in { animation: fadeIn 0.3s ease forwards; }
 </style>
 </head>
 <body>
@@ -147,23 +158,23 @@
                 </div>
             </div>
         </div>
-        <h1>Private Location Sharing & Chat (Test)</h1>
-        <div class="subtitle muted">Your real name stays local-only. Session persists until you press STOP.</div>
+        <h1>Private Location Sharing & Chat</h1>
+        <div class="subtitle muted">Your real name stays local-only unless you choose to share it</div>
     </header>
 
     <div class="privacy-notice">
         <i class="fas fa-shield-alt" style="color:#4cd137"></i>
-        <div><strong>Privacy Notice:</strong> Your real name is stored locally only and is never shared with others or logs.</div>
+        <div><strong>Privacy Notice:</strong> Your real name is stored locally only. If you choose to share it, it will be visible to others in the session.</div>
     </div>
 
     <!-- Setup -->
-    <div class="card" id="setup-card">
+    <div class="card fade-in" id="setup-card">
         <div class="card-title"><i class="fas fa-user"></i> User Setup</div>
 
         <div class="form-group">
-            <label class="form-label">Your Real Name (Local Only)</label>
+            <label class="form-label">Your Real Name</label>
             <input id="real-name" class="form-control" type="text" placeholder="Type your real name (required)">
-            <div class="form-note">You must type your name each time you start/resume a session. It will be stored locally only and never transmitted.</div>
+            <div class="form-note">This name is stored locally only. You must type it each time you start/resume.</div>
         </div>
 
         <div class="form-group">
@@ -185,9 +196,9 @@
                 <input type="checkbox" id="show-real-name-toggle">
                 <span class="slider"></span>
             </label>
-            <span>Show my real name to me</span>
+            <span>Show my real name to others</span>
         </div>
-        <div class="form-note" style="margin-top:8px">This only changes how your name appears to you locally. Others will see an anonymous alias.</div>
+        <div class="form-note" style="margin-top:8px">Enabling this will share your real name with other participants.</div>
 
         <div class="btn-container">
             <button id="create-session" class="btn"><i class="fas fa-plus-circle"></i> Create Session</button>
@@ -196,7 +207,7 @@
     </div>
 
     <!-- Active session card -->
-    <div class="card hidden" id="session-card">
+    <div class="card hidden fade-in" id="session-card">
         <div class="card-title"><i class="fas fa-satellite"></i> Active Session</div>
 
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
@@ -227,20 +238,20 @@
             <button id="stop-sharing" class="btn btn-unshare"><i class="fas fa-location-slash"></i> Stop Sharing</button>
         </div>
 
-        <div class="form-note" style="margin-top:10px">Note: you must re-type your real name to resume (local-only).</div>
+        <div class="form-note" style="margin-top:10px">Note: You can reconnect anytime using the session code.</div>
     </div>
 
     <!-- Map -->
-    <div class="card">
+    <div class="card fade-in">
         <div class="card-title"><i class="fas fa-map-marked-alt"></i> Location Map</div>
         <div class="map-container"><div id="map"></div></div>
     </div>
 
     <!-- Connected users + chat -->
-    <div class="card">
+    <div class="card fade-in">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
             <div class="card-title"><i class="fas fa-users"></i> Connected Users</div>
-            <div class="muted">Chat & messages are anonymized</div>
+            <div class="muted">Chat & messages are anonymized unless you share your name</div>
         </div>
 
         <div class="user-list" id="user-list">
@@ -257,14 +268,14 @@
         <div style="margin-top:12px" class="chat-card">
             <div class="chat-messages" id="chat-messages" aria-live="polite"></div>
             <div class="chat-input-row" style="margin-top:8px">
-                <input id="chat-input" class="chat-input" placeholder="Type a message (anonymous)..." />
+                <input id="chat-input" class="chat-input" placeholder="Type a message..." />
                 <button id="chat-send" class="chat-send"><i class="fas fa-paper-plane"></i> Send</button>
             </div>
         </div>
     </div>
 
     <footer>
-      <div>SecureHat © test — Privacy First | No DB | Session persists until stopped</div>
+      <div>SecureHat © Privacy First | No Database | Session persists until stopped</div>
       <div style="margin-top:6px;font-size:0.8rem;opacity:0.85;">
         Built and maintained by <strong>Kurdistan Innovator Team</strong>
       </div>
@@ -291,7 +302,7 @@
 <div id="stop-confirmation" role="dialog" aria-modal="true" aria-labelledby="stop-title">
     <div class="confirmation-box">
         <h3 id="stop-title"><i class="fas fa-exclamation-triangle" style="color:#ffb86b"></i> Confirm Session Stop</h3>
-        <p style="margin-top:8px">Are you sure you want to stop the current session? This will end the session (test-only).</p>
+        <p style="margin-top:8px">Are you sure you want to stop the current session? This will end the session.</p>
         <div class="confirmation-buttons">
             <button id="confirm-stop" class="btn btn-stop"><i class="fas fa-check"></i> Yes, Stop Session</button>
             <button id="cancel-stop" class="btn btn-outline"><i class="fas fa-times"></i> Cancel</button>
@@ -344,7 +355,7 @@ const codeHint = document.getElementById('code-hint');
 /* ========= State ========= */
 let peer = null;
 let conn = null;
-let myAlias = generateAnonAlias();
+let myAlias = '';
 let myMarker = null;
 let peerMarker = null;
 let notificationTimeout = null;
@@ -369,7 +380,13 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 /* ========= Helpers ========= */
-function generateAnonAlias(){ return 'User-' + Math.random().toString(36).slice(2,6).toUpperCase(); }
+function generateAnonAlias(){ 
+    const adjectives = ["Swift", "Clever", "Brave", "Wise", "Gentle", "Fierce", "Noble", "Silent", "Bright", "Calm"];
+    const nouns = ["Fox", "Eagle", "Lion", "Wolf", "Hawk", "Bear", "Deer", "Owl", "Horse", "Falcon"];
+    const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+    const noun = nouns[Math.floor(Math.random() * nouns.length)];
+    return `${adj} ${noun}`;
+}
 
 function showNotification(msg, isError=false, duration=3000){
     if(notificationTimeout){ clearTimeout(notificationTimeout); notificationTimeout=null; }
@@ -390,11 +407,6 @@ function updatePeerCount(n){
 
 function safeSend(payload){
     if(!conn || conn.open === false) return;
-    if(payload && typeof payload === 'object'){
-        delete payload.local_real_name;
-        delete payload.realName;
-        delete payload.name;
-    }
     try { conn.send(payload); } catch(e){ console.error('send failed', e); showNotification('Send failed', true); }
 }
 
@@ -512,7 +524,7 @@ joinNowBtn.addEventListener('click', () => {
     joinModal.classList.remove('show');
     joinModal.setAttribute('aria-hidden', 'true');
     if (!realNameInput.value.trim()) {
-        showNotification('Type your real name (local only) before joining.', true);
+        showNotification('Type your real name before joining.', true);
         setupCard.classList.remove('hidden');
         sessionCard.classList.add('hidden');
         return;
@@ -535,7 +547,7 @@ function startSession(host){
     const realName = (realNameInput.value || '').trim();
 
     if(!realName){
-        showNotification('Type your real name (local only) to proceed', true); return;
+        showNotification('Type your real name to proceed', true); return;
     }
     if(code.length < 4){ showNotification('Enter a valid code (min 4 chars)', true); return; }
 
@@ -549,6 +561,14 @@ function startSession(host){
     localStorage.setItem('session_active', 'true');
     localStorage.setItem('session_role', host ? 'host' : 'joiner');
     sessionRoleCached = host ? 'host' : 'joiner';
+    
+    // Set alias based on user preference
+    const showRealName = showRealNameToggle.checked;
+    if(showRealName) {
+        myAlias = realName;
+    } else {
+        myAlias = generateAnonAlias();
+    }
 
     setupCard.classList.add('hidden');
     sessionCard.classList.remove('hidden');
@@ -559,7 +579,6 @@ function startSession(host){
     locationControls.classList.add('hidden');
     locationShared = false;
 
-    // Show host indicator
     if(isHost) {
         hostIndicator.classList.remove('hidden');
     } else {
@@ -667,8 +686,6 @@ function startSession(host){
 function setupDataChannel(connection){
     if(!connection) return;
     connection.on('data', (data) => {
-        if(data && typeof data === 'object'){ delete data.local_real_name; delete data.realName; delete data.name; }
-
         if(data.type === 'alias') {
             peerAlias = data.alias;
             updatePeerAlias(data);
@@ -715,7 +732,7 @@ function updatePeerAlias(data){
     removePeerCard();
     const alias = (data && data.alias) ? String(data.alias) : generateAnonAlias();
     const div = document.createElement('div'); 
-    div.className = 'user-card peer-card';
+    div.className = 'user-card peer-card fade-in';
     div.innerHTML = `<div class="user-avatar">${alias.charAt(0)}</div>
         <div class="user-info">
             <div class="user-name">${alias}</div>
@@ -829,7 +846,7 @@ function stopSession(){
     hostIndicator.classList.add('hidden');
     isHost = false;
     
-    showNotification('Session stopped (test-only)');
+    showNotification('Session stopped');
 }
 
 function setControlsDisabled(state){
@@ -857,7 +874,6 @@ window.addEventListener('keydown', (e) => { if(e.key === 'Escape' && stopConfirm
 window.addEventListener('DOMContentLoaded', () => {
     const showRealName = localStorage.getItem('show_real_name') === 'true';
     showRealNameToggle.checked = showRealName;
-    updateYourNameDisplay();
     
     const sessionCode = localStorage.getItem('session_code');
     const sessionActive = localStorage.getItem('session_active') === 'true';
@@ -867,7 +883,7 @@ window.addEventListener('DOMContentLoaded', () => {
         displayCodeInput.value = sessionCode;
         setupCard.classList.remove('hidden');
         sessionCard.classList.remove('hidden');
-        updateStatus('Session active (server-side). Type your name and press Reconnect.', false);
+        updateStatus('Session active. Type your name and press Reconnect.', false);
         updatePeerCount(0);
         sessionRoleCached = sessionRole;
         
@@ -889,17 +905,12 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 function updateYourNameDisplay() {
-    if (showRealNameToggle.checked) {
-        const realName = localStorage.getItem('local_real_name') || 'You';
-        yourNameDisplay.textContent = realName;
-    } else {
-        yourNameDisplay.textContent = 'You';
-    }
+    const realName = localStorage.getItem('local_real_name') || 'You';
+    yourNameDisplay.textContent = realName;
 }
 
 showRealNameToggle.addEventListener('change', () => {
     localStorage.setItem('show_real_name', showRealNameToggle.checked);
-    updateYourNameDisplay();
 });
 
 /* ========= Event listeners ========= */
@@ -921,7 +932,7 @@ resumeSessionBtn.addEventListener('click', () => {
     if (persistedName) realNameInput.value = persistedName;
     
     if (!realNameInput.value.trim()) {
-        showNotification('Type your real name to reconnect (local only).', true);
+        showNotification('Type your real name to reconnect.', true);
         return;
     }
     
@@ -944,13 +955,7 @@ chatSend.addEventListener('click', () => {
     const txt = chatInput.value.trim();
     if(!txt) return;
     
-    // Get display name based on preference
-    let displayName = 'You';
-    if(showRealNameToggle.checked) {
-        displayName = localStorage.getItem('local_real_name') || 'You';
-    }
-    
-    appendMessage(`${displayName}: ${txt}`, true);
+    appendMessage(`${myAlias}: ${txt}`, true);
     
     if (conn && conn.open) {
         safeSend({ type:'chat', text: txt, clientAlias: myAlias });
