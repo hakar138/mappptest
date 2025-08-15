@@ -80,9 +80,13 @@
     .muted{opacity:.9;font-size:.9rem}
     .message-me{align-self:flex-end;background:linear-gradient(45deg,#ff7e5f,#feb47b);color:#000;padding:8px 12px;border-radius:12px;margin:6px 0;max-width:80%;font-size:0.9rem}
     .message-peer{align-self:flex-start;background:rgba(255,255,255,0.08);color:#fff;padding:8px 12px;border-radius:12px;margin:6px 0;max-width:80%;font-size:0.9rem}
+    .message-system{text-align:center;color:rgba(255,255,255,0.7);font-style:italic;font-size:0.85rem;margin:10px 0}
     
     /* Reconnect button */
     .btn-reconnect{background:linear-gradient(45deg, #4facfe, #00f2fe);}
+    
+    /* Host badge */
+    .host-badge{background:#fbc531;color:#000;font-size:0.7rem;padding:2px 6px;border-radius:10px;margin-left:6px;font-weight:bold}
     
     /* Mobile-specific styles */
     @media (max-width: 600px) {
@@ -203,6 +207,7 @@
             <div style="margin-left:auto">
                 <span class="muted">Peers:</span> <span id="peer-count">0</span>
             </div>
+            <div id="host-indicator" class="host-badge hidden">HOST</div>
         </div>
 
         <div class="code-container">
@@ -306,6 +311,7 @@ const yourNameDisplay = document.getElementById('your-name-display');
 const locationControls = document.getElementById('location-controls');
 const updateLocationBtn = document.getElementById('update-location');
 const stopSharingBtn = document.getElementById('stop-sharing');
+const hostIndicator = document.getElementById('host-indicator');
 
 const createSessionBtn = document.getElementById('create-session');
 const openJoinBtn = document.getElementById('open-join');
@@ -344,10 +350,12 @@ let peerMarker = null;
 let notificationTimeout = null;
 let sessionRoleCached = null;
 let locationShared = false;
+let isHost = false;
+let peerAlias = null;
 
-let codeRevealed = false; // reveal state for generated codes
+let codeRevealed = false;
 let autoHideTimeout = null;
-let sessionTimeout = null; // For session expiration
+let sessionTimeout = null;
 let reconnectAttempts = 0;
 
 /* ========= Map init ========= */
@@ -395,7 +403,6 @@ function destroyExistingPeer(){
     if(peer){ try{ peer.destroy(); }catch(e){} peer=null; }
 }
 
-/* copy helper modern */
 async function copyToClipboard(text){
     try {
         if(navigator.clipboard && window.isSecureContext){
@@ -409,21 +416,19 @@ async function copyToClipboard(text){
     } catch(e){ console.error(e); showNotification('Copy failed', true); }
 }
 
-/* append chat message */
-function appendMessage(text, fromMe=false){
+function appendMessage(text, fromMe=false, isSystem=false){
     const el = document.createElement('div');
-    el.className = fromMe ? 'message-me' : 'message-peer';
-    el.textContent = text;
+    if(isSystem) {
+        el.className = 'message-system';
+        el.textContent = text;
+    } else {
+        el.className = fromMe ? 'message-me' : 'message-peer';
+        el.textContent = text;
+    }
     chatMessages.appendChild(el);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-/* ========= Code generator & reveal logic ========= */
-
-/*
-  Generate a secure, hard-to-guess session code using crypto.getRandomValues.
-  Output is base62-ish: A-Z a-z 0-9, length configurable.
-*/
 function generateSecureCode(length = 8) {
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     const arr = new Uint8Array(length);
@@ -438,7 +443,6 @@ function generateSecureCode(length = 8) {
 genCodeBtn.addEventListener('click', () => {
     const code = generateSecureCode(8);
     sessionCodeInput.value = code;
-    // mask by default (so user must reveal to copy)
     maskCodeDisplay();
     showNotification('Secure code generated. Click Reveal to view and copy.');
 });
@@ -449,7 +453,6 @@ function maskCodeDisplay() {
     sessionCodeInput.style.letterSpacing = 'normal';
     revealCodeBtn.textContent = 'Reveal';
     copySessionCodeBtn.disabled = true;
-    // auto-clear previous auto-hide timer
     if (autoHideTimeout) { clearTimeout(autoHideTimeout); autoHideTimeout = null; }
 }
 
@@ -463,7 +466,6 @@ function revealCodeTemporarily() {
     sessionCodeInput.style.letterSpacing = '3px';
     revealCodeBtn.textContent = 'Hide';
     copySessionCodeBtn.disabled = false;
-    // auto-hide after 20 seconds to reduce easy copying
     if (autoHideTimeout) clearTimeout(autoHideTimeout);
     autoHideTimeout = setTimeout(() => {
         maskCodeDisplay();
@@ -479,7 +481,6 @@ revealCodeBtn.addEventListener('click', () => {
     }
 });
 
-// copy session code button (near generator)
 copySessionCodeBtn.addEventListener('click', () => {
     if (!sessionCodeInput.value) { showNotification('No code to copy', true); return; }
     if (!codeRevealed) { showNotification('Reveal the code first to enable copying', true); return; }
@@ -506,16 +507,12 @@ joinNowBtn.addEventListener('click', () => {
         showNotification('Enter a valid join code (min 4 chars)', true);
         return;
     }
-    // place the join code into the main session-code input (masked by default)
     sessionCodeInput.value = code;
     maskCodeDisplay();
-    // hide modal
     joinModal.classList.remove('show');
     joinModal.setAttribute('aria-hidden', 'true');
-    // start join flow (requires user to type their name first)
     if (!realNameInput.value.trim()) {
         showNotification('Type your real name (local only) before joining.', true);
-        // show setup card so user can type name
         setupCard.classList.remove('hidden');
         sessionCard.classList.add('hidden');
         return;
@@ -523,7 +520,6 @@ joinNowBtn.addEventListener('click', () => {
     startSession(false);
 });
 
-// close modal when clicking outside join-box
 joinModal.addEventListener('click', (e) => {
     if (e.target === joinModal) {
         joinModal.classList.remove('show');
@@ -531,53 +527,61 @@ joinModal.addEventListener('click', (e) => {
     }
 });
 
-/* ========= Create / Join fixes (existing logic, updated to require code) ========= */
+/* ========= Create / Join ========= */
 
-function startSession(isHost){
+function startSession(host){
+    isHost = host;
     const code = (sessionCodeInput.value || '').trim();
     const realName = (realNameInput.value || '').trim();
 
-    // require name typed each time
     if(!realName){
         showNotification('Type your real name (local only) to proceed', true); return;
     }
     if(code.length < 4){ showNotification('Enter a valid code (min 4 chars)', true); return; }
 
-    // prevent creating new session if already active locally
-    if(localStorage.getItem('session_active') === 'true' && isHost){
+    if(localStorage.getItem('session_active') === 'true' && host){
         showNotification('A session is already active locally. Stop it first or Resume.', true);
         return;
     }
 
-    // persist local-only name & session flags
     localStorage.setItem('local_real_name', realName);
     localStorage.setItem('session_code', code);
     localStorage.setItem('session_active', 'true');
-    localStorage.setItem('session_role', isHost ? 'host' : 'joiner');
-    sessionRoleCached = isHost ? 'host' : 'joiner';
+    localStorage.setItem('session_role', host ? 'host' : 'joiner');
+    sessionRoleCached = host ? 'host' : 'joiner';
 
-    // UI update
     setupCard.classList.add('hidden');
     sessionCard.classList.remove('hidden');
     displayCodeInput.value = code;
     updateStatus('Connecting...', false);
     updatePeerCount(0);
     
-    // Hide location controls initially
     locationControls.classList.add('hidden');
     locationShared = false;
 
-    // cleanup old peer
+    // Show host indicator
+    if(isHost) {
+        hostIndicator.classList.remove('hidden');
+    } else {
+        hostIndicator.classList.add('hidden');
+    }
+    
+    // Clear chat and add welcome message
+    chatMessages.innerHTML = '';
+    if(isHost) {
+        appendMessage("You created a session. Share the code with others to join.", false, true);
+    } else {
+        appendMessage("Joining session...", false, true);
+    }
+
     destroyExistingPeer();
 
-    // create Peer
     try {
-        peer = isHost ? new Peer(code) : new Peer();
+        peer = host ? new Peer(code) : new Peer();
     } catch(e){ console.error('Peer create failed', e); showNotification('Peer init failed', true); updateStatus('Error', false); return; }
 
     setControlsDisabled(true);
 
-    // Set session timeout (30 minutes)
     if(sessionTimeout) clearTimeout(sessionTimeout);
     sessionTimeout = setTimeout(() => {
         showNotification('Session expired after 30 minutes', true);
@@ -589,8 +593,7 @@ function startSession(isHost){
     const JOIN_INTERVAL_MS = 1500;
 
     peer.on('open', (id) => {
-        if(!isHost){
-            // attempt connect with retry loop
+        if(!host){
             function tryConnect(){
                 reconnectAttempts++;
                 try {
@@ -605,7 +608,8 @@ function startSession(isHost){
                         updatePeerCount(1);
                         showNotification('Connected to host');
                         safeSend({ type:'alias', alias: myAlias });
-                        reconnectAttempts = 0; // Reset on success
+                        appendMessage(`You joined the session as ${myAlias}`, false, true);
+                        reconnectAttempts = 0;
                     });
                     conn.on('error', (err) => { 
                         console.error('conn error', err); 
@@ -623,7 +627,6 @@ function startSession(isHost){
                     }
                 }
             }
-            // start first try
             tryConnect();
         } else {
             updateStatus('Hosting — waiting for peers', true);
@@ -633,13 +636,13 @@ function startSession(isHost){
     });
 
     peer.on('connection', (connection) => {
-        // host receives incoming connection
         conn = connection;
         setupDataChannel(conn);
         updateStatus('Peer connected', true);
         updatePeerCount(1);
         showNotification('Peer connected');
         safeSend({ type:'alias', alias: myAlias });
+        appendMessage(`Peer ${myAlias} joined the session`, false, true);
     });
 
     peer.on('disconnected', () => { 
@@ -664,14 +667,23 @@ function startSession(isHost){
 function setupDataChannel(connection){
     if(!connection) return;
     connection.on('data', (data) => {
-        // defensive: remove any name fields
         if(data && typeof data === 'object'){ delete data.local_real_name; delete data.realName; delete data.name; }
 
-        if(data.type === 'alias') updatePeerAlias(data);
+        if(data.type === 'alias') {
+            peerAlias = data.alias;
+            updatePeerAlias(data);
+            appendMessage(`${data.alias} joined the session`, false, true);
+        }
         else if(data.type === 'location') updatePeerLocation(data);
         else if(data.type === 'chat') {
             const txt = (data && data.text) ? String(data.text) : '';
-            appendMessage((data.clientAlias ? data.clientAlias + ': ' : '') + txt, false);
+            appendMessage(`${peerAlias}: ${txt}`, false);
+        }
+        else if(data.type === 'host-migration') {
+            isHost = true;
+            hostIndicator.classList.remove('hidden');
+            appendMessage(`You are now the host of the session`, false, true);
+            showNotification('You are now the host');
         }
     });
 
@@ -679,7 +691,18 @@ function setupDataChannel(connection){
         updateStatus('Peer disconnected', false);
         updatePeerCount(0);
         if(peerMarker){ map.removeLayer(peerMarker); peerMarker=null; }
+        appendMessage(`${peerAlias} left the session`, false, true);
         showNotification('Peer disconnected');
+        removePeerCard();
+        
+        // If we were not host and host disconnected, become new host
+        if(!isHost) {
+            isHost = true;
+            hostIndicator.classList.remove('hidden');
+            safeSend({ type: 'host-migration' });
+            appendMessage(`You are now the host of the session`, false, true);
+            showNotification('You are now the host');
+        }
     });
 
     connection.on('error', (err) => { 
@@ -689,27 +712,35 @@ function setupDataChannel(connection){
 }
 
 function updatePeerAlias(data){
+    removePeerCard();
     const alias = (data && data.alias) ? String(data.alias) : generateAnonAlias();
-    // prevent duplicate
-    const existing = Array.from(userList.querySelectorAll('.user-name')).some(el => el.textContent === alias);
-    if(existing) return;
-    const div = document.createElement('div'); div.className='user-card';
-    div.innerHTML = `<div class="user-avatar">${alias.charAt(0)}</div><div class="user-info"><div class="user-name">${alias}</div><div class="user-location muted"><i class="fas fa-location-dot"></i> Location shared</div><div style="margin-top:8px"><span class="status-dot"></span> Online</div></div>`;
+    const div = document.createElement('div'); 
+    div.className = 'user-card peer-card';
+    div.innerHTML = `<div class="user-avatar">${alias.charAt(0)}</div>
+        <div class="user-info">
+            <div class="user-name">${alias}</div>
+            <div class="user-location muted"><i class="fas fa-location-dot"></i> Location shared</div>
+            <div style="margin-top:8px"><span class="status-dot"></span> Online</div>
+        </div>`;
     const youCard = document.getElementById('you-card');
     userList.insertBefore(div, youCard.nextSibling);
+}
+
+function removePeerCard() {
+    const peerCards = userList.querySelectorAll('.peer-card');
+    peerCards.forEach(card => card.remove());
 }
 
 function updatePeerLocation(d){
     const latitude = Number(d.latitude), longitude = Number(d.longitude);
     if(isNaN(latitude) || isNaN(longitude)) return;
     if(peerMarker) map.removeLayer(peerMarker);
-    peerMarker = L.marker([latitude, longitude]).addTo(map).bindPopup('<b>Peer Location</b>').openPopup();
+    peerMarker = L.marker([latitude, longitude]).addTo(map).bindPopup(`<b>${peerAlias}'s Location</b>`).openPopup();
     if(!myMarker) map.setView([latitude, longitude], 13);
 }
 
 /* share location */
 function shareMyLocation(){
-    // Allow location sharing even if connection is temporarily lost
     if(!peer) {
         showNotification('No active session. Create or join a session first.', true);
         return;
@@ -728,7 +759,6 @@ function shareMyLocation(){
         myMarker = L.marker([latitude, longitude]).addTo(map).bindPopup('<b>Your Location</b>').openPopup();
         map.setView([latitude, longitude], 13);
 
-        // Try to send even if connection might be temporarily down
         if(conn && conn.open) {
             safeSend({ type:'location', latitude: latitude, longitude: longitude, clientAlias: myAlias });
         }
@@ -737,7 +767,6 @@ function shareMyLocation(){
         shareLocationBtn.innerHTML = `<i class="fas fa-location-dot"></i> Share Location`;
         showNotification('Location shared');
         
-        // Show location management controls
         locationControls.classList.remove('hidden');
         locationShared = true;
     }, err => {
@@ -765,7 +794,6 @@ stopSharingBtn.addEventListener('click', () => {
     const myCard = document.getElementById('you-card');
     myCard.querySelector('.user-location').innerHTML = `<i class="fas fa-location-slash"></i> Location not shared`;
     
-    // Hide location management controls
     locationControls.classList.add('hidden');
     locationShared = false;
     
@@ -793,17 +821,17 @@ function stopSession(){
 
     chatMessages.innerHTML = '';
     
-    // Clear session timeout
     if(sessionTimeout) clearTimeout(sessionTimeout);
     
-    // Hide location controls
     locationControls.classList.add('hidden');
     locationShared = false;
+    
+    hostIndicator.classList.add('hidden');
+    isHost = false;
     
     showNotification('Session stopped (test-only)');
 }
 
-/* control helper */
 function setControlsDisabled(state){
     [createSessionBtn, openJoinBtn, resumeSessionBtn, copyCodeBtn].forEach(b => { if(b) b.disabled = state; });
 }
@@ -827,12 +855,10 @@ window.addEventListener('keydown', (e) => { if(e.key === 'Escape' && stopConfirm
 
 /* ========= Resume & load handling ========= */
 window.addEventListener('DOMContentLoaded', () => {
-    // Load show real name preference
     const showRealName = localStorage.getItem('show_real_name') === 'true';
     showRealNameToggle.checked = showRealName;
     updateYourNameDisplay();
     
-    // intentionally DO NOT auto-fill the real name
     const sessionCode = localStorage.getItem('session_code');
     const sessionActive = localStorage.getItem('session_active') === 'true';
     const sessionRole = localStorage.getItem('session_role');
@@ -845,12 +871,16 @@ window.addEventListener('DOMContentLoaded', () => {
         updatePeerCount(0);
         sessionRoleCached = sessionRole;
         
-        // Set session timeout (30 minutes) if session is active
         if(sessionTimeout) clearTimeout(sessionTimeout);
         sessionTimeout = setTimeout(() => {
             showNotification('Session expired after 30 minutes', true);
             stopSession();
         }, 30 * 60 * 1000);
+        
+        if(sessionRole === 'host') {
+            hostIndicator.classList.remove('hidden');
+            isHost = true;
+        }
     } else {
         setupCard.classList.remove('hidden');
         sessionCard.classList.add('hidden');
@@ -858,7 +888,6 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-/* Update your name display based on preference */
 function updateYourNameDisplay() {
     if (showRealNameToggle.checked) {
         const realName = localStorage.getItem('local_real_name') || 'You';
@@ -868,7 +897,6 @@ function updateYourNameDisplay() {
     }
 }
 
-/* Toggle show real name preference */
 showRealNameToggle.addEventListener('change', () => {
     localStorage.setItem('show_real_name', showRealNameToggle.checked);
     updateYourNameDisplay();
@@ -876,7 +904,6 @@ showRealNameToggle.addEventListener('change', () => {
 
 /* ========= Event listeners ========= */
 createSessionBtn.addEventListener('click', () => {
-    // ensure a code exists before creating
     if(!sessionCodeInput.value.trim()){
         showNotification('Enter or generate a session code before creating', true);
         return;
@@ -885,13 +912,9 @@ createSessionBtn.addEventListener('click', () => {
 });
 
 openJoinBtn.addEventListener('click', () => {
-    // handled above; this is kept for safety
     joinModal.classList.add('show');
     joinModal.setAttribute('aria-hidden', 'false');
 });
-
-joinNowBtn.addEventListener('click', () => { /* handled above */ });
-joinCancelBtn.addEventListener('click', () => { /* handled above */ });
 
 resumeSessionBtn.addEventListener('click', () => {
     const persistedName = localStorage.getItem('local_real_name') || '';
@@ -920,16 +943,21 @@ shareLocationBtn.addEventListener('click', shareMyLocation);
 chatSend.addEventListener('click', () => {
     const txt = chatInput.value.trim();
     if(!txt) return;
-    // append locally
-    appendMessage('You: ' + txt, true);
-    // send only alias + text
+    
+    // Get display name based on preference
+    let displayName = 'You';
+    if(showRealNameToggle.checked) {
+        displayName = localStorage.getItem('local_real_name') || 'You';
+    }
+    
+    appendMessage(`${displayName}: ${txt}`, true);
+    
     if (conn && conn.open) {
         safeSend({ type:'chat', text: txt, clientAlias: myAlias });
     }
     chatInput.value = '';
 });
 
-/* allow Enter to send */
 chatInput.addEventListener('keydown', (e) => {
     if(e.key === 'Enter' && !e.shiftKey){
         e.preventDefault();
@@ -937,7 +965,6 @@ chatInput.addEventListener('keydown', (e) => {
     }
 });
 
-/* beforeunload warn */
 window.addEventListener('beforeunload', (e) => {
     const sessionActive = localStorage.getItem('session_active') === 'true';
     if(sessionActive){
