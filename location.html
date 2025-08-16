@@ -131,6 +131,7 @@
         .tooltip:hover .tooltiptext { visibility: visible; opacity: 1 }
         .progress-bar { height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; margin-top: 8px; overflow: hidden }
         .progress { height: 100%; background: linear-gradient(90deg, #ff7e5f, #feb47b); width: 0%; transition: width 0.3s }
+        .rejoin-notice { background: rgba(255,255,255,.05); padding: 10px; border-radius: 10px; border-left: 4px solid #4facfe; margin: 12px 0; display: flex; align-items: center; gap: 8px; font-size: 0.9rem }
     </style>
 </head>
 <body>
@@ -155,6 +156,11 @@
     <div class="privacy-notice">
         <i class="fas fa-shield-alt" style="color:#4cd137"></i>
         <div><strong>Privacy Notice:</strong> Your real name is stored locally only. If you choose to share it, it will be visible to others in the session. All location data is peer-to-peer and never stored on any server.</div>
+    </div>
+    
+    <div class="rejoin-notice">
+        <i class="fas fa-rotate-left" style="color:#4facfe"></i>
+        <div><strong>Rejoin Anytime:</strong> You can leave and rejoin active sessions using the same session code at any time.</div>
     </div>
 
     <!-- Setup -->
@@ -368,6 +374,7 @@ let reconnectAttempts = 0;
 let sessionStartTime = null;
 let timerInterval = null;
 let peerLocation = null;
+let storedAlias = null;
 
 /* ========= Map init ========= */
 const map = L.map('map', { 
@@ -581,7 +588,14 @@ function startSession(host){
     if(showRealName) {
         myAlias = realName;
     } else {
-        myAlias = generateAnonAlias();
+        // Try to retrieve stored alias for consistency
+        storedAlias = localStorage.getItem('session_alias');
+        if (storedAlias) {
+            myAlias = storedAlias;
+        } else {
+            myAlias = generateAnonAlias();
+            localStorage.setItem('session_alias', myAlias);
+        }
     }
 
     setupCard.classList.add('hidden');
@@ -602,6 +616,7 @@ function startSession(host){
     chatMessages.innerHTML = '';
     if(isHost) {
         appendMessage("You created a session. Share the code with others to join.", false, true);
+        appendMessage("Participants can leave and rejoin anytime with the session code.", false, true);
     } else {
         appendMessage("Joining session...", false, true);
     }
@@ -718,6 +733,10 @@ function setupDataChannel(connection){
             hostIndicator.classList.remove('hidden');
             appendMessage(`You are now the host of the session`, false, true);
             showNotification('You are now the host');
+        }
+        else if(data.type === 'rejoin') {
+            appendMessage(`${data.alias} rejoined the session`, false, true);
+            showNotification(`${data.alias} has rejoined the session`);
         }
     });
 
@@ -878,6 +897,7 @@ function stopSession(){
     localStorage.removeItem('session_active');
     localStorage.removeItem('session_role');
     localStorage.removeItem('session_code');
+    localStorage.removeItem('session_alias');
     sessionRoleCached = null;
 
     setupCard.classList.remove('hidden');
