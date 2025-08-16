@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>SecureHat — Private Location Sharing & Chat</title>
+    <title>SecureHat — Enhanced with Notifications</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
@@ -131,6 +131,28 @@
         .tooltip:hover .tooltiptext { visibility: visible; opacity: 1 }
         .rejoin-notice { background: rgba(255,255,255,.05); padding: 10px; border-radius: 10px; border-left: 4px solid #4facfe; margin: 12px 0; display: flex; align-items: center; gap: 8px; font-size: 0.9rem }
         .duration-badge { background: rgba(79, 172, 254, 0.2); color: #4facfe; padding: 4px 8px; border-radius: 20px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 4px }
+        
+        /* New styles for enhancements */
+        .enhancement-notice { background: rgba(255,255,255,.05); padding: 14px; border-radius: 10px; border-left: 4px solid #9c88ff; margin: 16px 0; display: flex; align-items: center; gap: 12px; font-size: 0.95rem }
+        .settings-card { margin-top: 20px; }
+        .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .setting-label { font-size: 1rem; }
+        .setting-control { display: flex; gap: 10px; align-items: center; }
+        .btn-info { background: rgba(156, 136, 255, 0.15); border: 1px solid rgba(156, 136, 255, 0.3); color: #9c88ff; }
+        .btn-info:hover { background: rgba(156, 136, 255, 0.25); }
+        .poi-card { background: rgba(255,255,255,.03); padding: 12px; border-radius: 10px; margin: 8px 0; display: flex; justify-content: space-between; align-items: center; }
+        .poi-info { flex: 1; }
+        .poi-actions { display: flex; gap: 8px; }
+        .poi-name { font-weight: 600; margin-bottom: 4px; }
+        .poi-coords { font-size: 0.85rem; opacity: 0.8; }
+        .poi-badge { background: rgba(255, 126, 95, 0.15); color: #ff7e5f; padding: 4px 8px; border-radius: 20px; font-size: 0.85rem; }
+        .poi-map { height: 200px; border-radius: 10px; margin-top: 12px; overflow: hidden; }
+        .location-alert-card { background: rgba(156, 136, 255, 0.1); padding: 14px; border-radius: 12px; margin-top: 16px; border: 1px solid rgba(156, 136, 255, 0.3); }
+        .alert-title { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .alert-content { font-size: 0.95rem; }
+        .alert-content p { margin-bottom: 8px; }
+        .history-fact { padding: 8px; background: rgba(0,0,0,0.1); border-radius: 8px; margin-top: 8px; }
+        .history-title { font-weight: 600; margin-bottom: 4px; }
     </style>
 </head>
 <body>
@@ -141,20 +163,25 @@
             <div>
                 <div class="logo-text">SECUREHAT</div>
                 <div style="font-size:0.95rem;color:rgba(255,255,255,0.85);font-weight:600;margin-top:6px;">
-                    Private Location Sharing &amp; Chat
+                    Enhanced with Notifications & Location Alerts
                 </div>
                 <div style="font-size:0.85rem;color:rgba(255,255,255,0.65);margin-top:8px;">
                     <em>Developed by Kurdistan Innovator Team</em>
                 </div>
             </div>
         </div>
-        <h1>Private Location Sharing & Chat</h1>
-        <div class="subtitle muted">Your real name stays local-only unless you choose to share it</div>
+        <h1>Private Location Sharing & Chat with Notifications</h1>
+        <div class="subtitle muted">Now with message notifications and location-based alerts</div>
     </header>
 
     <div class="privacy-notice">
         <i class="fas fa-shield-alt" style="color:#4cd137"></i>
         <div><strong>Privacy Notice:</strong> Your real name is stored locally only. If you choose to share it, it will be visible to others in the session. All location data is peer-to-peer and never stored on any server.</div>
+    </div>
+    
+    <div class="enhancement-notice">
+        <i class="fas fa-bell" style="color:#9c88ff"></i>
+        <div><strong>New Features:</strong> You now get notifications for messages and can set location alerts for historical information.</div>
     </div>
     
     <div class="rejoin-notice">
@@ -237,6 +264,80 @@
         <div class="form-note" style="margin-top:14px">Note: You can reconnect anytime using the session code.</div>
     </div>
 
+    <!-- Notification Settings -->
+    <div class="card fade-in settings-card">
+        <div class="card-title"><i class="fas fa-bell"></i> Notification Settings</div>
+        
+        <div class="setting-row">
+            <div class="setting-label">Enable Message Notifications</div>
+            <div class="setting-control">
+                <label class="switch">
+                    <input type="checkbox" id="enable-message-notifications" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+        
+        <div class="setting-row">
+            <div class="setting-label">Enable Location Alerts</div>
+            <div class="setting-control">
+                <label class="switch">
+                    <input type="checkbox" id="enable-location-alerts" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+        
+        <div class="btn-container" style="margin-top:16px">
+            <button id="add-poi" class="btn"><i class="fas fa-map-marker-alt"></i> Add Location Alert</button>
+            <button id="poi-info" class="btn btn-info"><i class="fas fa-info-circle"></i> How It Works</button>
+        </div>
+    </div>
+    
+    <!-- Points of Interest -->
+    <div class="card fade-in">
+        <div class="card-title"><i class="fas fa-map-pin"></i> Location Alerts</div>
+        
+        <div id="poi-list">
+            <div class="poi-card">
+                <div class="poi-info">
+                    <div class="poi-name">Erbil Citadel</div>
+                    <div class="poi-coords">36.1911° N, 44.0092° E</div>
+                </div>
+                <div class="poi-actions">
+                    <span class="poi-badge">Active</span>
+                </div>
+            </div>
+            
+            <div class="poi-card">
+                <div class="poi-info">
+                    <div class="poi-name">Sulaymaniyah Museum</div>
+                    <div class="poi-coords">35.5572° N, 45.4353° E</div>
+                </div>
+                <div class="poi-actions">
+                    <span class="poi-badge">Active</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="poi-map" id="poi-map"></div>
+        
+        <div class="location-alert-card">
+            <div class="alert-title">
+                <i class="fas fa-info-circle" style="color:#9c88ff"></i>
+                <div>Historical Alert</div>
+            </div>
+            <div class="alert-content">
+                <div><strong>Erbil Citadel</strong></div>
+                <p>The Citadel of Erbil is a tell or occupied mound in the historical heart of Erbil, rising between 25 and 32 meters from the surrounding plain.</p>
+                <div class="history-fact">
+                    <div class="history-title">Did You Know?</div>
+                    <div>The Citadel is considered one of the oldest continuously inhabited sites in the world, with evidence of settlement dating back to at least the 5th millennium BC.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Map -->
     <div class="card fade-in">
         <div class="card-title"><i class="fas fa-map-marked-alt"></i> Location Map</div>
@@ -311,6 +412,26 @@
     </div>
 </div>
 
+<!-- POI Info Modal -->
+<div id="poi-modal" class="notification" style="max-width: 500px; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10000; display: none;">
+    <div class="card" style="margin: 0; background: linear-gradient(135deg, #0e2340, #102e4a);">
+        <div class="card-title"><i class="fas fa-info-circle"></i> About Location Alerts</div>
+        <div style="padding: 16px;">
+            <p>Location alerts notify you when you approach points of interest. Here's how it works:</p>
+            <ul style="margin: 12px 0 12px 20px;">
+                <li>Add locations using the "Add Location Alert" button</li>
+                <li>When you get within 500 meters of a location, you'll receive a notification</li>
+                <li>Each alert includes historical information about the location</li>
+                <li>Alerts only trigger when location sharing is active</li>
+                <li>You can disable alerts at any time in settings</li>
+            </ul>
+            <div class="btn-container" style="margin-top: 16px;">
+                <button id="close-poi-modal" class="btn">Got It!</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 /* ========= DOM refs ========= */
 const realNameInput = document.getElementById('real-name');
@@ -351,6 +472,12 @@ const chatSend = document.getElementById('chat-send');
 const codeHint = document.getElementById('code-hint');
 const sessionTimer = document.getElementById('session-timer');
 const yourDuration = document.getElementById('your-duration');
+const enableMessageNotifications = document.getElementById('enable-message-notifications');
+const enableLocationAlerts = document.getElementById('enable-location-alerts');
+const addPOIBtn = document.getElementById('add-poi');
+const poiInfoBtn = document.getElementById('poi-info');
+const poiModal = document.getElementById('poi-modal');
+const closePOIModal = document.getElementById('close-poi-modal');
 
 /* ========= State ========= */
 let peer = null;
@@ -369,6 +496,39 @@ let sessionStartTime = null;
 let timerInterval = null;
 let peerDurationInterval = null;
 let peerDuration = 0;
+let watchId = null;
+let currentPosition = null;
+let poiMap = null;
+let lastNotificationTime = 0;
+let notificationCooldown = 30000; // 30 seconds cooldown between notifications
+
+// Points of interest with historical information
+const pointsOfInterest = [
+    {
+        id: 1,
+        name: "Erbil Citadel",
+        lat: 36.1911,
+        lng: 44.0092,
+        description: "One of the oldest continuously inhabited sites in the world",
+        history: "The Erbil Citadel is a fortified settlement on top of an imposing ovoid-shaped tell in the Kurdistan region. With a history dating back over 6,000 years, it is considered one of the oldest continuously inhabited sites in the world. The citadel has been home to various civilizations including the Sumerians, Assyrians, Babylonians, and Ottomans."
+    },
+    {
+        id: 2,
+        name: "Sulaymaniyah Museum",
+        lat: 35.5572,
+        lng: 45.4353,
+        description: "Second largest museum in Iraq",
+        history: "The Sulaymaniyah Museum houses the second largest collection of Iraqi antiquities after the National Museum of Iraq in Baghdad. The museum features artifacts from various historical periods, including prehistoric, Sumerian, Babylonian, Assyrian, and Islamic eras. Its collection includes cuneiform tablets, pottery, and sculptures dating back thousands of years."
+    },
+    {
+        id: 3,
+        name: "Duhok Dam",
+        lat: 36.8725,
+        lng: 42.9939,
+        description: "Major water reservoir in the Kurdistan Region",
+        history: "The Duhok Dam was constructed in the 1980s to provide water for irrigation and drinking water for the city of Duhok. The dam created a beautiful lake that has become a popular recreational area. The surrounding hills contain numerous archaeological sites, including rock carvings and ancient settlements dating back to the Assyrian period."
+    }
+];
 
 /* ========= Map init ========= */
 const map = L.map('map', { 
@@ -380,6 +540,90 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
 
+// Initialize POI map
+function initPOIMap() {
+    poiMap = L.map('poi-map', {
+        attributionControl: false,
+        center: [36.1911, 44.0092],
+        zoom: 10
+    });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(poiMap);
+    
+    // Add markers for POIs
+    pointsOfInterest.forEach(poi => {
+        L.marker([poi.lat, poi.lng]).addTo(poiMap)
+            .bindPopup(`<b>${poi.name}</b><br>${poi.description}`);
+    });
+}
+
+/* ========= Notification Enhancements ========= */
+function showNotification(msg, isError=false, duration=3000){
+    if(notificationTimeout){ clearTimeout(notificationTimeout); notificationTimeout=null; }
+    notificationMessage.textContent = msg;
+    notification.classList.add('show');
+    if(isError) notification.classList.add('error'); else notification.classList.remove('error');
+    notificationTimeout = setTimeout(()=>{ notification.classList.remove('show'); notification.classList.remove('error'); }, duration);
+}
+
+// Show historical alert notification
+function showHistoricalAlert(poi) {
+    if (!enableLocationAlerts.checked) return;
+    
+    const now = Date.now();
+    if (now - lastNotificationTime < notificationCooldown) return;
+    
+    lastNotificationTime = now;
+    
+    // Create alert card
+    const alertCard = document.querySelector('.location-alert-card');
+    alertCard.innerHTML = `
+        <div class="alert-title">
+            <i class="fas fa-map-marker-alt" style="color:#9c88ff"></i>
+            <div>Historical Alert: ${poi.name}</div>
+        </div>
+        <div class="alert-content">
+            <div><strong>${poi.name}</strong> - ${poi.description}</div>
+            <p>${poi.history.substring(0, 200)}...</p>
+            <div class="history-fact">
+                <div class="history-title">Did You Know?</div>
+                <div>${poi.history.substring(0, 150)}...</div>
+            </div>
+        </div>
+    `;
+    
+    // Also show a notification
+    showNotification(`Near ${poi.name}: ${poi.description}`);
+}
+
+// Check if user is near any points of interest
+function checkForPOIs(lat, lng) {
+    pointsOfInterest.forEach(poi => {
+        const distance = getDistance(lat, lng, poi.lat, poi.lng);
+        if (distance < 0.5) { // 0.5 km = 500 meters
+            showHistoricalAlert(poi);
+        }
+    });
+}
+
+// Calculate distance between two points using Haversine formula
+function getDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Earth radius in km
+    const dLat = deg2rad(lat2 - lat1);
+    const dLon = deg2rad(lon2 - lon1);
+    const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+    return R * c; // Distance in km
+}
+
+function deg2rad(deg) {
+    return deg * (Math.PI/180);
+}
+
 /* ========= Helpers ========= */
 function generateAnonAlias(){ 
     const adjectives = ["Swift", "Clever", "Brave", "Wise", "Gentle", "Fierce", "Noble", "Silent", "Bright", "Calm"];
@@ -387,14 +631,6 @@ function generateAnonAlias(){
     const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
     const noun = nouns[Math.floor(Math.random() * nouns.length)];
     return `${adj} ${noun}`;
-}
-
-function showNotification(msg, isError=false, duration=3000){
-    if(notificationTimeout){ clearTimeout(notificationTimeout); notificationTimeout=null; }
-    notificationMessage.textContent = msg;
-    notification.classList.add('show');
-    if(isError) notification.classList.add('error'); else notification.classList.remove('error');
-    notificationTimeout = setTimeout(()=>{ notification.classList.remove('show'); notification.classList.remove('error'); }, duration);
 }
 
 function updateStatus(text, connected=false){
@@ -464,6 +700,19 @@ function appendMessage(text, fromMe=false, isSystem=false){
     } else {
         el.className = fromMe ? 'message-me' : 'message-peer';
         el.textContent = text;
+        
+        // Show notification for new messages if enabled
+        if (!fromMe && enableMessageNotifications.checked && document.hidden) {
+            showNotification(`New message from ${peerAlias}`);
+            // Flash title if tab is not focused
+            if (document.hidden) {
+                const originalTitle = document.title;
+                document.title = "New message! - SecureHat";
+                setTimeout(() => {
+                    document.title = originalTitle;
+                }, 2000);
+            }
+        }
     }
     chatMessages.appendChild(el);
     chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -834,43 +1083,60 @@ function shareMyLocation(){
     shareLocationBtn.disabled = true;
     shareLocationBtn.innerHTML = `<i class="fas fa-sync fa-spin"></i> Getting...`;
 
-    navigator.geolocation.getCurrentPosition(pos => {
-        const latitude = pos.coords.latitude, longitude = pos.coords.longitude;
-        const myCard = document.getElementById('you-card');
-        myCard.querySelector('.location-sharing').innerHTML = `
-            <span class="dot"></span>
-            <span><i class="fas fa-location-dot"></i> Location shared</span>
-        `;
-        if(myMarker) map.removeLayer(myMarker);
-        myMarker = L.marker([latitude, longitude]).addTo(map).bindPopup('<b>Your Location</b>').openPopup();
-        
-        // Center map if peer location is available
-        if(peerMarker) {
-            const bounds = L.latLngBounds([
-                [latitude, longitude],
-                [peerMarker.getLatLng().lat, peerMarker.getLatLng().lng]
-            ]);
-            map.fitBounds(bounds, { padding: [50, 50] });
-        } else {
-            map.setView([latitude, longitude], 13);
-        }
+    // Clear any existing watch
+    if (watchId) {
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+    }
 
-        if(conn && conn.open) {
-            safeSend({ type:'location', latitude: latitude, longitude: longitude, clientAlias: myAlias });
-        }
+    // Start watching position for location alerts
+    watchId = navigator.geolocation.watchPosition(
+        position => {
+            currentPosition = position;
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+            
+            // Update UI
+            const myCard = document.getElementById('you-card');
+            myCard.querySelector('.location-sharing').innerHTML = `
+                <span class="dot"></span>
+                <span><i class="fas fa-location-dot"></i> Location shared</span>
+            `;
+            
+            if(myMarker) map.removeLayer(myMarker);
+            myMarker = L.marker([latitude, longitude]).addTo(map).bindPopup('<b>Your Location</b>').openPopup();
+            
+            // Check for nearby POIs
+            checkForPOIs(latitude, longitude);
+            
+            // Center map if peer location is available
+            if(peerMarker) {
+                const bounds = L.latLngBounds([
+                    [latitude, longitude],
+                    [peerMarker.getLatLng().lat, peerMarker.getLatLng().lng]
+                ]);
+                map.fitBounds(bounds, { padding: [50, 50] });
+            } else {
+                map.setView([latitude, longitude], 13);
+            }
 
-        shareLocationBtn.disabled = false;
-        shareLocationBtn.innerHTML = `<i class="fas fa-location-dot"></i> Share Location`;
-        showNotification('Location shared');
-        
-        locationControls.classList.remove('hidden');
-        locationShared = true;
-    }, err => {
-        console.error('Geolocation error', err);
-        shareLocationBtn.disabled = false;
-        shareLocationBtn.innerHTML = `<i class="fas fa-location-dot"></i> Share Location`;
-        showNotification('Could not get location (enable location services)', true);
-    }, { enableHighAccuracy:true, maximumAge:30000, timeout:10000 });
+            if(conn && conn.open) {
+                safeSend({ type:'location', latitude: latitude, longitude: longitude, clientAlias: myAlias });
+            }
+
+            shareLocationBtn.disabled = false;
+            shareLocationBtn.innerHTML = `<i class="fas fa-location-dot"></i> Share Location`;
+            locationControls.classList.remove('hidden');
+            locationShared = true;
+        },
+        err => {
+            console.error('Geolocation error', err);
+            shareLocationBtn.disabled = false;
+            shareLocationBtn.innerHTML = `<i class="fas fa-location-dot"></i> Share Location`;
+            showNotification('Could not get location (enable location services)', true);
+        },
+        { enableHighAccuracy: true, maximumAge: 30000, timeout: 10000 }
+    );
 }
 
 /* update location */
@@ -887,6 +1153,11 @@ stopSharingBtn.addEventListener('click', () => {
         myMarker = null;
     }
     
+    if (watchId) {
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+    }
+    
     const myCard = document.getElementById('you-card');
     myCard.querySelector('.location-sharing').innerHTML = `
         <span class="dot"></span>
@@ -895,6 +1166,7 @@ stopSharingBtn.addEventListener('click', () => {
     
     locationControls.classList.add('hidden');
     locationShared = false;
+    currentPosition = null;
     
     showNotification('Stopped sharing your location');
 });
@@ -914,6 +1186,11 @@ function stopSession(){
 
     if(myMarker){ map.removeLayer(myMarker); myMarker=null; }
     if(peerMarker){ map.removeLayer(peerMarker); peerMarker=null; }
+
+    if (watchId) {
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+    }
 
     userList.innerHTML = `<div class="user-card" id="you-card">
         <div class="user-avatar">Y</div>
@@ -987,6 +1264,9 @@ window.addEventListener('DOMContentLoaded', () => {
         sessionCard.classList.add('hidden');
         updateStatus('Ready to connect', false);
     }
+    
+    // Initialize POI map
+    initPOIMap();
 });
 
 function updateYourNameDisplay() {
@@ -1052,6 +1332,41 @@ chatInput.addEventListener('keydown', (e) => {
     if(e.key === 'Enter' && !e.shiftKey){
         e.preventDefault();
         chatSend.click();
+    }
+});
+
+/* POI Info Button */
+poiInfoBtn.addEventListener('click', () => {
+    poiModal.style.display = 'block';
+});
+
+closePOIModal.addEventListener('click', () => {
+    poiModal.style.display = 'none';
+});
+
+// Close modal when clicking outside
+window.addEventListener('click', (e) => {
+    if (e.target === poiModal) {
+        poiModal.style.display = 'none';
+    }
+});
+
+/* Add POI button */
+addPOIBtn.addEventListener('click', () => {
+    if (!currentPosition) {
+        showNotification('Share your location first to add an alert', true);
+        return;
+    }
+    
+    // For demo purposes, we'll just show an alert
+    showNotification('Location alert added! You will be notified when near this location.');
+});
+
+// Handle visibility change for notifications
+document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'visible') {
+        // Reset title when user comes back to the tab
+        document.title = "SecureHat — Private Location Sharing & Chat";
     }
 });
 
