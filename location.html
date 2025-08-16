@@ -129,9 +129,8 @@
         .tooltip { position: relative; display: inline-block; }
         .tooltip .tooltiptext { visibility: hidden; width: 180px; background-color: rgba(0,0,0,0.8); color: #fff; text-align: center; border-radius: 6px; padding: 8px; position: absolute; z-index: 1; bottom: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s; font-size: 0.85rem }
         .tooltip:hover .tooltiptext { visibility: visible; opacity: 1 }
-        .progress-bar { height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; margin-top: 8px; overflow: hidden }
-        .progress { height: 100%; background: linear-gradient(90deg, #ff7e5f, #feb47b); width: 0%; transition: width 0.3s }
         .rejoin-notice { background: rgba(255,255,255,.05); padding: 10px; border-radius: 10px; border-left: 4px solid #4facfe; margin: 12px 0; display: flex; align-items: center; gap: 8px; font-size: 0.9rem }
+        .duration-badge { background: rgba(79, 172, 254, 0.2); color: #4facfe; padding: 4px 8px; border-radius: 20px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 4px }
     </style>
 </head>
 <body>
@@ -222,9 +221,6 @@
             <input id="display-code" class="code-input" readonly placeholder="Session Code">
             <button id="copy-code" class="btn btn-outline" title="Copy code"><i class="fas fa-copy"></i></button>
         </div>
-        <div class="progress-bar">
-            <div class="progress" id="session-progress"></div>
-        </div>
 
         <div class="btn-container" style="margin-top:16px;grid-template-columns:1fr 1fr 1fr">
             <button id="resume-session" class="btn btn-reconnect"><i class="fas fa-plug"></i> Reconnect</button>
@@ -238,7 +234,7 @@
             <button id="stop-sharing" class="btn btn-unshare"><i class="fas fa-location-slash"></i> Stop Sharing</button>
         </div>
 
-        <div class="form-note" style="margin-top:14px">Note: You can reconnect anytime using the session code. Session expires after 30 minutes.</div>
+        <div class="form-note" style="margin-top:14px">Note: You can reconnect anytime using the session code.</div>
     </div>
 
     <!-- Map -->
@@ -258,7 +254,7 @@
             <div class="user-card" id="you-card">
                 <div class="user-avatar">Y</div>
                 <div class="user-info">
-                    <div class="user-name" id="your-name-display">You</div>
+                    <div class="user-name" id="your-name-display">You <span class="duration-badge"><i class="fas fa-clock"></i> <span id="your-duration">0s</span></span></div>
                     <div class="location-sharing">
                         <span class="dot"></span>
                         <span><i class="fas fa-location-slash"></i> Location not shared</span>
@@ -354,7 +350,7 @@ const chatInput = document.getElementById('chat-input');
 const chatSend = document.getElementById('chat-send');
 const codeHint = document.getElementById('code-hint');
 const sessionTimer = document.getElementById('session-timer');
-const sessionProgress = document.getElementById('session-progress');
+const yourDuration = document.getElementById('your-duration');
 
 /* ========= State ========= */
 let peer = null;
@@ -369,12 +365,10 @@ let isHost = false;
 let peerAlias = null;
 let codeRevealed = false;
 let autoHideTimeout = null;
-let sessionTimeout = null;
-let reconnectAttempts = 0;
 let sessionStartTime = null;
 let timerInterval = null;
-let peerLocation = null;
-let storedAlias = null;
+let peerDurationInterval = null;
+let peerDuration = 0;
 
 /* ========= Map init ========= */
 const map = L.map('map', { 
@@ -421,9 +415,22 @@ function updateSessionTimer() {
     
     sessionTimer.textContent = formattedTime;
     
-    // Update progress bar (30 minute max session)
-    const progressPercent = Math.min(100, (elapsed / (30 * 60 * 1000)) * 100);
-    sessionProgress.style.width = `${progressPercent}%`;
+    // Update personal duration
+    yourDuration.textContent = formatDuration(elapsed);
+}
+
+function formatDuration(milliseconds) {
+    const seconds = Math.floor((milliseconds / 1000) % 60);
+    const minutes = Math.floor((milliseconds / (1000 * 60)) % 60);
+    const hours = Math.floor(milliseconds / (1000 * 60 * 60));
+    
+    if (hours > 0) {
+        return `${hours}h ${minutes}m ${seconds}s`;
+    } else if (minutes > 0) {
+        return `${minutes}m ${seconds}s`;
+    } else {
+        return `${seconds}s`;
+    }
 }
 
 function safeSend(payload){
@@ -588,14 +595,7 @@ function startSession(host){
     if(showRealName) {
         myAlias = realName;
     } else {
-        // Try to retrieve stored alias for consistency
-        storedAlias = localStorage.getItem('session_alias');
-        if (storedAlias) {
-            myAlias = storedAlias;
-        } else {
-            myAlias = generateAnonAlias();
-            localStorage.setItem('session_alias', myAlias);
-        }
+        myAlias = generateAnonAlias();
     }
 
     setupCard.classList.add('hidden');
@@ -616,7 +616,6 @@ function startSession(host){
     chatMessages.innerHTML = '';
     if(isHost) {
         appendMessage("You created a session. Share the code with others to join.", false, true);
-        appendMessage("Participants can leave and rejoin anytime with the session code.", false, true);
     } else {
         appendMessage("Joining session...", false, true);
     }
@@ -634,12 +633,6 @@ function startSession(host){
     } catch(e){ console.error('Peer create failed', e); showNotification('Peer init failed', true); updateStatus('Error', false); return; }
 
     setControlsDisabled(true);
-
-    if(sessionTimeout) clearTimeout(sessionTimeout);
-    sessionTimeout = setTimeout(() => {
-        showNotification('Session expired after 30 minutes', true);
-        stopSession();
-    }, 30 * 60 * 1000);
 
     reconnectAttempts = 0;
     const MAX_JOIN_ATTEMPTS = 8;
@@ -770,7 +763,7 @@ function updatePeerAlias(data){
     div.className = 'user-card peer-card fade-in';
     div.innerHTML = `<div class="user-avatar">${alias.charAt(0)}</div>
         <div class="user-info">
-            <div class="user-name">${alias}</div>
+            <div class="user-name">${alias} <span class="duration-badge"><i class="fas fa-clock"></i> <span class="peer-duration">0s</span></span></div>
             <div class="location-sharing">
                 <span class="dot"></span>
                 <span><i class="fas fa-location-slash"></i> Location not shared</span>
@@ -779,11 +772,26 @@ function updatePeerAlias(data){
         </div>`;
     const youCard = document.getElementById('you-card');
     userList.insertBefore(div, youCard.nextSibling);
+    
+    // Start peer duration timer
+    const peerStart = Date.now();
+    if (peerDurationInterval) clearInterval(peerDurationInterval);
+    peerDurationInterval = setInterval(() => {
+        const elapsed = Date.now() - peerStart;
+        const durationElement = div.querySelector('.peer-duration');
+        if (durationElement) {
+            durationElement.textContent = formatDuration(elapsed);
+        }
+    }, 1000);
 }
 
 function removePeerCard() {
     const peerCards = userList.querySelectorAll('.peer-card');
     peerCards.forEach(card => card.remove());
+    if (peerDurationInterval) {
+        clearInterval(peerDurationInterval);
+        peerDurationInterval = null;
+    }
 }
 
 function updatePeerLocation(d){
@@ -897,7 +905,6 @@ function stopSession(){
     localStorage.removeItem('session_active');
     localStorage.removeItem('session_role');
     localStorage.removeItem('session_code');
-    localStorage.removeItem('session_alias');
     sessionRoleCached = null;
 
     setupCard.classList.remove('hidden');
@@ -911,7 +918,7 @@ function stopSession(){
     userList.innerHTML = `<div class="user-card" id="you-card">
         <div class="user-avatar">Y</div>
         <div class="user-info">
-            <div class="user-name" id="your-name-display">You</div>
+            <div class="user-name" id="your-name-display">You <span class="duration-badge"><i class="fas fa-clock"></i> <span id="your-duration">0s</span></span></div>
             <div class="location-sharing">
                 <span class="dot"></span>
                 <span><i class="fas fa-location-slash"></i> Location not shared</span>
@@ -922,10 +929,8 @@ function stopSession(){
 
     chatMessages.innerHTML = '<div class="message-system">Welcome to SecureHat! Start by creating or joining a session.</div>';
     
-    if(sessionTimeout) clearTimeout(sessionTimeout);
     if(timerInterval) clearInterval(timerInterval);
     sessionTimer.textContent = '00:00:00';
-    sessionProgress.style.width = '0%';
     
     locationControls.classList.add('hidden');
     locationShared = false;
@@ -972,12 +977,6 @@ window.addEventListener('DOMContentLoaded', () => {
         sessionCard.classList.remove('hidden');
         updateStatus('Session active. Type your name and press Reconnect.', false);
         sessionRoleCached = sessionRole;
-        
-        if(sessionTimeout) clearTimeout(sessionTimeout);
-        sessionTimeout = setTimeout(() => {
-            showNotification('Session expired after 30 minutes', true);
-            stopSession();
-        }, 30 * 60 * 1000);
         
         if(sessionRole === 'host') {
             hostIndicator.classList.remove('hidden');
