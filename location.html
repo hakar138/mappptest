@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>SecureHat — Private Location Sharing & Chat (Improved)</title>
+  <title>SecureHat — Private Location Sharing & Chat</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js" defer></script>
@@ -13,14 +13,15 @@
       --bg-1: #0d1c33; --bg-2: #10294f; --accent-1: #ff7e5f; --accent-2: #feb47b;
       --blue-1: #4facfe; --blue-2: #00f2fe; --muted: rgba(255,255,255,0.85);
       --card-bg: rgba(255,255,255,0.04); --glass: rgba(255,255,255,0.05);
-      --success: #4cd137; --danger: #e84118;
+      --success: #4cd137; --warning: #fbc531; --danger: #e84118;
       --rounded: 12px; --max-width: 980px;
       --font-sans: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      --transition: all 0.3s ease;
     }
 
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{margin:0;min-height:100vh;background:linear-gradient(135deg,var(--bg-1),var(--bg-2));color:#fff;padding:16px; font-family:var(--font-sans)}
+    body{margin:0;min-height:100vh;background:linear-gradient(135deg,var(--bg-1),var(--bg-2));color:#fff;padding:16px; font-family:var(--font-sans); line-height:1.5;}
     .container{max-width:var(--max-width);margin:0 auto}
 
     header{text-align:center;margin-bottom:20px}
@@ -33,50 +34,86 @@
     .grid{display:grid;grid-template-columns:1fr 420px;gap:16px}
     @media (max-width:980px){.grid{grid-template-columns:1fr}}
 
-    .card{background:var(--card-bg);padding:18px;border-radius:14px;border:1px solid rgba(255,255,255,0.06);box-shadow:0 10px 30px rgba(0,0,0,.25)}
+    .card{background:var(--card-bg);padding:18px;border-radius:14px;border:1px solid rgba(255,255,255,0.06);box-shadow:0 10px 30px rgba(0,0,0,.25); transition: var(--transition);}
     .card-title{color:var(--accent-2);font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:10px}
 
     label{display:block;font-weight:700;margin-bottom:8px}
-    .form-control{width:100%;padding:12px;border-radius:10px;border:none;background:var(--glass);color:inherit;font-size:1rem}
+    .form-control{width:100%;padding:12px;border-radius:10px;border:none;background:var(--glass);color:inherit;font-size:1rem; transition: var(--transition);}
+    .form-control:focus {outline: 2px solid var(--accent-1); background: rgba(255,255,255,0.08);}
     .form-note{font-size:.9rem;opacity:.85;margin-top:8px}
 
-    .btn{padding:12px;border-radius:10px;border:none;cursor:pointer;font-weight:700;background:linear-gradient(45deg,var(--accent-1),var(--accent-2));color:#fff;display:inline-flex;align-items:center;gap:8px}
+    .btn{padding:12px;border-radius:10px;border:none;cursor:pointer;font-weight:700;background:linear-gradient(45deg,var(--accent-1),var(--accent-2));color:#fff;display:inline-flex;align-items:center;gap:8px; transition: var(--transition);}
+    .btn:hover {transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2);}
+    .btn:active {transform: translateY(0);}
     .btn-outline{background:transparent;border:2px solid var(--accent-1);color:var(--accent-1)}
-    .btn-stop{background:linear-gradient(45deg,#e84118,#c23616)}
+    .btn-outline:hover {background: rgba(255,126,95,0.15);}
+    .btn-stop{background:linear-gradient(45deg,var(--danger),#c23616)}
     .btn-small{padding:8px 10px;font-size:.95rem}
-    .btn:disabled{opacity:.6;cursor:not-allowed}
+    .btn:disabled{opacity:.6;cursor:not-allowed; transform: none !important;}
 
     .code-row{display:flex;gap:8px;align-items:center}
     .code-input{flex:1;padding:12px;border-radius:10px;border:none;background:rgba(255,255,255,0.03);text-align:center;font-weight:700;letter-spacing:3px}
 
-    .map-container{height:360px;border-radius:12px;overflow:hidden;border:2px solid rgba(255,255,255,0.06)}
+    .map-container{height:360px;border-radius:12px;overflow:hidden;border:2px solid rgba(255,255,255,0.06); transition: var(--transition);}
     #map{width:100%;height:100%}
 
     .user-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
-    .user-card{display:flex;gap:12px;align-items:center;padding:12px;border-radius:10px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04)}
+    .user-card{display:flex;gap:12px;align-items:center;padding:12px;border-radius:10px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04); transition: var(--transition);}
+    .user-card:hover {background: rgba(255,255,255,0.05);}
     .user-avatar{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(45deg,var(--blue-1),var(--blue-2));font-weight:800}
 
     .chat-card{display:flex;flex-direction:column;height:320px}
     .chat-messages{flex:1;overflow:auto;padding:12px;border-radius:8px;background:rgba(0,0,0,0.12);margin-bottom:10px;display:flex;flex-direction:column;gap:8px}
     .chat-input-row{display:flex;gap:8px}
-    .chat-input{flex:1;padding:10px;border-radius:8px;border:none;background:rgba(255,255,255,0.04)}
+    .chat-input{flex:1;padding:10px;border-radius:8px;border:none;background:rgba(255,255,255,0.04); resize: none; color: white; font-family: inherit;}
+    .chat-input:focus {outline: 2px solid var(--accent-1);}
     .chat-send{min-width:110px}
 
-    .notification{position:fixed;right:16px;top:16px;background:rgba(0,0,0,.5);padding:12px 18px;border-radius:10px;backdrop-filter:blur(6px);transform:translateX(120%);transition:transform .35s;z-index:9000;border-left:4px solid var(--success)}
+    .notification{position:fixed;right:16px;top:16px;background:rgba(0,0,0,.7);padding:12px 18px;border-radius:10px;backdrop-filter:blur(6px);transform:translateX(120%);transition:transform .35s;z-index:9000;border-left:4px solid var(--success); max-width: 320px;}
     .notification.show{transform:translateX(0)}
     .notification.error{border-left-color:var(--danger)}
+    .notification.warning {border-left-color: var(--warning);}
 
-    .hidden{display:none}
-    .message-me{align-self:flex-end;background:linear-gradient(45deg,var(--accent-1),var(--accent-2));color:#000;padding:8px 12px;border-radius:12px}
-    .message-peer{align-self:flex-start;background:rgba(255,255,255,0.08);color:#fff;padding:8px 12px;border-radius:12px}
-    .message-system{text-align:center;color:rgba(255,255,255,0.85);font-style:italic}
+    .hidden{display:none !important;}
+    .message-me{align-self:flex-end;background:linear-gradient(45deg,var(--accent-1),var(--accent-2));color:#000;padding:8px 12px;border-radius:12px; max-width: 80%;}
+    .message-peer{align-self:flex-start;background:rgba(255,255,255,0.08);color:#fff;padding:8px 12px;border-radius:12px; max-width: 80%;}
+    .message-system{text-align:center;color:rgba(255,255,255,0.85);font-style:italic; font-size: 0.9rem;}
+
+    /* Connection status indicator */
+    .status-indicator {display: inline-flex; align-items: center; gap: 8px;}
+    .status-dot {width:12px;height:12px;border-radius:50%; background: #fbc531; transition: var(--transition);}
+    .status-dot.connected {background: var(--success);}
+    .status-dot.error {background: var(--danger); animation: pulse 1.5s infinite;}
+    
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+
+    /* Modal overlay */
+    .modal-overlay {position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 16px;}
+    
+    /* Loading spinner */
+    .spinner {width: 24px; height: 24px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: var(--accent-1); animation: spin 1s linear infinite; display: inline-block;}
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Tooltip */
+    .tooltip {position: relative; display: inline-block;}
+    .tooltip .tooltip-text {visibility: hidden; width: 120px; background-color: rgba(0,0,0,0.8); color: #fff; text-align: center; border-radius: 6px; padding: 5px; position: absolute; z-index: 1; bottom: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s;}
+    .tooltip:hover .tooltip-text {visibility: visible; opacity: 1;}
 
     /* small screens */
     @media (max-width:600px){
-      .logo{flex-direction:column}
-      .grid{grid-template-columns:1fr}
+      .logo{flex-direction:column; text-align: center;}
+      .grid{grid-template-columns:1fr; gap: 12px;}
       .map-container{height:260px}
       .chat-card{height:260px}
+      .card {padding: 14px;}
+      .user-list {grid-template-columns: 1fr;}
     }
   </style>
 </head>
@@ -110,17 +147,17 @@
             <label for="session-code">Session Code</label>
             <div class="code-row">
               <input id="session-code" class="code-input" type="password" placeholder="Enter or generate a secure code" aria-label="session code" />
-              <button id="gen-code" class="btn btn-small" title="Generate secure code"><i class="fas fa-lock"></i></button>
-              <button id="reveal-code" class="btn btn-outline btn-small" title="Reveal/Hide code">Reveal</button>
+              <button id="gen-code" class="btn btn-small tooltip" title="Generate secure code"><i class="fas fa-lock"></i><span class="tooltip-text">Generate Code</span></button>
+              <button id="reveal-code" class="btn btn-outline btn-small tooltip" title="Reveal/Hide code"><i class="fas fa-eye"></i><span class="tooltip-text">Reveal Code</span></button>
             </div>
             <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
               <div class="form-note" id="code-hint">Tip: generate a secure code to reduce guessing.</div>
-              <button id="copy-session-code" class="btn btn-outline btn-small" disabled>Copy</button>
+              <button id="copy-session-code" class="btn btn-outline btn-small tooltip" disabled><i class="fas fa-copy"></i><span class="tooltip-text">Copy Code</span></button>
             </div>
           </div>
 
           <div style="margin-top:12px;display:flex;align-items:center;gap:10px">
-            <label style="margin:0">Show my real name to others</label>
+            <label for="show-real-name-toggle" style="margin:0; cursor: pointer;">Show my real name to others</label>
             <input id="show-real-name-toggle" type="checkbox" aria-label="show real name" />
           </div>
 
@@ -134,8 +171,8 @@
         <section class="card" aria-labelledby="session-title" id="session-area">
           <div id="session-title" class="card-title"><i class="fas fa-satellite"></i> Active Session</div>
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
-            <div style="display:flex;align-items:center;gap:8px">
-              <div id="connection-dot" style="width:12px;height:12px;border-radius:50%;background:#fbc531" aria-hidden="true"></div>
+            <div class="status-indicator">
+              <div id="connection-dot" class="status-dot" aria-hidden="true"></div>
               <div id="status-text">Ready to connect</div>
             </div>
             <div style="display:flex;align-items:center;gap:12px">
@@ -146,16 +183,16 @@
 
           <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
             <input id="display-code" class="code-input" readonly aria-readonly="true" placeholder="Session Code" />
-            <button id="copy-code" class="btn btn-outline btn-small" title="Copy code"><i class="fas fa-copy"></i></button>
+            <button id="copy-code" class="btn btn-outline btn-small tooltip" title="Copy code"><i class="fas fa-copy"></i><span class="tooltip-text">Copy Code</span></button>
           </div>
 
-          <div style="margin-top:12px;display:flex;gap:8px">
+          <div style="margin-top:12px;display:flex;gap:8px;flex-wrap: wrap;">
             <button id="share-location" class="btn"><i class="fas fa-location-dot"></i> Share Location</button>
             <button id="stop-session" class="btn btn-stop"><i class="fas fa-power-off"></i> Stop</button>
           </div>
 
-          <div id="location-controls" class="hidden" style="margin-top:12px;display:flex;gap:8px">
-            <button id="update-location" class="btn btn-outline"><i class="fas fa-sync-alt"></i> Update Location</button>
+          <div id="location-controls" class="hidden" style="margin-top:12px;display:flex;gap:8px;flex-wrap: wrap;">
+            <button id="update-location" class="btn btn-outline"><i class="fas fa-sync-alt"></i> Update</button>
             <button id="stop-sharing" class="btn btn-outline"><i class="fas fa-location-slash"></i> Stop Sharing</button>
           </div>
 
@@ -172,7 +209,7 @@
       <!-- right column (users + chat) -->
       <div style="display:flex;flex-direction:column;gap:12px">
         <section class="card">
-          <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap: wrap; gap: 8px;">
             <div class="card-title"><i class="fas fa-users"></i> Connected Users</div>
             <div class="form-note">Chat & messages are anonymized unless you share your name</div>
           </div>
@@ -192,7 +229,7 @@
           <div class="card-title"><i class="fas fa-comments"></i> Chat</div>
           <div class="chat-messages" id="chat-messages"><div class="message-system">Welcome to SecureHat! Create or join a session to start.</div></div>
           <div class="chat-input-row">
-            <textarea id="chat-input" class="chat-input" rows="2" placeholder="Type a message..."></textarea>
+            <textarea id="chat-input" class="chat-input" rows="2" placeholder="Type a message..." aria-label="Chat message input"></textarea>
             <button id="chat-send" class="chat-send btn"><i class="fas fa-paper-plane"></i> Send</button>
           </div>
         </section>
@@ -206,24 +243,32 @@
   <!-- notification element -->
   <div id="notification" class="notification" role="status" aria-live="polite"><i class="fas fa-info-circle"></i> <span id="notification-message">Ready to start</span></div>
 
-  <!-- minimal modals for join/stop kept accessible -->
-  <div id="join-modal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="join-title">
-    <div style="width:90%;max-width:480px;margin:40px auto;background:linear-gradient(135deg,#0e2340,#102e4a);padding:16px;border-radius:12px">
-      <h3 id="join-title">Join Session</h3>
+  <!-- Loading overlay -->
+  <div id="loading-overlay" class="modal-overlay hidden">
+    <div style="background:var(--card-bg); padding: 24px; border-radius: var(--rounded); text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px;">
+      <div class="spinner"></div>
+      <div id="loading-text">Connecting...</div>
+    </div>
+  </div>
+
+  <!-- modals for join/stop -->
+  <div id="join-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="join-title">
+    <div style="width:90%;max-width:480px;background:linear-gradient(135deg,#0e2340,#102e4a);padding:24px;border-radius:var(--rounded);box-shadow: 0 10px 30px rgba(0,0,0,.5);">
+      <h3 id="join-title" style="margin-top: 0;">Join Session</h3>
       <p class="form-note">Enter session code provided by the host.</p>
       <input id="join-code-input" class="form-control" placeholder="Enter join session code" />
-      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px">
         <button id="join-cancel" class="btn btn-outline">Cancel</button>
         <button id="join-now" class="btn">Join</button>
       </div>
     </div>
   </div>
 
-  <div id="stop-confirmation" class="hidden" role="dialog" aria-modal="true" aria-labelledby="stop-title">
-    <div style="width:90%;max-width:520px;margin:40px auto;background:linear-gradient(135deg,#11264a,#183054);padding:18px;border-radius:12px;text-align:center">
-      <h3 id="stop-title">Confirm Session Stop</h3>
+  <div id="stop-confirmation" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="stop-title">
+    <div style="width:90%;max-width:520px;background:linear-gradient(135deg,#11264a,#183054);padding:24px;border-radius:var(--rounded);text-align:center;box-shadow: 0 10px 30px rgba(0,0,0,.5);">
+      <h3 id="stop-title" style="margin-top: 0;">Confirm Session Stop</h3>
       <p class="form-note">Are you sure you want to stop the session? This will end it for everyone.</p>
-      <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
+      <div style="display:flex;gap:8px;justify-content:center;margin-top:16px">
         <button id="confirm-stop" class="btn btn-stop">Yes, Stop</button>
         <button id="cancel-stop" class="btn btn-outline">Cancel</button>
       </div>
@@ -231,352 +276,819 @@
   </div>
 
   <script type="module">
-  // Improved script: encapsulated module, clearer state, multiple peers support (map of connections), better UX/ARIA
+  // Improved script: better organization, enhanced UX, better error handling
   const $ = sel => document.querySelector(sel);
   const $$ = sel => Array.from(document.querySelectorAll(sel));
 
   // DOM refs
-  const realNameInput = $('#real-name');
-  const sessionCodeInput = $('#session-code');
-  const genCodeBtn = $('#gen-code');
-  const revealCodeBtn = $('#reveal-code');
-  const copySessionCodeBtn = $('#copy-session-code');
-  const showRealNameToggle = $('#show-real-name-toggle');
-  const yourNameDisplay = $('#your-name-display');
-  const locationControls = $('#location-controls');
-  const updateLocationBtn = $('#update-location');
-  const stopSharingBtn = $('#stop-sharing');
-  const hostIndicator = $('#host-indicator');
-  const createSessionBtn = $('#create-session');
-  const openJoinBtn = $('#open-join');
-  const joinModal = $('#join-modal');
-  const joinCodeInput = $('#join-code-input');
-  const joinNowBtn = $('#join-now');
-  const joinCancelBtn = $('#join-cancel');
-  const setupCard = $('#setup-card');
-  const sessionArea = $('#session-area');
-  const displayCodeInput = $('#display-code');
-  const copyCodeBtn = $('#copy-code');
-  const shareLocationBtn = $('#share-location');
-  const stopSessionBtn = $('#stop-session');
-  const resumeSessionBtn = $('#resume-session');
-  const statusText = $('#status-text');
-  const connectionDot = $('#connection-dot');
-  const notification = $('#notification');
-  const notificationMessage = $('#notification-message');
-  const userList = $('#user-list');
-  const stopConfirmation = $('#stop-confirmation');
-  const confirmStopBtn = $('#confirm-stop');
-  const cancelStopBtn = $('#cancel-stop');
-  const chatMessages = $('#chat-messages');
-  const chatInput = $('#chat-input');
-  const chatSend = $('#chat-send');
-  const codeHint = $('#code-hint');
-  const sessionTimer = $('#session-timer');
-  const yourDuration = $('#your-duration');
-  const yourLocationStatus = $('#your-location-status');
+  const domRefs = {
+    realNameInput: $('#real-name'),
+    sessionCodeInput: $('#session-code'),
+    genCodeBtn: $('#gen-code'),
+    revealCodeBtn: $('#reveal-code'),
+    copySessionCodeBtn: $('#copy-session-code'),
+    showRealNameToggle: $('#show-real-name-toggle'),
+    yourNameDisplay: $('#your-name-display'),
+    locationControls: $('#location-controls'),
+    updateLocationBtn: $('#update-location'),
+    stopSharingBtn: $('#stop-sharing'),
+    hostIndicator: $('#host-indicator'),
+    createSessionBtn: $('#create-session'),
+    openJoinBtn: $('#open-join'),
+    joinModal: $('#join-modal'),
+    joinCodeInput: $('#join-code-input'),
+    joinNowBtn: $('#join-now'),
+    joinCancelBtn: $('#join-cancel'),
+    setupCard: $('#setup-card'),
+    sessionArea: $('#session-area'),
+    displayCodeInput: $('#display-code'),
+    copyCodeBtn: $('#copy-code'),
+    shareLocationBtn: $('#share-location'),
+    stopSessionBtn: $('#stop-session'),
+    resumeSessionBtn: $('#resume-session'),
+    statusText: $('#status-text'),
+    connectionDot: $('#connection-dot'),
+    notification: $('#notification'),
+    notificationMessage: $('#notification-message'),
+    userList: $('#user-list'),
+    stopConfirmation: $('#stop-confirmation'),
+    confirmStopBtn: $('#confirm-stop'),
+    cancelStopBtn: $('#cancel-stop'),
+    chatMessages: $('#chat-messages'),
+    chatInput: $('#chat-input'),
+    chatSend: $('#chat-send'),
+    codeHint: $('#code-hint'),
+    sessionTimer: $('#session-timer'),
+    yourDuration: $('#your-duration'),
+    yourLocationStatus: $('#your-location-status'),
+    loadingOverlay: $('#loading-overlay'),
+    loadingText: $('#loading-text')
+  };
 
-  // state
-  let peer = null;                 // local Peer object
-  let conns = new Map();          // map<peerId, DataConnection>
-  let myAlias = '';
-  let myMarker = null;
-  let peerMarkers = new Map();    // map<peerId, marker>
-  let notificationTimeout = null;
-  let codeRevealed = false;
-  let autoHideTimeout = null;
-  let sessionStartTime = null;
-  let timerInterval = null;
-  let isHost = false;
+  // App state
+  const state = {
+    peer: null,
+    conns: new Map(),
+    myAlias: '',
+    myMarker: null,
+    peerMarkers: new Map(),
+    notificationTimeout: null,
+    codeRevealed: false,
+    autoHideTimeout: null,
+    sessionStartTime: null,
+    timerInterval: null,
+    isHost: false,
+    isSharingLocation: false,
+    connectionStatus: 'disconnected' // disconnected, connecting, connected, error
+  };
 
-  // Map init
-  const map = L.map('map', { attributionControl:false, center:[34.5,45.5], zoom:7 });
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
+  // Map initialization
+  const map = L.map('map', { 
+    attributionControl: false, 
+    center: [34.5, 45.5], 
+    zoom: 7,
+    zoomControl: false
+  });
+  
+  // Add zoom control to bottom right
+  L.control.zoom({
+    position: 'bottomright'
+  }).addTo(map);
+  
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' 
+  }).addTo(map);
 
   /* ---------- Utilities ---------- */
-  function showNotification(msg, isError=false, duration=3500){
-    if(notificationTimeout) clearTimeout(notificationTimeout);
-    notificationMessage.textContent = msg;
-    notification.classList.add('show');
-    notification.classList.toggle('error', !!isError);
-    notificationTimeout = setTimeout(()=> notification.classList.remove('show'), duration);
+  function showNotification(msg, isError = false, isWarning = false, duration = 3500) {
+    if (state.notificationTimeout) clearTimeout(state.notificationTimeout);
+    domRefs.notificationMessage.textContent = msg;
+    domRefs.notification.classList.add('show');
+    domRefs.notification.classList.toggle('error', !!isError);
+    domRefs.notification.classList.toggle('warning', !!isWarning);
+    state.notificationTimeout = setTimeout(() => domRefs.notification.classList.remove('show'), duration);
+    
+    // Announce to screen readers
+    const announcement = document.createElement('div');
+    announcement.setAttribute('aria-live', 'assertive');
+    announcement.classList.add('sr-only');
+    announcement.textContent = msg;
+    document.body.appendChild(announcement);
+    setTimeout(() => document.body.removeChild(announcement), 100);
   }
 
-  function updateStatus(text, connected=false){
-    statusText.textContent = text;
-    connectionDot.style.background = connected ? '#4cd137' : '#fbc531';
+  function updateStatus(text, status) {
+    domRefs.statusText.textContent = text;
+    state.connectionStatus = status;
+    
+    // Update connection dot
+    domRefs.connectionDot.className = 'status-dot';
+    if (status === 'connected') domRefs.connectionDot.classList.add('connected');
+    else if (status === 'error') domRefs.connectionDot.classList.add('error');
   }
 
-  function formatDuration(ms){
-    const s = Math.floor(ms/1000)%60, m = Math.floor(ms/60000)%60, h = Math.floor(ms/3600000);
-    if(h>0) return `${h}h ${m}m ${s}s`;
-    if(m>0) return `${m}m ${s}s`;
+  function formatDuration(ms) {
+    const s = Math.floor(ms / 1000) % 60;
+    const m = Math.floor(ms / 60000) % 60;
+    const h = Math.floor(ms / 3600000);
+    
+    if (h > 0) return `${h}h ${m}m ${s}s`;
+    if (m > 0) return `${m}m ${s}s`;
     return `${s}s`;
   }
 
-  function appendMessage(text, fromMe=false, isSystem=false){
+  function appendMessage(text, fromMe = false, isSystem = false, senderAlias = '') {
     const el = document.createElement('div');
     el.className = isSystem ? 'message-system' : (fromMe ? 'message-me' : 'message-peer');
-    el.textContent = text;
-    chatMessages.appendChild(el);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    
+    if (!isSystem && !fromMe && senderAlias) {
+      el.innerHTML = `<strong>${senderAlias}:</strong> ${text}`;
+    } else {
+      el.textContent = text;
+    }
+    
+    domRefs.chatMessages.appendChild(el);
+    domRefs.chatMessages.scrollTop = domRefs.chatMessages.scrollHeight;
   }
 
-  function generateAnonAlias(){
-    const A=["Swift","Clever","Brave","Wise","Gentle","Fierce","Noble","Silent","Bright","Calm"];
-    const B=["Fox","Eagle","Lion","Wolf","Hawk","Bear","Deer","Owl","Horse","Falcon"];
-    return `${A[Math.floor(Math.random()*A.length)]} ${B[Math.floor(Math.random()*B.length)]}`;
+  function generateAnonAlias() {
+    const A = ["Swift", "Clever", "Brave", "Wise", "Gentle", "Fierce", "Noble", "Silent", "Bright", "Calm"];
+    const B = ["Fox", "Eagle", "Lion", "Wolf", "Hawk", "Bear", "Deer", "Owl", "Horse", "Falcon"];
+    return `${A[Math.floor(Math.random() * A.length)]} ${B[Math.floor(Math.random() * B.length)]}`;
   }
 
-  function generateSecureCode(len=8){
-    const alphabet='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    const arr = new Uint8Array(len); window.crypto.getRandomValues(arr);
-    return Array.from(arr).map(i=>alphabet[i%alphabet.length]).join('');
+  function generateSecureCode(len = 10) {
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const arr = new Uint8Array(len);
+    window.crypto.getRandomValues(arr);
+    return Array.from(arr).map(i => alphabet[i % alphabet.length]).join('');
   }
 
-  async function copyToClipboard(text){
-    try{ if(navigator.clipboard && window.isSecureContext){ await navigator.clipboard.writeText(text); } else { const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.left='-9999px'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); } showNotification('Copied to clipboard'); }
-    catch(e){ console.error(e); showNotification('Copy failed', true); }
+  async function copyToClipboard(text) {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      showNotification('Copied to clipboard');
+    } catch (e) {
+      console.error(e);
+      showNotification('Copy failed', true);
+    }
+  }
+
+  function showLoading(message = 'Connecting...') {
+    domRefs.loadingText.textContent = message;
+    domRefs.loadingOverlay.classList.remove('hidden');
+  }
+
+  function hideLoading() {
+    domRefs.loadingOverlay.classList.add('hidden');
   }
 
   /* ---------- Code generation UI ---------- */
-  genCodeBtn.addEventListener('click', ()=>{
+  domRefs.genCodeBtn.addEventListener('click', () => {
     const c = generateSecureCode(10);
-    sessionCodeInput.value = c;
+    domRefs.sessionCodeInput.value = c;
     maskCodeDisplay();
     showNotification('Secure code generated');
   });
 
-  function maskCodeDisplay(){ codeRevealed=false; sessionCodeInput.type='password'; revealCodeBtn.textContent='Reveal'; copySessionCodeBtn.disabled=true; if(autoHideTimeout) clearTimeout(autoHideTimeout); }
-  function revealCodeTemporarily(){ if(!sessionCodeInput.value){ showNotification('No code to reveal', true); return; } codeRevealed=true; sessionCodeInput.type='text'; revealCodeBtn.textContent='Hide'; copySessionCodeBtn.disabled=false; if(autoHideTimeout) clearTimeout(autoHideTimeout); autoHideTimeout = setTimeout(()=>{ maskCodeDisplay(); showNotification('Code auto-hidden'); }, 20000); }
-
-  revealCodeBtn.addEventListener('click', ()=>{ codeRevealed ? maskCodeDisplay() : revealCodeTemporarily(); });
-  copySessionCodeBtn.addEventListener('click', ()=>{ if(!codeRevealed){ showNotification('Reveal code to copy', true); return; } copyToClipboard(sessionCodeInput.value); });
-
-  /* ---------- Peer/session management ---------- */
-  function createLocalPeer(id=null){
-    try{
-      // if id provided, we will try to claim that id (host) — otherwise auto id
-      const p = id ? new Peer(id, { debug:2 }) : new Peer();
-      p.on('error', e=>{ console.error('peer err', e); showNotification('Peer error: '+String(e), true); updateStatus('Error', false); });
-      return p;
-    } catch(e){ console.error(e); showNotification('Unable to create peer', true); return null; }
+  function maskCodeDisplay() {
+    state.codeRevealed = false;
+    domRefs.sessionCodeInput.type = 'password';
+    domRefs.revealCodeBtn.innerHTML = '<i class="fas fa-eye"></i><span class="tooltip-text">Reveal Code</span>';
+    domRefs.copySessionCodeBtn.disabled = true;
+    if (state.autoHideTimeout) clearTimeout(state.autoHideTimeout);
   }
 
-  function startSession(host){
-    isHost = !!host;
-    const code = (sessionCodeInput.value||'').trim();
-    const realName = (realNameInput.value||'').trim();
-    if(!realName){ showNotification('Type your real name', true); return; }
-    if(code.length < 4){ showNotification('Enter a valid code (min 4 chars)', true); return; }
+  function revealCodeTemporarily() {
+    if (!domRefs.sessionCodeInput.value) {
+      showNotification('No code to reveal', true);
+      return;
+    }
+    state.codeRevealed = true;
+    domRefs.sessionCodeInput.type = 'text';
+    domRefs.revealCodeBtn.innerHTML = '<i class="fas fa-eye-slash"></i><span class="tooltip-text">Hide Code</span>';
+    domRefs.copySessionCodeBtn.disabled = false;
+    if (state.autoHideTimeout) clearTimeout(state.autoHideTimeout);
+    state.autoHideTimeout = setTimeout(() => {
+      maskCodeDisplay();
+      showNotification('Code auto-hidden');
+    }, 20000);
+  }
+
+  domRefs.revealCodeBtn.addEventListener('click', () => {
+    state.codeRevealed ? maskCodeDisplay() : revealCodeTemporarily();
+  });
+
+  domRefs.copySessionCodeBtn.addEventListener('click', () => {
+    if (!state.codeRevealed) {
+      showNotification('Reveal code to copy', true);
+      return;
+    }
+    copyToClipboard(domRefs.sessionCodeInput.value);
+  });
+
+  /* ---------- Peer/session management ---------- */
+  function createLocalPeer(id = null) {
+    try {
+      // Use a different configuration for better connection reliability
+      const peerOptions = {
+        debug: 2,
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' }
+          ]
+        }
+      };
+      
+      const p = id ? new Peer(id, peerOptions) : new Peer(peerOptions);
+      return p;
+    } catch (e) {
+      console.error(e);
+      showNotification('Unable to create peer connection', true);
+      return null;
+    }
+  }
+
+  function startSession(host) {
+    state.isHost = !!host;
+    const code = (domRefs.sessionCodeInput.value || '').trim();
+    const realName = (domRefs.realNameInput.value || '').trim();
+    
+    if (!realName) {
+      showNotification('Type your real name', true);
+      return;
+    }
+    
+    if (code.length < 4) {
+      showNotification('Enter a valid code (min 4 chars)', true);
+      return;
+    }
+
+    // Save user preferences
+    localStorage.setItem('local_real_name', realName);
+    localStorage.setItem('session_code', code);
+    localStorage.setItem('session_role', host ? 'host' : 'peer');
 
     // alias selection
-    myAlias = showRealNameToggle.checked ? realName : generateAnonAlias();
-    displayCodeInput.value = code;
+    state.myAlias = domRefs.showRealNameToggle.checked ? realName : generateAnonAlias();
+    domRefs.displayCodeInput.value = code;
+    domRefs.yourNameDisplay.textContent = `You (${state.myAlias})`;
 
-    // UI
-    appendMessage(isHost ? 'You created a session. Share the code.' : `Joining session...`, false, true);
-    sessionStartTime = Date.now(); if(timerInterval) clearInterval(timerInterval); timerInterval = setInterval(()=>{ sessionTimer.textContent = new Date(Date.now()-sessionStartTime).toISOString().substr(11,8); document.getElementById('your-duration').textContent = formatDuration(Date.now()-sessionStartTime); }, 1000);
-    updateStatus(isHost ? 'Hosting — waiting for peers' : 'Connecting to host...', isHost);
+    // UI updates
+    appendMessage(state.isHost ? 'You created a session. Share the code.' : 'Joining session...', false, true);
+    
+    state.sessionStartTime = Date.now();
+    if (state.timerInterval) clearInterval(state.timerInterval);
+    
+    state.timerInterval = setInterval(() => {
+      const elapsed = Date.now() - state.sessionStartTime;
+      const date = new Date(elapsed);
+      domRefs.sessionTimer.textContent = date.toISOString().substr(11, 8);
+      domRefs.yourDuration.textContent = formatDuration(elapsed);
+    }, 1000);
+    
+    updateStatus(state.isHost ? 'Hosting — waiting for peers' : 'Connecting to host...', 'connecting');
+    domRefs.hostIndicator.classList.toggle('hidden', !state.isHost);
 
     destroyPeer();
 
+    // Show loading indicator
+    showLoading(state.isHost ? 'Starting session...' : 'Connecting to session...');
+
     // create peer
-    peer = createLocalPeer(isHost ? code : null);
-    if(!peer) return;
+    state.peer = createLocalPeer(state.isHost ? code : null);
+    if (!state.peer) {
+      hideLoading();
+      return;
+    }
 
     // common events
-    peer.on('open', id => {
-      updateStatus(isHost ? 'Hosting' : 'Connected to Peer', true);
-      showNotification(isHost ? 'Hosting — share code' : 'Connected');
-      if(!isHost){ // connect to host
+    state.peer.on('open', id => {
+      hideLoading();
+      updateStatus(state.isHost ? 'Hosting' : 'Connected to session', 'connected');
+      showNotification(state.isHost ? 'Hosting — share code' : 'Connected');
+      
+      if (!state.isHost) {
+        // connect to host
         tryConnectToHost(code);
       }
     });
 
-    peer.on('connection', conn => {
+    state.peer.on('connection', conn => {
       // accept and setup multiple connections
       setupConnectionHandlers(conn);
     });
 
-    peer.on('disconnected', ()=>{ updateStatus('Disconnected', false); showNotification('Network disconnected', true); });
-    peer.on('close', ()=>{ updateStatus('Closed', false); });
+    state.peer.on('disconnected', () => {
+      updateStatus('Disconnected', 'error');
+      showNotification('Network disconnected', true);
+    });
+    
+    state.peer.on('close', () => {
+      updateStatus('Connection closed', 'disconnected');
+      hideLoading();
+    });
+    
+    state.peer.on('error', err => {
+      console.error('Peer error:', err);
+      hideLoading();
+      
+      if (err.type === 'unavailable-id') {
+        showNotification('Session code already in use', true);
+        updateStatus('Code unavailable', 'error');
+      } else if (err.type === 'network') {
+        showNotification('Network error. Please check your connection', true);
+        updateStatus('Network error', 'error');
+      } else {
+        showNotification('Connection error: ' + err, true);
+        updateStatus('Connection error', 'error');
+      }
+    });
   }
 
-  function tryConnectToHost(code){
-    if(!peer) return;
-    let attempts = 0; const MAX = 8; const interval = 1500;
-    function attempt(){
+  function tryConnectToHost(code) {
+    if (!state.peer) return;
+    
+    let attempts = 0;
+    const MAX_ATTEMPTS = 8;
+    const INTERVAL = 1500;
+    
+    function attempt() {
       attempts++;
-      try{
-        const c = peer.connect(code, { reliable:true, serialization:'json' });
-        setupConnectionHandlers(c);
-      } catch(e){
-        if(attempts < MAX) setTimeout(attempt, interval);
-        else { showNotification('Unable to connect to host', true); updateStatus('Unable to connect', false); }
+      
+      // Show attempt status after first try
+      if (attempts > 1) {
+        updateStatus(`Connecting to host (${attempts}/${MAX_ATTEMPTS})`, 'connecting');
+      }
+      
+      try {
+        const conn = state.peer.connect(code, {
+          reliable: true,
+          serialization: 'json'
+        });
+        
+        setupConnectionHandlers(conn);
+      } catch (e) {
+        console.error('Connection error:', e);
+        
+        if (attempts < MAX_ATTEMPTS) {
+          setTimeout(attempt, INTERVAL);
+        } else {
+          showNotification('Unable to connect to host after multiple attempts', true);
+          updateStatus('Connection failed', 'error');
+          hideLoading();
+        }
       }
     }
+    
     attempt();
   }
 
-  function setupConnectionHandlers(conn){
-    // ensure unique id (peerjs gives connection.peer)
+  function setupConnectionHandlers(conn) {
     const pid = conn.peer;
-    conns.set(pid, conn);
+    state.conns.set(pid, conn);
 
-    conn.on('open', ()=>{
-      updateStatus('Peer connected', true);
+    conn.on('open', () => {
+      updateStatus('Peer connected', 'connected');
       showNotification('Peer connected');
-      // announce alias
-      conn.send({ type:'alias', alias: myAlias });
-      appendMessage(`${pid} connected`, false, true);
+      
+      // announce alias to the new connection
+      conn.send({
+        type: 'alias',
+        alias: state.myAlias,
+        isSharingLocation: state.isSharingLocation
+      });
+      
+      appendMessage(`User ${pid.substring(0, 6)} connected`, false, true);
     });
 
     conn.on('data', data => handleIncomingMessage(pid, data));
 
-    conn.on('close', ()=>{
-      conns.delete(pid);
+    conn.on('close', () => {
+      state.conns.delete(pid);
       removePeerMarker(pid);
-      appendMessage(`${pid} disconnected`, false, true);
+      appendMessage(`User ${pid.substring(0, 6)} disconnected`, false, true);
       showNotification('Peer disconnected');
+      
+      // Update status if no connections remain
+      if (state.conns.size === 0 && !state.isHost) {
+        updateStatus('Connected to session', 'connected');
+      }
     });
 
-    conn.on('error', e=>{ console.error('conn err', e); showNotification('Connection error', true); });
+    conn.on('error', err => {
+      console.error('Connection error:', err);
+      showNotification('Connection error with peer', true);
+    });
   }
 
-  function handleIncomingMessage(peerId, data){
-    if(!data || !data.type) return;
-    if(data.type === 'alias'){
-      // show peer in user-list
-      addOrUpdatePeerCard(peerId, data.alias || generateAnonAlias());
-      appendMessage(`${data.alias} joined`, false, true);
-    } else if(data.type === 'chat'){
-      appendMessage(`${data.clientAlias || peerId}: ${data.text}`);
-    } else if(data.type === 'location'){
-      updatePeerLocation(peerId, Number(data.latitude), Number(data.longitude), data.clientAlias);
+  function handleIncomingMessage(peerId, data) {
+    if (!data || !data.type) return;
+    
+    switch (data.type) {
+      case 'alias':
+        addOrUpdatePeerCard(peerId, data.alias || generateAnonAlias());
+        appendMessage(`${data.alias} joined the session`, false, true);
+        break;
+        
+      case 'chat':
+        appendMessage(data.text, false, false, data.clientAlias);
+        break;
+        
+      case 'location':
+        updatePeerLocation(peerId, Number(data.latitude), Number(data.longitude), data.clientAlias);
+        break;
+        
+      case 'locationStopped':
+        removePeerMarker(peerId);
+        updatePeerLocationStatus(peerId, 'Location not shared');
+        break;
     }
   }
 
-  function addOrUpdatePeerCard(pid, alias){
-    // remove existing then add
+  function addOrUpdatePeerCard(pid, alias) {
+    // Remove existing card if present
     const existing = document.querySelector(`[data-peer="${pid}"]`);
-    if(existing) existing.remove();
-    const div = document.createElement('div'); div.className='user-card'; div.dataset.peer = pid;
-    div.innerHTML = `<div class="user-avatar">${(alias||'P').charAt(0)}</div><div><div style="font-weight:700">${alias}</div><div class="form-note"><span class="peer-location-status">Location not shared</span></div></div>`;
-    userList.appendChild(div);
+    if (existing) existing.remove();
+    
+    const div = document.createElement('div');
+    div.className = 'user-card';
+    div.dataset.peer = pid;
+    
+    div.innerHTML = `
+      <div class="user-avatar">${(alias || 'P').charAt(0)}</div>
+      <div>
+        <div style="font-weight:700">${alias} <span style="font-size:.85rem; opacity:.7">${pid.substring(0, 6)}</span></div>
+        <div class="form-note">
+          <span class="dot" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--danger);margin-right:8px"></span>
+          <span class="peer-location-status">Location not shared</span>
+        </div>
+      </div>
+    `;
+    
+    domRefs.userList.appendChild(div);
   }
 
-  function removePeerMarker(pid){
-    const m = peerMarkers.get(pid); if(m){ map.removeLayer(m); peerMarkers.delete(pid); }
-    const card = document.querySelector(`[data-peer="${pid}"]`); if(card) card.remove();
-  }
-
-  function updatePeerLocation(pid, lat, lng, alias){
-    if(Number.isNaN(lat) || Number.isNaN(lng)) return;
-    // update peer card
+  function updatePeerLocationStatus(pid, status) {
     const card = document.querySelector(`[data-peer="${pid}"]`);
-    if(card) card.querySelector('.peer-location-status').textContent = 'Location shared';
+    if (card) {
+      const statusEl = card.querySelector('.peer-location-status');
+      if (statusEl) statusEl.textContent = status;
+      
+      const dotEl = card.querySelector('.dot');
+      if (dotEl) {
+        dotEl.style.background = status === 'Location shared' ? 'var(--success)' : 'var(--danger)';
+      }
+    }
+  }
 
-    // update marker
-    if(peerMarkers.has(pid)){ map.removeLayer(peerMarkers.get(pid)); peerMarkers.delete(pid); }
-    const m = L.marker([lat, lng]).addTo(map).bindPopup(`<b>${alias||pid}'s Location</b>`);
-    peerMarkers.set(pid, m);
+  function removePeerMarker(pid) {
+    const marker = state.peerMarkers.get(pid);
+    if (marker) {
+      map.removeLayer(marker);
+      state.peerMarkers.delete(pid);
+    }
+    
+    const card = document.querySelector(`[data-peer="${pid}"]`);
+    if (card) card.remove();
+  }
 
-    // adjust view if we have our location too
-    if(myMarker){
-      const bounds = L.latLngBounds([ myMarker.getLatLng(), [lat, lng] ]);
-      map.fitBounds(bounds, { padding:[50,50] });
+  function updatePeerLocation(pid, lat, lng, alias) {
+    if (Number.isNaN(lat) || Number.isNaN(lng)) return;
+    
+    // Update peer card status
+    updatePeerLocationStatus(pid, 'Location shared');
+    
+    // Remove existing marker if present
+    if (state.peerMarkers.has(pid)) {
+      map.removeLayer(state.peerMarkers.get(pid));
+      state.peerMarkers.delete(pid);
+    }
+    
+    // Create new marker
+    const marker = L.marker([lat, lng]).addTo(map);
+    marker.bindPopup(`<b>${alias || pid}'s Location</b><br>Updated: ${new Date().toLocaleTimeString()}`);
+    
+    state.peerMarkers.set(pid, marker);
+    
+    // Adjust map view if we have our location too
+    if (state.myMarker) {
+      const bounds = L.latLngBounds([state.myMarker.getLatLng(), [lat, lng]]);
+      map.fitBounds(bounds, { padding: [50, 50] });
     } else {
       map.setView([lat, lng], 13);
     }
   }
 
-  function destroyPeer(){
-    if(conns.size){ conns.forEach(c=>{ try{ c.close(); }catch(e){} }); conns.clear(); }
-    if(peer){ try{ peer.destroy(); }catch(e){} peer=null; }
-    // remove peer markers/cards
-    peerMarkers.forEach(m=>map.removeLayer(m)); peerMarkers.clear();
-    $$('.user-card[data-peer]').forEach(n=>n.remove());
+  function destroyPeer() {
+    // Close all connections
+    if (state.conns.size) {
+      state.conns.forEach(conn => {
+        try {
+          conn.close();
+        } catch (e) {
+          console.error('Error closing connection:', e);
+        }
+      });
+      state.conns.clear();
+    }
+    
+    // Destroy peer
+    if (state.peer) {
+      try {
+        state.peer.destroy();
+      } catch (e) {
+        console.error('Error destroying peer:', e);
+      }
+      state.peer = null;
+    }
+    
+    // Remove all peer markers and cards
+    state.peerMarkers.forEach(marker => map.removeLayer(marker));
+    state.peerMarkers.clear();
+    
+    $$('.user-card[data-peer]').forEach(node => node.remove());
+    
+    // Reset location sharing state
+    state.isSharingLocation = false;
+    domRefs.locationControls.classList.add('hidden');
+    domRefs.yourLocationStatus.textContent = 'Location not shared';
+    
+    // Clear timer
+    if (state.timerInterval) {
+      clearInterval(state.timerInterval);
+      state.timerInterval = null;
+    }
   }
 
   /* ---------- Location sharing ---------- */
-  function shareMyLocation(){
-    if(!peer){ showNotification('No active session', true); return; }
-    if(!navigator.geolocation){ showNotification('Geolocation not supported', true); return; }
+  function shareMyLocation() {
+    if (!state.peer) {
+      showNotification('No active session', true);
+      return;
+    }
+    
+    if (!navigator.geolocation) {
+      showNotification('Geolocation not supported', true);
+      return;
+    }
 
-    shareLocationBtn.disabled = true; shareLocationBtn.textContent = 'Getting...';
+    domRefs.shareLocationBtn.disabled = true;
+    domRefs.shareLocationBtn.innerHTML = '<span class="spinner" style="width:16px;height:16px"></span> Getting...';
 
-    navigator.geolocation.getCurrentPosition(pos => {
-      const lat=pos.coords.latitude, lng=pos.coords.longitude;
-      // update my card
-      yourLocationStatus.textContent = 'Location shared';
-      if(myMarker){ map.removeLayer(myMarker); myMarker=null; }
-      myMarker = L.marker([lat,lng]).addTo(map).bindPopup('<b>Your Location</b>').openPopup();
-
-      // notify peers
-      conns.forEach(c=>{ if(c.open) c.send({ type:'location', latitude:lat, longitude:lng, clientAlias:myAlias }); });
-
-      shareLocationBtn.disabled=false; shareLocationBtn.innerHTML = '<i class="fas fa-location-dot"></i> Share Location';
-      $('#location-controls').classList.remove('hidden');
-      showNotification('Location shared');
-    }, err => {
-      console.error(err); showNotification('Could not get location', true); shareLocationBtn.disabled=false; shareLocationBtn.innerHTML = '<i class="fas fa-location-dot"></i> Share Location';
-    }, { enableHighAccuracy:true, maximumAge:30000, timeout:10000 });
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        
+        // Update my status
+        domRefs.yourLocationStatus.textContent = 'Location shared';
+        state.isSharingLocation = true;
+        
+        // Remove existing marker if present
+        if (state.myMarker) {
+          map.removeLayer(state.myMarker);
+          state.myMarker = null;
+        }
+        
+        // Create new marker
+        state.myMarker = L.marker([lat, lng], {
+          title: 'Your Location',
+          alt: 'Your current location',
+          zIndexOffset: 1000
+        }).addTo(map);
+        
+        state.myMarker.bindPopup('<b>Your Location</b>').openPopup();
+        
+        // Notify peers
+        state.conns.forEach(conn => {
+          if (conn.open) {
+            conn.send({
+              type: 'location',
+              latitude: lat,
+              longitude: lng,
+              clientAlias: state.myAlias
+            });
+          }
+        });
+        
+        // Update UI
+        domRefs.shareLocationBtn.disabled = false;
+        domRefs.shareLocationBtn.innerHTML = '<i class="fas fa-location-dot"></i> Share Location';
+        domRefs.locationControls.classList.remove('hidden');
+        showNotification('Location shared');
+      },
+      err => {
+        console.error('Geolocation error:', err);
+        
+        let errorMsg = 'Could not get location';
+        if (err.code === err.PERMISSION_DENIED) {
+          errorMsg = 'Location permission denied';
+        } else if (err.code === err.TIMEOUT) {
+          errorMsg = 'Location request timed out';
+        }
+        
+        showNotification(errorMsg, true);
+        domRefs.shareLocationBtn.disabled = false;
+        domRefs.shareLocationBtn.innerHTML = '<i class="fas fa-location-dot"></i> Share Location';
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 30000,
+        timeout: 10000
+      }
+    );
   }
 
-  $('#update-location').addEventListener('click', ()=>{ shareMyLocation(); showNotification('Updating location...'); });
-  stopSharingBtn.addEventListener('click', ()=>{
-    if(myMarker){ map.removeLayer(myMarker); myMarker=null; }
-    $('#your-location-status').textContent = 'Location not shared';
-    $('#location-controls').classList.add('hidden');
+  domRefs.updateLocationBtn.addEventListener('click', () => {
+    shareMyLocation();
+    showNotification('Updating location...', false, true);
+  });
+
+  domRefs.stopSharingBtn.addEventListener('click', () => {
+    if (state.myMarker) {
+      map.removeLayer(state.myMarker);
+      state.myMarker = null;
+    }
+    
+    domRefs.yourLocationStatus.textContent = 'Location not shared';
+    domRefs.locationControls.classList.add('hidden');
+    state.isSharingLocation = false;
+    
+    // Notify peers
+    state.conns.forEach(conn => {
+      if (conn.open) {
+        conn.send({
+          type: 'locationStopped',
+          clientAlias: state.myAlias
+        });
+      }
+    });
+    
     showNotification('Stopped sharing your location');
   });
 
   /* ---------- UI events ---------- */
-  createSessionBtn.addEventListener('click', ()=>{ if(!sessionCodeInput.value.trim()){ showNotification('Enter or generate a code first', true); return; } startSession(true); hostIndicator.classList.remove('hidden'); isHost=true; });
-  openJoinBtn.addEventListener('click', ()=>{ joinModal.classList.remove('hidden'); joinCodeInput.value=''; joinCodeInput.focus(); });
-  joinCancelBtn.addEventListener('click', ()=> joinModal.classList.add('hidden'));
-  joinNowBtn.addEventListener('click', ()=>{
-    const code = (joinCodeInput.value||'').trim(); if(!code || code.length<4){ showNotification('Enter valid join code', true); return; }
-    sessionCodeInput.value = code; joinModal.classList.add('hidden');
-    if(!realNameInput.value.trim()){ showNotification('Type your real name before joining', true); return; }
+  domRefs.createSessionBtn.addEventListener('click', () => {
+    if (!domRefs.sessionCodeInput.value.trim()) {
+      showNotification('Enter or generate a code first', true);
+      return;
+    }
+    startSession(true);
+  });
+
+  domRefs.openJoinBtn.addEventListener('click', () => {
+    domRefs.joinModal.classList.remove('hidden');
+    domRefs.joinCodeInput.value = '';
+    domRefs.joinCodeInput.focus();
+  });
+
+  domRefs.joinCancelBtn.addEventListener('click', () => {
+    domRefs.joinModal.classList.add('hidden');
+  });
+
+  domRefs.joinNowBtn.addEventListener('click', () => {
+    const code = (domRefs.joinCodeInput.value || '').trim();
+    if (!code || code.length < 4) {
+      showNotification('Enter valid join code', true);
+      return;
+    }
+    
+    domRefs.sessionCodeInput.value = code;
+    domRefs.joinModal.classList.add('hidden');
+    
+    if (!domRefs.realNameInput.value.trim()) {
+      showNotification('Type your real name before joining', true);
+      return;
+    }
+    
     startSession(false);
   });
 
-  resumeSessionBtn.addEventListener('click', ()=>{
+  domRefs.resumeSessionBtn.addEventListener('click', () => {
     const savedName = localStorage.getItem('local_real_name') || '';
-    if(savedName) realNameInput.value = savedName;
-    if(!realNameInput.value.trim()){ showNotification('Type your real name to reconnect', true); return; }
-    const savedCode = localStorage.getItem('session_code') || displayCodeInput.value;
-    if(savedCode) sessionCodeInput.value = savedCode;
+    if (savedName) domRefs.realNameInput.value = savedName;
+    
+    if (!domRefs.realNameInput.value.trim()) {
+      showNotification('Type your real name to reconnect', true);
+      return;
+    }
+    
+    const savedCode = localStorage.getItem('session_code') || domRefs.displayCodeInput.value;
+    if (savedCode) domRefs.sessionCodeInput.value = savedCode;
+    
     const savedRole = localStorage.getItem('session_role') === 'host';
     startSession(savedRole);
   });
 
-  copyCodeBtn.addEventListener('click', ()=>{ const txt = displayCodeInput.value || sessionCodeInput.value || ''; if(txt) copyToClipboard(txt); else showNotification('No code available', true); });
-  $('#chat-send').addEventListener('click', ()=>{
-    const txt = chatInput.value.trim(); if(!txt) return; appendMessage(`${myAlias}: ${txt}`, true); conns.forEach(c=>{ if(c.open) c.send({ type:'chat', text:txt, clientAlias:myAlias }); }); chatInput.value='';
-  });
-  chatInput.addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); $('#chat-send').click(); } });
-
-  stopSessionBtn.addEventListener('click', ()=>{ stopConfirmation.classList.remove('hidden'); });
-  cancelStopBtn.addEventListener('click', ()=> stopConfirmation.classList.add('hidden'));
-  confirmStopBtn.addEventListener('click', ()=>{ stopConfirmation.classList.add('hidden'); destroyPeer(); localStorage.removeItem('session_active'); localStorage.removeItem('session_code'); localStorage.removeItem('local_real_name'); sessionStartTime=null; if(timerInterval) clearInterval(timerInterval); $('#session-timer').textContent='00:00:00'; showNotification('Session stopped'); });
-
-  // persist preferences
-  showRealNameToggle.addEventListener('change', ()=> localStorage.setItem('show_real_name', showRealNameToggle.checked));
-
-  window.addEventListener('DOMContentLoaded', ()=>{
-    // restore some UI state
-    const savedShow = localStorage.getItem('show_real_name') === 'true';
-    showRealNameToggle.checked = savedShow;
-    const savedName = localStorage.getItem('local_real_name'); if(savedName) realNameInput.value = savedName;
-    const savedCode = localStorage.getItem('session_code'); if(savedCode){ displayCodeInput.value = savedCode; sessionCodeInput.value = savedCode; }
+  domRefs.copyCodeBtn.addEventListener('click', () => {
+    const code = domRefs.displayCodeInput.value || domRefs.sessionCodeInput.value || '';
+    if (code) {
+      copyToClipboard(code);
+    } else {
+      showNotification('No code available', true);
+    }
   });
 
-  // before unload: warn if active
-  window.addEventListener('beforeunload', (e)=>{
-    if(peer){ e.preventDefault(); e.returnValue=''; }
+  domRefs.chatSend.addEventListener('click', () => {
+    const text = domRefs.chatInput.value.trim();
+    if (!text) return;
+    
+    appendMessage(text, true);
+    
+    state.conns.forEach(conn => {
+      if (conn.open) {
+        conn.send({
+          type: 'chat',
+          text: text,
+          clientAlias: state.myAlias
+        });
+      }
+    });
+    
+    domRefs.chatInput.value = '';
+  });
+
+  domRefs.chatInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      domRefs.chatSend.click();
+    }
+  });
+
+  domRefs.stopSessionBtn.addEventListener('click', () => {
+    domRefs.stopConfirmation.classList.remove('hidden');
+  });
+
+  domRefs.cancelStopBtn.addEventListener('click', () => {
+    domRefs.stopConfirmation.classList.add('hidden');
+  });
+
+  domRefs.confirmStopBtn.addEventListener('click', () => {
+    domRefs.stopConfirmation.classList.add('hidden');
+    destroyPeer();
+    
+    localStorage.removeItem('session_active');
+    localStorage.removeItem('session_code');
+    localStorage.removeItem('local_real_name');
+    
+    state.sessionStartTime = null;
+    if (state.timerInterval) {
+      clearInterval(state.timerInterval);
+      state.timerInterval = null;
+    }
+    
+    domRefs.sessionTimer.textContent = '00:00:00';
+    showNotification('Session stopped');
+    
+    // Reset UI
+    updateStatus('Ready to connect', 'disconnected');
+    domRefs.hostIndicator.classList.add('hidden');
+    appendMessage('Session ended. Create or join a new session to continue.', false, true);
+  });
+
+  // Persist preferences
+  domRefs.showRealNameToggle.addEventListener('change', () => {
+    localStorage.setItem('show_real_name', domRefs.showRealNameToggle.checked);
+  });
+
+  // Initialize UI state
+  window.addEventListener('DOMContentLoaded', () => {
+    // Restore UI state from localStorage
+    const savedShowName = localStorage.getItem('show_real_name') === 'true';
+    domRefs.showRealNameToggle.checked = savedShowName;
+    
+    const savedName = localStorage.getItem('local_real_name');
+    if (savedName) domRefs.realNameInput.value = savedName;
+    
+    const savedCode = localStorage.getItem('session_code');
+    if (savedCode) {
+      domRefs.displayCodeInput.value = savedCode;
+      domRefs.sessionCodeInput.value = savedCode;
+    }
+    
+    // Focus on name input for better UX
+    domRefs.realNameInput.focus();
+  });
+
+  // Warn before leaving active session
+  window.addEventListener('beforeunload', e => {
+    if (state.peer) {
+      e.preventDefault();
+      e.returnValue = 'You have an active session. Are you sure you want to leave?';
+    }
   });
   </script>
 </body>
