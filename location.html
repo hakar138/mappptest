@@ -106,6 +106,19 @@
         .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background: linear-gradient(45deg,#ff7e5f,#feb47b); }
         input:checked + .slider:before { transform: translateX(26px); }
+        
+        /* New styles for improved UI */
+        .name-badge { background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; margin-left: 8px; }
+        .connection-timer { font-size: 0.85rem; color: rgba(255,255,255,0.7); margin-top: 4px; }
+        .privacy-indicator { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; margin-top: 6px; }
+        .privacy-status { padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+        .privacy-status.anonymous { background: rgba(79, 172, 254, 0.2); color: #4facfe; }
+        .privacy-status.realname { background: rgba(76, 209, 55, 0.2); color: #4cd137; }
+        .name-change-container { margin-top: 12px; display: flex; gap: 8px; }
+        .name-change-input { flex: 1; padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; }
+        .name-change-btn { padding: 8px 12px; border-radius: 8px; border: none; background: #4facfe; color: #fff; cursor: pointer; }
+        .user-role { font-size: 0.8rem; margin-top: 4px; color: #fbc531; }
+        
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -255,11 +268,16 @@
                 <div class="user-avatar">Y</div>
                 <div class="user-info">
                     <div class="user-name" id="your-name-display">You <span class="duration-badge"><i class="fas fa-clock"></i> <span id="your-duration">0s</span></span></div>
+                    <div class="privacy-indicator">
+                        <i class="fas fa-user-secret"></i>
+                        <span class="privacy-status anonymous" id="your-privacy-status">Anonymous</span>
+                    </div>
                     <div class="location-sharing">
                         <span class="dot"></span>
                         <span><i class="fas fa-location-slash"></i> Location not shared</span>
                     </div>
                     <div style="margin-top:10px"><span class="status-dot"></span> Online</div>
+                    <div class="user-role" id="your-role">Participant</div>
                 </div>
             </div>
         </div>
@@ -320,6 +338,8 @@ const revealCodeBtn = document.getElementById('reveal-code');
 const copySessionCodeBtn = document.getElementById('copy-session-code');
 const showRealNameToggle = document.getElementById('show-real-name-toggle');
 const yourNameDisplay = document.getElementById('your-name-display');
+const yourPrivacyStatus = document.getElementById('your-privacy-status');
+const yourRole = document.getElementById('your-role');
 const locationControls = document.getElementById('location-controls');
 const updateLocationBtn = document.getElementById('update-location');
 const stopSharingBtn = document.getElementById('stop-sharing');
@@ -369,6 +389,8 @@ let sessionStartTime = null;
 let timerInterval = null;
 let peerDurationInterval = null;
 let peerDuration = 0;
+let peerConnectionTime = null;
+let reconnectAttempts = 0;
 
 /* ========= Map init ========= */
 const map = L.map('map', { 
@@ -417,6 +439,12 @@ function updateSessionTimer() {
     
     // Update personal duration
     yourDuration.textContent = formatDuration(elapsed);
+    
+    // Update peer duration if connected
+    if (peerConnectionTime && document.querySelector('.peer-duration')) {
+        const peerElapsed = Date.now() - peerConnectionTime;
+        document.querySelector('.peer-duration').textContent = formatDuration(peerElapsed);
+    }
 }
 
 function formatDuration(milliseconds) {
@@ -594,9 +622,17 @@ function startSession(host){
     const showRealName = showRealNameToggle.checked;
     if(showRealName) {
         myAlias = realName;
+        yourPrivacyStatus.textContent = 'Real Name';
+        yourPrivacyStatus.className = 'privacy-status realname';
     } else {
         myAlias = generateAnonAlias();
+        yourPrivacyStatus.textContent = 'Anonymous';
+        yourPrivacyStatus.className = 'privacy-status anonymous';
     }
+    
+    // Update your name display
+    yourNameDisplay.textContent = myAlias;
+    yourRole.textContent = isHost ? 'Host' : 'Participant';
 
     setupCard.classList.add('hidden');
     sessionCard.classList.remove('hidden');
@@ -652,9 +688,10 @@ function startSession(host){
                     conn.on('open', () => {
                         updateStatus('Connected to host', true);
                         showNotification('Connected to host');
-                        safeSend({ type:'alias', alias: myAlias });
+                        safeSend({ type:'alias', alias: myAlias, isRealName: showRealNameToggle.checked });
                         appendMessage(`You joined the session as ${myAlias}`, false, true);
                         reconnectAttempts = 0;
+                        peerConnectionTime = Date.now();
                     });
                     conn.on('error', (err) => { 
                         console.error('conn error', err); 
@@ -685,8 +722,9 @@ function startSession(host){
         setupDataChannel(conn);
         updateStatus('Peer connected', true);
         showNotification('Peer connected');
-        safeSend({ type:'alias', alias: myAlias });
+        safeSend({ type:'alias', alias: myAlias, isRealName: showRealNameToggle.checked });
         appendMessage(`Peer ${myAlias} joined the session`, false, true);
+        peerConnectionTime = Date.now();
     });
 
     peer.on('disconnected', () => { 
@@ -724,12 +762,18 @@ function setupDataChannel(connection){
         else if(data.type === 'host-migration') {
             isHost = true;
             hostIndicator.classList.remove('hidden');
+            yourRole.textContent = 'Host';
             appendMessage(`You are now the host of the session`, false, true);
             showNotification('You are now the host');
         }
         else if(data.type === 'rejoin') {
             appendMessage(`${data.alias} rejoined the session`, false, true);
             showNotification(`${data.alias} has rejoined the session`);
+        }
+        else if(data.type === 'name-change') {
+            peerAlias = data.alias;
+            updatePeerAlias(data);
+            appendMessage(`${data.oldAlias} is now known as ${data.alias}`, false, true);
         }
     });
 
@@ -744,6 +788,7 @@ function setupDataChannel(connection){
         if(!isHost) {
             isHost = true;
             hostIndicator.classList.remove('hidden');
+            yourRole.textContent = 'Host';
             safeSend({ type: 'host-migration' });
             appendMessage(`You are now the host of the session`, false, true);
             showNotification('You are now the host');
@@ -759,16 +804,23 @@ function setupDataChannel(connection){
 function updatePeerAlias(data){
     removePeerCard();
     const alias = (data && data.alias) ? String(data.alias) : generateAnonAlias();
+    const isRealName = data.isRealName || false;
+    
     const div = document.createElement('div'); 
     div.className = 'user-card peer-card fade-in';
     div.innerHTML = `<div class="user-avatar">${alias.charAt(0)}</div>
         <div class="user-info">
             <div class="user-name">${alias} <span class="duration-badge"><i class="fas fa-clock"></i> <span class="peer-duration">0s</span></span></div>
+            <div class="privacy-indicator">
+                <i class="fas fa-user-secret"></i>
+                <span class="privacy-status ${isRealName ? 'realname' : 'anonymous'}">${isRealName ? 'Real Name' : 'Anonymous'}</span>
+            </div>
             <div class="location-sharing">
                 <span class="dot"></span>
                 <span><i class="fas fa-location-slash"></i> Location not shared</span>
             </div>
             <div style="margin-top:10px"><span class="status-dot"></span> Online</div>
+            <div class="user-role">${isHost ? 'Participant' : 'Host'}</div>
         </div>`;
     const youCard = document.getElementById('you-card');
     userList.insertBefore(div, youCard.nextSibling);
@@ -919,11 +971,16 @@ function stopSession(){
         <div class="user-avatar">Y</div>
         <div class="user-info">
             <div class="user-name" id="your-name-display">You <span class="duration-badge"><i class="fas fa-clock"></i> <span id="your-duration">0s</span></span></div>
+            <div class="privacy-indicator">
+                <i class="fas fa-user-secret"></i>
+                <span class="privacy-status anonymous" id="your-privacy-status">Anonymous</span>
+            </div>
             <div class="location-sharing">
                 <span class="dot"></span>
                 <span><i class="fas fa-location-slash"></i> Location not shared</span>
             </div>
             <div style="margin-top:10px"><span class="status-dot"></span> Online</div>
+            <div class="user-role" id="your-role">Participant</div>
         </div>
     </div>`;
 
@@ -937,6 +994,7 @@ function stopSession(){
     
     hostIndicator.classList.add('hidden');
     isHost = false;
+    yourRole.textContent = 'Participant';
     
     showNotification('Session stopped');
 }
@@ -981,6 +1039,7 @@ window.addEventListener('DOMContentLoaded', () => {
         if(sessionRole === 'host') {
             hostIndicator.classList.remove('hidden');
             isHost = true;
+            yourRole.textContent = 'Host';
         }
     } else {
         setupCard.classList.remove('hidden');
