@@ -1,292 +1,1564 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Solar Hat — Smart Wearable Guide (Improved)</title>
-
+  <title>Solar Hat — Smart Wearable Guide</title>
+  
   <!-- Font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
   <style>
-    /* ---------- Simple single theme (kept constant) ---------- */
-    :root{
+    :root {
+      /* Default theme (day) */
       --page-bg: #f0f9ff;
       --nav-bg: #ffffff;
       --muted: #5e718d;
       --text: #0f1a2f;
       --accent: #0ea5a4;
       --accent-2: #2b9df4;
-      --card-bg: #ffffff;
-      --card-radius: 16px;
-      --shadow: 0 8px 24px rgba(2,6,23,0.06);
-      --glass-border: rgba(15,23,35,0.06);
+      --accent-light: #d1f0ef;
+      --card-radius: 18px;
       --max-width: 1100px;
+      --shadow: 0 6px 18px rgba(2, 6, 23, 0.08);
+      --shadow-hover: 0 12px 30px rgba(2, 6, 23, 0.12);
+      --glass: rgba(255,255,255,0.6);
+      --glass-border: rgba(15,23,35,0.06);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --card-bg: #ffffff;
+      --status-card-bg: linear-gradient(180deg, rgba(14,165,164,0.03), rgba(43,157,244,0.02));
+      --weather-glass-bg: linear-gradient(180deg, rgba(255,255,255,0.72), rgba(255,255,255,0.6));
+      --map-bg: rgba(14,165,164,0.03);
+      --theme-icon: '☀️';
+    }
+
+    /* Morning theme (5am-11am) */
+    .theme-morning {
+      --page-bg: #e6f2ff;
+      --nav-bg: rgba(255, 251, 235, 0.92);
+      --text: #1a2a3a;
+      --muted: #5a6b7c;
+      --accent: #ff9a00;
+      --accent-2: #ff6b6b;
+      --accent-light: rgba(255, 154, 0, 0.15);
+      --shadow: 0 6px 18px rgba(255, 154, 0, 0.12);
+      --card-bg: rgba(255, 251, 235, 0.85);
+      --status-card-bg: linear-gradient(180deg, rgba(255, 154, 0, 0.05), rgba(255, 107, 107, 0.03));
+      --weather-glass-bg: linear-gradient(180deg, rgba(255, 251, 235, 0.8), rgba(255, 245, 215, 0.7));
+      --map-bg: rgba(255, 154, 0, 0.05);
+      --theme-icon: '🌅';
+    }
+
+    /* Afternoon theme (12pm-5pm) */
+    .theme-afternoon {
+      --page-bg: #f0f9ff;
+      --nav-bg: rgba(255, 255, 255, 0.92);
+      --text: #0f1a2f;
+      --muted: #5e718d;
+      --accent: #0ea5a4;
+      --accent-2: #2b9df4;
+      --accent-light: rgba(14, 165, 164, 0.15);
+      --theme-icon: '☀️';
+    }
+
+    /* Evening theme (6pm-8pm) */
+    .theme-evening {
+      --page-bg: #fff0e6;
+      --nav-bg: rgba(255, 240, 230, 0.92);
+      --text: #3a1f0f;
+      --muted: #7a5e4d;
+      --accent: #ff6b6b;
+      --accent-2: #ff9a00;
+      --accent-light: rgba(255, 107, 107, 0.15);
+      --shadow: 0 6px 18px rgba(255, 107, 107, 0.12);
+      --card-bg: rgba(255, 240, 230, 0.85);
+      --status-card-bg: linear-gradient(180deg, rgba(255, 107, 107, 0.05), rgba(255, 154, 0, 0.03));
+      --weather-glass-bg: linear-gradient(180deg, rgba(255, 240, 230, 0.8), rgba(255, 230, 210, 0.7));
+      --map-bg: rgba(255, 107, 107, 0.05);
+      --theme-icon: '🌇';
+    }
+
+    /* Night theme (9pm-4am) */
+    .theme-night {
+      --page-bg: #0f1a2f;
+      --nav-bg: rgba(26, 36, 63, 0.92);
+      --text: #f0f9ff;
+      --muted: #a0b0c0;
+      --accent: #96e6a1;
+      --accent-2: #a1c4fd;
+      --accent-light: rgba(150, 230, 161, 0.15);
+      --shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+      --glass: rgba(26, 36, 63, 0.6);
+      --glass-border: rgba(255,255,255,0.06);
+      --card-bg: rgba(26, 36, 63, 0.6);
+      --status-card-bg: linear-gradient(180deg, rgba(150, 230, 161, 0.05), rgba(161, 196, 253, 0.03));
+      --weather-glass-bg: linear-gradient(180deg, rgba(26, 36, 63, 0.7), rgba(21, 29, 51, 0.6));
+      --map-bg: rgba(150, 230, 161, 0.05);
+      --theme-icon: '🌙';
+      
+      /* Add starry background */
+      background-image: 
+        radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 10px),
+        radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 5px),
+        radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 10px);
+      background-size: 550px 550px, 350px 350px, 250px 250px;
+      background-position: 0 0, 40px 60px, 130px 270px;
+      background-attachment: fixed;
     }
 
     *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;font-family:'Inter',system-ui,-apple-system,"Segoe UI",Roboto,Arial;background:var(--page-bg);color:var(--text);-webkit-font-smoothing:antialiased}
-    .container{max-width:var(--max-width);margin:0 auto;padding:18px}
+    html,body{height:100%;margin:0;font-family:'Inter',system-ui,-apple-system,"Segoe UI",Roboto,Arial;background:var(--page-bg);color:var(--text);-webkit-font-smoothing:antialiased;line-height:1.5;transition: background 1s ease}
+    body{display:flex;flex-direction:column;min-height:100vh;overflow-x:hidden;}
+    .container { max-width: var(--max-width); margin: 0 auto; padding: 18px; width: 100%; flex:1 }
 
     /* Header */
-    .header{background:var(--nav-bg);box-shadow:var(--shadow);padding:12px 16px;position:sticky;top:0;z-index:100;backdrop-filter:blur(6px)}
-    .header-inner{display:flex;align-items:center;justify-content:space-between;max-width:var(--max-width);margin:0 auto}
-    .logo{display:flex;align-items:center;gap:12px}
-    .logo-icon{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;color:#fff}
-    .logo-text{font-weight:800;font-size:18px;background:linear-gradient(135deg,var(--accent),var(--accent-2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-    .menu-toggle{background:none;border:none;width:44px;height:44px;border-radius:10px;cursor:pointer}
+    .header { 
+      background: var(--nav-bg); 
+      box-shadow: var(--shadow); 
+      padding: 12px 16px; 
+      position: sticky; 
+      top: 0; 
+      z-index: 100; 
+      transition: transform 320ms ease, box-shadow 200ms ease; 
+      backdrop-filter: blur(6px);
+    }
+    .header-hidden { transform: translateY(-100%); box-shadow: none; }
+    .header-inner { 
+      max-width: var(--max-width); 
+      margin: 0 auto; 
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between; 
+    }
+    .logo { 
+      display: flex; 
+      align-items: center; 
+      gap: 12px; 
+    }
+    .logo-icon { 
+      width: 44px; 
+      height: 44px; 
+      background: linear-gradient(135deg, var(--accent), var(--accent-2)); 
+      border-radius: 12px; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      box-shadow: 0 6px 16px rgba(14, 165, 164, 0.15); 
+      transition: all 0.3s ease;
+    }
+    .logo:hover .logo-icon {
+      transform: rotate(15deg);
+      box-shadow: 0 8px 20px rgba(14, 165, 164, 0.25);
+    }
+    .logo-text { 
+      font-weight: 800; 
+      font-size: 20px; 
+      color: var(--text); 
+      letter-spacing: -0.5px; 
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      transition: all 0.3s ease;
+    }
+    .logo:hover .logo-text {
+      letter-spacing: -0.3px;
+    }
+    .menu-toggle { 
+      background: none; 
+      border: none; 
+      width: 44px; 
+      height: 44px; 
+      border-radius: 10px; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      cursor: pointer; 
+      transition: all 0.2s; 
+      background: rgba(14, 165, 164, 0.08);
+    }
+    .menu-toggle:hover { 
+      background: var(--accent-light); 
+      transform: rotate(90deg);
+    }
 
-    nav{position:static}
-    nav ul{display:flex;gap:12px;list-style:none}
-    nav a{color:var(--muted);text-decoration:none;font-weight:600;padding:8px 10px;border-radius:8px}
-    nav a:hover{color:var(--accent)}
+    nav { 
+      position: fixed; 
+      top: 68px; 
+      left: 0; 
+      right: 0; 
+      background: var(--nav-bg); 
+      box-shadow: 0 12px 25px rgba(0,0,0,0.08); 
+      padding: 16px; 
+      z-index: 99; 
+      transform: translateY(-150%); 
+      transition: transform 0.32s ease; 
+      border-radius: 0 0 12px 12px; 
+      backdrop-filter: blur(6px);
+    }
+    nav.active { transform: translateY(0); }
+    nav ul { list-style: none; display: flex; flex-direction: column; gap: 8px; padding: 0; margin: 0; }
+    nav a { 
+      display: block; 
+      color: var(--muted); 
+      text-decoration: none; 
+      padding: 12px; 
+      border-radius: 12px; 
+      font-weight: 600; 
+      transition: all 0.2s; 
+      font-size: 15px; 
+    }
+    nav a:hover, nav a.active { 
+      background: var(--accent-light); 
+      color: var(--accent); 
+      transform: translateX(4px);
+    }
 
-    /* Main cards and status */
-    .status-section{background:var(--card-bg);border-radius:var(--card-radius);padding:20px;box-shadow:var(--shadow);border:1px solid var(--glass-border);margin-top:16px}
-    .status-label{font-weight:700;color:var(--muted);display:flex;gap:8px;align-items:center}
-    .status-value{font-weight:800;font-size:20px;margin-top:8px}
+    /* main card styles */
+    .status-section { 
+      background: var(--card-bg); 
+      border-radius: var(--card-radius); 
+      padding: 24px; 
+      box-shadow: var(--shadow); 
+      margin-top: 16px; 
+      border: 1px solid var(--glass-border); 
+      transition: all 0.3s ease;
+      animation: fadeIn 0.6s ease-out;
+    }
+    .status-section:hover {
+      box-shadow: 0 12px 30px rgba(14, 165, 164, 0.15);
+      transform: translateY(-2px);
+    }
+    .status-card { 
+      padding: 16px; 
+      border-radius: 12px; 
+      background: var(--status-card-bg); 
+      border: 1px solid rgba(14, 165, 164, 0.1);
+    }
+    .status-label { 
+      font-size: 14px; 
+      color: var(--muted); 
+      display:flex; 
+      gap:8px; 
+      align-items:center; 
+      font-weight:600; 
+      margin-bottom: 8px;
+    }
+    .status-value { 
+      font-weight:700; 
+      font-size:22px; 
+      color:var(--text); 
+      margin-top:8px; 
+      letter-spacing: -0.5px;
+    }
 
-    .location-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(15,23,35,0.04)}
-    .location-row:last-child{border-bottom:none}
-    .location-label{color:var(--muted)}
-    .location-value{font-weight:700}
+    .location-details { margin-top: 14px; }
+    .location-row { 
+      display:flex; 
+      justify-content:space-between; 
+      padding:12px 0; 
+      border-bottom:1px solid rgba(15,23,35,0.04); 
+      align-items: center;
+    }
+    .location-row:last-child {
+      border-bottom: none;
+    }
+    .location-label { color:var(--muted); font-size: 14px; }
+    .location-value { font-weight:700; font-size: 16px; }
+    
+    /* Accuracy indicator */
+    .accuracy-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: 8px;
+    }
+    .accuracy-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .accuracy-high { background-color: var(--success); }
+    .accuracy-medium { background-color: var(--warning); }
+    .accuracy-low { background-color: var(--error); }
 
-    .controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
-    .btn{background:var(--accent);color:#fff;padding:10px 14px;border-radius:10px;border:none;cursor:pointer;font-weight:700;display:inline-flex;align-items:center;gap:8px}
-    .btn.gray{background:#fff;color:var(--muted);border:1px solid rgba(15,23,35,0.06)}
+    .controls { 
+      display:flex; 
+      gap:12px; 
+      flex-wrap:wrap; 
+      margin-top:20px; 
+    }
+    .btn { 
+      background: var(--accent); 
+      color:white; 
+      padding:12px 18px; 
+      border-radius:10px; 
+      border: none; 
+      cursor:pointer; 
+      font-weight:600; 
+      display:inline-flex; 
+      align-items:center; 
+      gap:10px; 
+      box-shadow: 0 6px 12px rgba(14,165,164,0.12); 
+      transition: all 0.3s ease;
+      font-size: 15px;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      transform: translateX(-100%);
+      transition: transform 0.6s ease;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(14,165,164,0.2);
+    }
+    .btn:hover::after {
+      transform: translateX(100%);
+    }
+    .btn:active {
+      transform: translateY(1px);
+    }
+    .btn.gray { 
+      background: white; 
+      color:var(--muted); 
+      border:1px solid rgba(15,23,35,0.06); 
+      box-shadow:none; 
+    }
+    .btn.gray:hover {
+      background: #f8fafc;
+    }
+    .btn.small { 
+      padding:8px 12px; 
+      font-size:13px; 
+      border-radius: 8px;
+    }
+    .btn-icon {
+      width: 18px;
+      height: 18px;
+    }
 
-    /* Cards grid */
-    .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin-top:18px}
-    .card{background:var(--card-bg);border-radius:14px;padding:20px;text-align:center;box-shadow:var(--shadow);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:10px}
-    .card-logo{width:76px;height:76px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff}
-    .title{font-weight:800}
-    .desc{color:var(--muted);font-size:14px}
+    /* cards */
+    .hero-head { margin: 26px 0 22px; text-align: center; }
+    .hero-head h2 { 
+      font-size:32px; 
+      margin-bottom:10px; 
+      font-weight:800; 
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.5px;
+    }
+    .hero-head p.lead { 
+      color:var(--muted); 
+      font-size:16px; 
+      max-width:720px; 
+      line-height: 1.6;
+      margin: 0 auto;
+    }
 
-    /* Map & weather */
-    .map-container{margin-top:12px;height:260px;border-radius:12px;overflow:hidden;border:1px solid rgba(15,23,35,0.06);background:linear-gradient(180deg,rgba(14,165,164,0.02),rgba(43,157,244,0.01))}
-    #map{width:100%;height:100%}
+    .cards { 
+      display:grid; 
+      gap:24px; 
+      grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); 
+      margin-bottom:24px; 
+    }
+    .card { 
+      background: var(--card-bg); 
+      border-radius:20px; 
+      padding:30px 20px; 
+      text-align:center; 
+      box-shadow: var(--shadow); 
+      border:1px solid rgba(15,23,35,0.03); 
+      cursor:pointer; 
+      transition: transform .28s ease, box-shadow .28s ease; 
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: fadeInUp 0.5s ease-out;
+    }
+    .card:nth-child(1) { animation-delay: 0.1s; }
+    .card:nth-child(2) { animation-delay: 0.2s; }
+    .card:nth-child(3) { animation-delay: 0.3s; }
+    .card:nth-child(4) { animation-delay: 0.4s; }
+    .card:nth-child(5) { animation-delay: 0.5s; }
+    .card:nth-child(6) { animation-delay: 0.6s; }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.4s ease;
+    }
+    .card:hover { 
+      transform: translateY(-8px); 
+      box-shadow: 0 16px 40px rgba(14, 165, 164, 0.15); 
+    }
+    .card:hover::before {
+      transform: scaleX(1);
+    }
+    
+    /* New Card Logo Design */
+    .card-logo { 
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      margin: 0 auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 1;
+      transition: all 0.4s ease;
+    }
+    
+    /* Gradient Backgrounds for Logos */
+    .card[data-key="location"] .card-logo {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      box-shadow: 0 10px 20px rgba(14, 165, 164, 0.3);
+    }
+    
+    .card[data-key="rent"] .card-logo {
+      background: linear-gradient(135deg, #ff7eb3, #ff758c);
+      box-shadow: 0 10px 20px rgba(255, 126, 179, 0.3);
+    }
+    
+    .card[data-key="about"] .card-logo {
+      background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+      box-shadow: 0 10px 20px rgba(255, 154, 158, 0.3);
+    }
+    
+    .card[data-key="services"] .card-logo {
+      background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+      box-shadow: 0 10px 20px rgba(161, 196, 253, 0.3);
+    }
+    
+    .card[data-key="contact"] .card-logo {
+      background: linear-gradient(135deg, #d4fc79, #96e6a1);
+      box-shadow: 0 10px 20px rgba(212, 252, 121, 0.3);
+    }
+    
+    .card[data-key="testimonials"] .card-logo {
+      background: linear-gradient(135deg, #f6d365, #fda085);
+      box-shadow: 0 10px 20px rgba(246, 211, 101, 0.3);
+    }
+    
+    .card-logo::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle at center, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+      z-index: 2;
+    }
+    
+    .card-logo-inner {
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: white;
+      border-radius: 50%;
+      z-index: 3;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .card-logo svg {
+      width: 32px;
+      height: 32px;
+      transition: all 0.3s ease;
+    }
+    
+    .card:hover .card-logo {
+      transform: scale(1.1) rotate(5deg);
+    }
+    
+    .card:hover .card-logo-inner {
+      transform: scale(0.95);
+    }
+    
+    .card:hover .card-logo svg {
+      transform: scale(1.1);
+    }
+    
+    /* Icon Colors */
+    .card[data-key="location"] svg { fill: #0ea5a4; }
+    .card[data-key="rent"] svg { fill: #ff7eb3; }
+    .card[data-key="about"] svg { fill: #ff9a9e; }
+    .card[data-key="services"] svg { fill: #a1c4fd; }
+    .card[data-key="contact"] svg { fill: #96e6a1; }
+    .card[data-key="testimonials"] svg { fill: #f6d365; }
+    
+    .title { 
+      font-weight:800; 
+      font-size:18px; 
+      margin-bottom:10px; 
+      color: var(--text);
+      transition: all 0.3s ease;
+    }
+    
+    .card:hover .title {
+      color: var(--accent);
+    }
+    
+    .desc { 
+      color:var(--muted); 
+      font-size:14px; 
+      line-height: 1.5;
+      max-width: 220px;
+    }
 
-    .weather-glass{display:flex;gap:12px;padding:12px;border-radius:12px;align-items:center;background:linear-gradient(180deg,rgba(255,255,255,0.8),rgba(255,255,255,0.6));border:1px solid rgba(255,255,255,0.35)}
-    .weather-left{width:120px;height:120px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center}
-    .weather-icon{font-size:40px}
-    .weather-temp-big{font-size:26px;font-weight:900}
+    /* map */
+    .map-container { 
+      margin-top:18px; 
+      height:280px; 
+      border-radius:12px; 
+      overflow:hidden; 
+      border:1px solid rgba(15,23,35,0.06); 
+      background:linear-gradient(180deg, rgba(14,165,164,0.02), rgba(43,157,244,0.01)); 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      position: relative;
+    }
+    #map { width:100%; height:100%; display:block; background: var(--map-bg); }
+    
+    .accuracy-visual {
+      position: absolute;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      background-color: rgba(14, 165, 164, 0.1);
+      pointer-events: none;
+      z-index: 400;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { opacity: 0.7; transform: scale(1); }
+      50% { opacity: 0.3; transform: scale(1.05); }
+      100% { opacity: 0.7; transform: scale(1); }
+    }
 
-    .meta-pill{background:rgba(15,23,35,0.03);border-radius:10px;padding:8px 10px;font-weight:700;color:var(--muted);display:inline-flex;gap:8px}
+    /* loading */
+    .loading { 
+      display:inline-block; 
+      width:16px; 
+      height:16px; 
+      border:2px solid rgba(14,165,164,0.25); 
+      border-radius:50%; 
+      border-top-color:var(--accent); 
+      animation:spin 1s linear infinite; 
+      vertical-align: middle;
+      margin-left: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* small helpers */
-    .small-muted{color:var(--muted)}
-    footer.footer{padding:18px;text-align:center;color:var(--muted);margin-top:20px}
+    /* --- Weather visuals (improved) --- */
+    .weather-wrap { margin-top:18px; display:grid; grid-template-columns: 1fr; gap:12px; }
+    .weather-glass {
+      position:relative;
+      overflow:hidden;
+      border-radius:14px;
+      background: var(--weather-glass-bg);
+      border: 1px solid rgba(255,255,255,0.5);
+      box-shadow: 0 12px 30px rgba(2,6,23,0.06);
+      display:flex;
+      gap:14px;
+      padding:16px;
+      align-items:center;
+      transition: transform 360ms cubic-bezier(.2,.9,.2,1), box-shadow 260ms ease;
+      backdrop-filter: blur(6px);
+      animation: fadeIn 0.7s ease-out;
+    }
+    .weather-left {
+      width:132px;
+      height:132px;
+      border-radius:12px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      background: linear-gradient(135deg, rgba(14,165,164,0.12), rgba(43,157,244,0.06));
+      box-shadow: inset 0 -6px 20px rgba(14,165,164,0.03);
+      transition: transform .36s ease;
+      border: 1px solid rgba(14, 165, 164, 0.1);
+    }
+    .weather-icon { font-size:44px; margin-bottom:8px; }
+    .weather-temp-big { font-size:28px; font-weight:900; letter-spacing:-1px; }
 
-    @media(min-width:768px){.weather-glass{min-height:120px}}
+    .weather-right { flex:1; min-width:180px; }
+    .weather-cond { font-weight:800; font-size:16px; color:var(--text); margin-bottom:6px; }
+    .weather-meta { display:flex; gap:10px; flex-wrap:wrap; }
+    .meta-pill {
+      background: rgba(15,23,35,0.03);
+      border-radius:10px; 
+      padding:8px 12px; 
+      font-weight:700; 
+      color:var(--muted); 
+      font-size:13px;
+      display:inline-flex; 
+      gap:8px; 
+      align-items:center;
+      transition: all 0.2s ease;
+    }
+    .meta-pill:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    }
+
+    /* gentle animated background depending on condition */
+    .bg-sunny { background-image: linear-gradient(120deg, rgba(255,238,170,0.22), rgba(255,255,255,0.6)); }
+    .bg-cloudy { background-image: linear-gradient(120deg, rgba(220,230,240,0.12), rgba(255,255,255,0.6)); }
+    .bg-rain { background-image: linear-gradient(120deg, rgba(200,220,235,0.12), rgba(245,252,255,0.6)); }
+    .bg-snow { background-image: linear-gradient(120deg, rgba(230,240,250,0.14), rgba(255,255,255,0.6)); }
+
+    .small-muted { color:var(--muted); font-size:13px; }
+
+    /* footer */
+    footer.footer {
+      padding:20px 18px;
+      text-align:center;
+      font-size:13px;
+      color:var(--muted);
+      border-top:1px solid rgba(15,23,35,0.03);
+      background: linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0.25));
+      margin-top: 20px;
+    }
+    .footer-text {
+      max-width: var(--max-width);
+      margin: 0 auto;
+    }
+
+    /* Tooltip */
+    .tooltip {
+      position: relative;
+      display: inline-block;
+    }
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      background-color: var(--text);
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 8px 12px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    /* Section divider */
+    .section-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(14, 165, 164, 0.2), transparent);
+      margin: 24px 0;
+    }
+
+    /* Theme indicator */
+    .theme-indicator {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      z-index: 1000;
+      backdrop-filter: blur(5px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .theme-indicator:hover {
+      transform: scale(1.1);
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Voice indicator */
+    .voice-indicator {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background: var(--card-bg);
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow);
+      z-index: 1000;
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+    }
+    
+    /* Responsive adjustments */
+    @media (min-width:768px) {
+      nav { position: static; transform:none; box-shadow:none; padding:0; }
+      nav ul { flex-direction:row; gap:10px; }
+      .weather-wrap { grid-template-columns: 320px 1fr; }
+      .cards { grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); }
+    }
+
+    @media (max-width:480px) {
+      .cards { grid-template-columns: 1fr; }
+      .weather-left { width:96px; height:96px; }
+      .weather-temp-big { font-size:22px; }
+      .controls {
+        flex-direction: column;
+      }
+      .controls .btn {
+        width: 100%;
+        justify-content: center;
+      }
+      .theme-indicator {
+        bottom: 10px;
+        right: 10px;
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+      }
+      .voice-indicator {
+        bottom: 10px;
+        left: 10px;
+        width: 40px;
+        height: 40px;
+      }
+    }
   </style>
 </head>
 <body>
-  <!-- Theme / weather indicator (now only shows a weather icon) -->
-  <div id="themeIndicator" style="position:fixed;bottom:18px;right:18px;width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.9);box-shadow:0 6px 16px rgba(0,0,0,0.08);font-size:20px;z-index:999">☀️</div>
-
-  <header class="header">
+  <!-- Theme indicator -->
+  <div class="theme-indicator" id="themeIndicator"></div>
+  
+  <!-- Voice indicator -->
+  <div class="voice-indicator" id="voiceIndicator">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path d="M12 6L8 10H6v4h2l4 4V6z"></path>
+    </svg>
+  </div>
+  
+  <!-- HEADER -->
+  <header class="header" id="siteHeader">
     <div class="header-inner">
       <div class="logo">
-        <div class="logo-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="white"><path d="M12 3L2 12l3 3v6h5v-5h4v5h5v-6l3-3-10-9zm0 9c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"/></svg></div>
+        <div class="logo-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="white"><path d="M12 3L2 12l3 3v6h5v-5h4v5h5v-6l3-3-10-9zm0 9c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"/></svg>
+        </div>
         <div class="logo-text">Solar Hat</div>
       </div>
-      <nav>
-        <ul>
-          <li><a href="#home">Home</a></li>
-          <li><a href="#news">News</a></li>
-          <li><a href="#contact">Contact</a></li>
-          <li><a href="#about">About</a></li>
-        </ul>
-      </nav>
+      
+      <button class="menu-toggle" id="menuToggle" aria-label="Open menu">
+        <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" width="18" height="18"><path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round"/></svg>
+      </button>
     </div>
+    
+    <nav id="mainNav" aria-hidden="true">
+      <ul>
+        <li class="active"><a href="#home">Home</a></li>
+        <li><a href="#news">News</a></li>
+        <li><a href="#contact">Contact</a></li>
+        <li><a href="#about">About</a></li>
+      </ul>
+    </nav>
   </header>
-
+  
   <div class="container">
-    <!-- Location -->
-    <section class="status-section">
-      <div class="status-label">Current Location</div>
-      <div class="status-value" id="coords">—</div>
-
-      <div class="location-row">
-        <span class="location-label">Accuracy</span>
-        <span class="location-value" id="accuracy">—</span>
-      </div>
-      <div class="location-row">
-        <span class="location-label">Temperature</span>
-        <span class="location-value" id="temperature">—</span>
-      </div>
-      <div class="location-row">
-        <span class="location-label">Last Updated</span>
-        <span class="location-value" id="lastUpdate">—</span>
-      </div>
-
-      <div class="map-container"><div id="map">Map will appear here</div></div>
-
-      <div class="controls">
-        <button class="btn" id="locBtn">Get Location</button>
-        <button class="btn gray" id="stopLocBtn" style="display:none">Stop</button>
-        <button class="btn gray" id="openMapsBtn" style="display:none">Open Maps</button>
-        <button class="btn gray" id="muteBtn">Mute</button>
-      </div>
-    </section>
-
-    <!-- Weather -->
-    <section class="status-section" style="margin-top:16px">
-      <div class="status-label">Current Weather (Live)</div>
-      <div class="weather-glass" id="weatherGlass">
-        <div class="weather-left">
-          <div id="weatherIcon" class="weather-icon">—</div>
-          <div id="weatherTemp" class="weather-temp-big">—</div>
-          <div class="small-muted" id="weatherSource">—</div>
+    <!-- Location Section -->
+    <section class="status-section" aria-labelledby="locTitle">
+      <div class="status-card">
+        <div class="status-label" id="locTitle" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"><path d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" stroke-width="1.4"/><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" stroke-width="1.4"/></svg>
+          Current Location
         </div>
-        <div style="flex:1">
-          <div id="weatherCond" style="font-weight:800">—</div>
-          <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-            <div class="meta-pill">Humidity <strong id="weatherHumidity" style="margin-left:6px">—</strong></div>
-            <div class="meta-pill">Wind <strong id="weatherWind" style="margin-left:6px">—</strong></div>
-            <div class="meta-pill">Updated <strong id="weatherExtras" style="margin-left:6px">—</strong></div>
+
+        <div class="status-value" id="coords">—</div>
+
+        <div class="location-details">
+          <div class="location-row">
+            <span class="location-label">Accuracy</span>
+            <span class="location-value" id="accuracy">—</span>
+          </div>
+
+          <div class="location-row">
+            <span class="location-label">Temperature</span>
+            <span class="location-value" id="temperature">—</span>
+          </div>
+
+          <div class="location-row">
+            <span class="location-label">Last Updated</span>
+            <span class="location-value" id="lastUpdate">—</span>
+          </div>
+
+          <div class="map-container" id="mapContainer" aria-hidden="true">
+            <div id="map" role="application" aria-label="Embedded map">Map will appear here when location is available</div>
+          </div>
+
+          <div class="controls">
+            <button class="btn" id="locBtn" title="Start location">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Get Location
+            </button>
+            <button class="btn gray" id="stopLocBtn" style="display:none">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              Stop
+            </button>
+            <button class="btn gray" id="openMapsBtn" style="display:none">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Open Maps
+            </button>
+            <div class="tooltip">
+              <button class="btn gray" id="muteBtn">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 6L8 10H6v4h2l4 4V6z"/></svg>
+                Mute
+              </button>
+              <span class="tooltiptext">Toggle audio guidance</span>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
-    <div class="cards" role="list" aria-label="Features">
-      <a href="location.html" style="text-decoration:none;color:inherit"><article class="card" data-message="You are near the main plaza. Enjoy the panoramic view of the city."><div class="card-logo"><div style="width:44px;height:44px">📍</div></div><div class="title">Location Guide</div><div class="desc">Nearby points of interest with audio guidance</div></article></a>
-      <article class="card" data-message="Rent a Solar Hat for your adventure. Available at multiple locations throughout the city."><div class="card-logo"><div style="width:44px;height:44px">🎩</div></div><div class="title">Rent a Hat</div><div class="desc">Browse and reserve Solar Hats near you</div></article>
-      <article class="card" data-message="Solar Hat: Sustainable wearable technology powered by sunlight with location-aware audio."><div class="card-logo"><div style="width:44px;height:44px">ℹ️</div></div><div class="title">About Us</div><div class="desc">Our vision and innovative technology</div></article>
-      <article class="card" data-message="Services include audio tours, navigation assistance, and location-based information."><div class="card-logo"><div style="width:44px;height:44px">🛠️</div></div><div class="title">Services</div><div class="desc">What Solar Hat offers to enhance your experience</div></article>
-      <article class="card" data-message="Contact Solar Hat support at support@solarhat.com or call 1-800-SOLAR-HAT."><div class="card-logo"><div style="width:44px;height:44px">✉️</div></div><div class="title">Contact Support</div><div class="desc">Get in touch with our customer service team</div></article>
-      <article class="card" data-message="Our customers love the Solar Hat experience. Read testimonials from satisfied users."><div class="card-logo"><div style="width:44px;height:44px">🌟</div></div><div class="title">Testimonials</div><div class="desc">Customer experiences with Solar Hat</div></article>
-    </div>
+    <div class="section-divider"></div>
 
-    <div style="margin-top:18px;padding:12px;background:rgba(14,165,164,0.05);border-radius:10px;color:var(--muted);text-align:center">Tip: Tap any card to hear its message.</div>
+    <!-- Weather (improved look) -->
+    <section class="status-section" aria-labelledby="weatherTitle">
+      <div class="status-card">
+        <div class="status-label" id="weatherTitle" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"><path d="M12 3v2m0 14v2m9-9h-2M5 12H3"></path></svg>
+          Current Weather (Live)
+        </div>
+
+        <div class="weather-wrap" id="weatherWrap">
+          <div id="weatherGlass" class="weather-glass bg-cloudy" role="region" aria-live="polite">
+            <div class="weather-left" aria-hidden="true">
+              <div id="weatherIcon" class="weather-icon">—</div>
+              <div id="weatherTemp" class="weather-temp-big">—</div>
+              <div class="small-muted" id="weatherSource">—</div>
+            </div>
+
+            <div class="weather-right">
+              <div id="weatherCond" class="weather-cond">—</div>
+              <div class="weather-meta">
+                <div class="meta-pill">Humidity <strong id="weatherHumidity" style="margin-left:8px">—</strong></div>
+                <div class="meta-pill">Wind <strong id="weatherWind" style="margin-left:8px">—</strong></div>
+                <div class="meta-pill">Updated <strong id="weatherExtras" style="margin-left:8px">just now</strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- Cards with Enhanced Design -->
+    <section class="hero" aria-label="Explore sections">
+      <div class="hero-head">
+        <h2>Solar Hat Features</h2>
+        <p class="lead">Tap any card to hear location-based audio guidance. Your Solar Hat provides context-aware information as you explore.</p>
+      </div>
+
+      <div class="cards" role="list">
+  <!-- Location Guide Card -->
+  <a href="location.html" style="text-decoration: none; color: inherit;">
+    <article class="card" role="listitem" data-key="location" data-message="You are near the main plaza. Enjoy the panoramic view of the city.">
+      <div class="card-logo">
+        <div class="card-logo-inner">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/>
+          </svg>
+        </div>
+      </div>
+      <div class="title">Location Guide</div>
+      <p class="desc">Nearby points of interest with audio guidance</p>
+    </article>
+  </a>
+</div>
+
+
+        <!-- Rent a Hat Card -->
+        <article class="card" role="listitem" data-key="rent" data-message="Rent a Solar Hat for your adventure. Available at multiple locations throughout the city.">
+          <div class="card-logo">
+            <div class="card-logo-inner">
+              <!-- Custom Hat Icon -->
+              <svg viewBox="0 0 24 24">
+                <path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1 0-.21-.07-.41-.18-.57-.44-.58-1.06-.93-1.82-.93-.55 0-1 .45-1 1H9c0-.55-.45-1-1-1-.76 0-1.38.35-1.82.93-.11.16-.18.36-.18.57zm10.5-9c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-9 0c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm11 0c0-2.76-2.24-5-5-5-1.49 0-2.82.65-3.76 1.67C10.82 5.65 9.49 5 8 5c-2.76 0-5 2.24-5 5 0 .16.01.32.03.48.01.01.02.03.03.05.02.02.03.04.05.06.01.02.03.03.04.05.01.01.02.03.03.04.02.02.04.04.06.05.01.01.03.02.04.03.02.01.04.03.06.04.01.01.03.02.04.03.02.01.04.03.05.04.02.01.04.02.05.03.02.01.04.02.05.03.01.01.03.01.04.02.02.01.04.02.05.02.01.01.03.01.04.02.02 0 .04.01.05.01.01.01.03.01.04.01.02.01.04.01.05.01.01 0 .03.01.04.01.02 0 .04.01.06.01.01 0 .03-.01.04-.01.02 0 .04-.01.06-.01.01 0 .03 0 .04-.01.02 0 .04 0 .05-.01.01 0 .03 0 .04-.01.02 0 .04-.01.06-.01.01 0 .03-.01.04-.02.02 0 .04-.01.05-.02.01 0 .03-.01.04-.02.02-.01.04-.02.05-.03.02-.01.04-.02.05-.03.02-.01.04-.02.06-.04.01-.01.03-.02.04-.03.02-.01.04-.03.06-.05.01-.01.03-.03.04-.04.02-.02.04-.04.06-.05.01-.01.03-.03.04-.05.02-.02.03-.04.05-.06.01-.02.02-.04.03-.05.01-.16.03-.32.03-.48z"/>
+              </svg>
+            </div>
+          </div>
+          <div class="title">Rent a Hat</div>
+          <p class="desc">Browse and reserve Solar Hats near you</p>
+        </article>
+
+        <!-- About Us Card -->
+        <article class="card" role="listitem" data-key="about" data-message="Solar Hat: Sustainable wearable technology powered by sunlight with location-aware audio.">
+          <div class="card-logo">
+            <div class="card-logo-inner">
+              <svg viewBox="0 0 24 24">
+                <path d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/>
+              </svg>
+            </div>
+          </div>
+          <div class="title">About Us</div>
+          <p class="desc">Our vision and innovative technology</p>
+        </article>
+
+        <!-- Services Card -->
+        <article class="card" role="listitem" data-key="services" data-message="Services include audio tours, navigation assistance, and location-based information.">
+          <div class="card-logo">
+            <div class="card-logo-inner">
+              <svg viewBox="0 0 24 24">
+                <path d="M4 13c.55 0 1-.45 1-1s-.45-1-1-1-1 .45-1 1 .45 1 1 1zm0 4c.55 0 1-.45 1-1s-.45-1-1-1-1 .45-1 1 .45 1 1 1zm0-8c.55 0 1-.45 1-1s-.45-1-1-1-1 .45-1 1 .45 1 1 1zm4 4h12c.55 0 1-.45 1-1s-.45-1-1-1H8c-.55 0-1 .45-1 1s.45 1 1 1zm0 4h12c.55 0 1-.45 1-1s-.45-1-1-1H8c-.55 0-1 .45-1 1s.45 1 1 1zM7 8c0 .55.45 1 1 1h12c.55 0 1-.45 1-1s-.45-1-1-1H8c-.55 0-1 .45-1 1z"/>
+              </svg>
+            </div>
+          </div>
+          <div class="title">Services</div>
+          <p class="desc">What Solar Hat offers to enhance your experience</p>
+        </article>
+
+        <!-- Contact Support Card -->
+        <article class="card" role="listitem" data-key="contact" data-message="Contact Solar Hat support at support@solarhat.com or call 1-800-SOLAR-HAT.">
+          <div class="card-logo">
+            <div class="card-logo-inner">
+              <svg viewBox="0 0 24 24">
+                <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+              </svg>
+            </div>
+          </div>
+          <div class="title">Contact Support</div>
+          <p class="desc">Get in touch with our customer service team</p>
+        </article>
+
+        <!-- Testimonials Card -->
+        <article class="card" role="listitem" data-key="testimonials" data-message="Our customers love the Solar Hat experience. Read testimonials from satisfied users.">
+          <div class="card-logo">
+            <div class="card-logo-inner">
+              <svg viewBox="0 0 24 24">
+                <path d="M14 17H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2zm2 2h4v12H3V7h4V5h2v2h8V5h2v2h4v2h-4z"/>
+              </svg>
+            </div>
+          </div>
+          <div class="title">Testimonials</div>
+          <p class="desc">Customer experiences with Solar Hat</p>
+        </article>
+      </div>
+    </section>
+
+    <div class="note" style="margin-top:24px;text-align:center;font-size:14px;color:var(--muted);padding:16px;background:rgba(14,165,164,0.05);border-radius:12px;">
+      <strong>Tip:</strong> Tap any card to hear its message. Solar Hat provides context-aware information as you explore.
+    </div>
   </div>
 
-  <footer class="footer">Developed by Kurdistan Innovators</footer>
+  <footer class="footer">
+    <div class="footer-text">Developed by Kurdistan Innovators</div>
+  </footer>
 
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script>
-    /* ======= Configuration (changed per your request) ======= */
-    const UPDATE_INTERVAL = 10 * 60 * 1000; // 10 minutes for weather updates
-    const SPEECH_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes between repeated speech
-    const LOCATION_SPEAK_INTERVAL = 5 * 60 * 1000; // speak location at most every 5 min
+    /************************************************************************
+     * Enhanced Solar Hat Tracker
+     * - Added 10-second auto updates for location and weather
+     * - Optimized voice guidance with natural-sounding settings
+     * - Improved UI with animations and visual feedback
+     * - Removed voice controls as requested
+     ************************************************************************/
 
-    /* ---------- shortcuts ---------- */
-    const q = s => document.querySelector(s);
-    const qa = s => Array.from(document.querySelectorAll(s));
+    /* ---------- Simple helpers ---------- */
+    const q = sel => document.querySelector(sel);
+    const qa = sel => Array.from(document.querySelectorAll(sel));
 
-    /* UI elements */
-    const locBtn = q('#locBtn'), stopLocBtn = q('#stopLocBtn'), openMapsBtn = q('#openMapsBtn');
-    const coordsEl = q('#coords'), accEl = q('#accuracy'), tempEl = q('#temperature'), lastUpdateEl = q('#lastUpdate');
+    /* ---------- Menu toggle ---------- */
+    const menuToggle = q('#menuToggle'), mainNav = q('#mainNav');
+    if (menuToggle) menuToggle.addEventListener('click', e => { 
+      e.stopPropagation(); 
+      mainNav.classList.toggle('active'); 
+      menuToggle.setAttribute('aria-expanded', mainNav.classList.contains('active'));
+      mainNav.setAttribute('aria-hidden', !mainNav.classList.contains('active'));
+    });
+    document.addEventListener('click', e => { 
+      if (mainNav && !mainNav.contains(e.target) && !menuToggle.contains(e.target)) {
+        mainNav.classList.remove('active'); 
+        menuToggle.setAttribute('aria-expanded', 'false');
+        mainNav.setAttribute('aria-hidden', 'true');
+      } 
+    });
+
+    /* ---------- Header hide on scroll ---------- */
+    (function headerHide() {
+      const header = q('#siteHeader');
+      if (!header) return;
+      let last = window.scrollY || 0, ticking = false;
+      window.addEventListener('scroll', () => {
+        if (!ticking) {
+          window.requestAnimationFrame(() => {
+            const cur = window.scrollY || 0, d = cur - last;
+            if (cur > 100 && d > 8) header.classList.add('header-hidden');
+            else if (d < -8 || cur <= 60) header.classList.remove('header-hidden');
+            last = cur; ticking = false;
+          });
+          ticking = true;
+        }
+      }, {passive:true});
+    })();
+
+    /* ---------- TTS with optimized settings ---------- */
+    let ttsEnabled = true;
+    const muteBtn = q('#muteBtn');
+    const voiceIndicator = q('#voiceIndicator');
+    
+    // Optimized voice settings
+    const VOICE_RATE = 1.1;  // Slightly faster for clarity
+    const VOICE_PITCH = 1.0; // Normal pitch
+    const VOICE_VOLUME = 1.0; // Full volume
+    
+    if (muteBtn) muteBtn.addEventListener('click', () => { 
+      ttsEnabled = !ttsEnabled; 
+      updateMute(); 
+      if (!ttsEnabled && 'speechSynthesis' in window) speechSynthesis.cancel(); 
+    });
+    
+    function updateMute() {
+      if (!muteBtn) return;
+      muteBtn.textContent = ttsEnabled ? 'Mute' : 'Unmute';
+      muteBtn.innerHTML = `<svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="${ttsEnabled ? 'M12 6L8 10H6v4h2l4 4V6z' : 'M17 14l-6-6m6 6l-6 6M5 14h.01M5 10h.01M9 10h.01M9 14h.01M13 10h.01M13 14h.01'}"/></svg> ${ttsEnabled ? 'Mute' : 'Unmute'}`;
+      
+      // Update voice indicator
+      if (voiceIndicator) {
+        voiceIndicator.innerHTML = ttsEnabled 
+          ? `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 6L8 10H6v4h2l4 4V6z"></path></svg>`
+          : `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 14l-6-6m6 6l-6 6M5 14h.01M5 10h.01M9 10h.01M9 14h.01M13 10h.01M13 14h.01"></path></svg>`;
+      }
+    }
+    
+    updateMute();
+    
+    let lastSpeak = '', lastSpeakTime = 0;
+    const SPEECH_COOLDOWN_MS = 4000;
+    
+    function speak(text, options={}) {
+      // Make sure "Solar Hat" is pronounced nicely
+      text = String(text).replace(/SolarHat/g, 'Solar Hat');
+      if (!ttsEnabled) return;
+      if (!('speechSynthesis' in window)) return;
+      if (document.visibilityState !== 'visible') return;
+      
+      const now = Date.now();
+      const same = String(text).trim() === lastSpeak.trim();
+      
+      // Prevent repeating the same message too quickly
+      if (!options.force) {
+        if (same && (now - lastSpeakTime) < SPEECH_COOLDOWN_MS) return;
+        if (!same && (now - lastSpeakTime) < 800) return;
+      }
+      
+      try {
+        speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.rate = VOICE_RATE; 
+        u.pitch = VOICE_PITCH; 
+        u.volume = VOICE_VOLUME;
+        
+        // Select the most natural-sounding voice
+        const voices = speechSynthesis.getVoices();
+        let voice = voices.find(v => v.lang.includes('en') && v.name.includes('Google'));
+        if (!voice) voice = voices.find(v => v.lang.includes('en'));
+        if (voice) u.voice = voice;
+        
+        u.onerror = (e) => console.error('TTS error', e);
+        speechSynthesis.speak(u);
+        lastSpeak = String(text);
+        lastSpeakTime = now;
+      } catch (e) { console.error(e); }
+    }
+
+    // Initialize voices
+    speechSynthesis.onvoiceschanged = () => {
+      // Play welcome message after voices are loaded
+      setTimeout(() => {
+        speak("Welcome to Solar Hat. Tap any card to hear information about that feature.", {force: true});
+      }, 500);
+    };
+
+    /* ---------- Card click TTS ---------- */
+    qa('.card').forEach(card => card.addEventListener('click', () => {
+      const msg = card.dataset.message || `Opening ${card.dataset.key || 'section'}`;
+      speak(msg, {force:false});
+      card.animate([{ transform: 'scale(.98)', opacity:.95 }, { transform: 'scale(1)', opacity:1 }], { duration:260, easing:'ease-out' });
+    }));
+
+    /* ---------- Map, Geolocation & Weather logic ---------- */
+    const locBtn = q('#locBtn'), stopLocBtn = q('#stopLocBtn');
+    const coordsEl = q('#coords'), accEl = q('#accuracy'), openMapsBtn = q('#openMapsBtn');
+    const tempEl = q('#temperature'), lastUpdateEl = q('#lastUpdate');
+    const mapContainer = q('#mapContainer'), mapEl = q('#map');
+
+    // Weather UI
     const wTemp = q('#weatherTemp'), wIcon = q('#weatherIcon'), wCond = q('#weatherCond');
     const wHum = q('#weatherHumidity'), wWind = q('#weatherWind'), wSource = q('#weatherSource'), wExtras = q('#weatherExtras');
     const weatherGlass = q('#weatherGlass');
+
+    let watchId = null;
+    let map = null, userMarker = null, accuracyCircle = null, accuracyVisual = null;
+    const INITIAL_ZOOM = 15;
+    
+    // Track last spoken messages to prevent repetition
+    let lastLocationSpoken = { coords: null, time: 0, accuracy: null };
+    let lastWeatherSpoken = { temp: null, condition: null, time: 0 };
+    const LOCATION_SPEAK_INTERVAL = 30000; // 30 seconds
+    const WEATHER_SPEAK_INTERVAL = 30000; // 30 seconds
+    
+    // Auto-update interval
+    let updateInterval = null;
+    const UPDATE_INTERVAL = 10000; // 10 seconds
+    
+    // Theme indicator
     const themeIndicator = q('#themeIndicator');
 
-    /* TTS */
-    let ttsEnabled = true; const muteBtn = q('#muteBtn');
-    const VOICE_RATE = 1.05, VOICE_PITCH = 1, VOICE_VOLUME = 1;
-    let lastSpeak = '', lastSpeakTime = 0;
+    function setTheme() {
+      const hour = new Date().getHours();
+      let themeClass, themeName, themeIcon;
+      
+      if (hour >= 5 && hour < 12) {
+        themeClass = 'theme-morning';
+        themeName = 'Morning';
+        themeIcon = '🌅';
+      } else if (hour >= 12 && hour < 17) {
+        themeClass = 'theme-afternoon';
+        themeName = 'Afternoon';
+        themeIcon = '☀️';
+      } else if (hour >= 17 && hour < 21) {
+        themeClass = 'theme-evening';
+        themeName = 'Evening';
+        themeIcon = '🌇';
+      } else {
+        themeClass = 'theme-night';
+        themeName = 'Night';
+        themeIcon = '🌙';
+      }
+      
+      document.body.className = themeClass;
+      themeIndicator.textContent = themeIcon;
+      themeIndicator.title = `${themeName} Theme`;
+    }
+    
+    // Set theme on load and update every 5 minutes
+    setTheme();
+    setInterval(setTheme, 300000); // 5 minutes
+    
+    // Initialize the map
+    function initMap() {
+      if (map) return;
+      
+      map = L.map('map', { 
+        zoomControl: true,
+        zoomAnimation: true,
+        fadeAnimation: true,
+        markerZoomAnimation: true
+      }).setView([0, 0], 2);
+      
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+      }).addTo(map);
+    }
+    
+    initMap();
 
-    function updateMuteUI(){ if (!muteBtn) return; muteBtn.textContent = ttsEnabled ? 'Mute' : 'Unmute'; }
-    muteBtn?.addEventListener('click', ()=>{ ttsEnabled = !ttsEnabled; if (!ttsEnabled && 'speechSynthesis' in window) speechSynthesis.cancel(); updateMuteUI(); });
-    updateMuteUI();
-
-    function speak(text, {force=false} = {}){
-      if (!ttsEnabled) return; if (!('speechSynthesis' in window)) return; if (document.visibilityState !== 'visible') return;
-      text = String(text).replace(/SolarHat/g,'Solar Hat');
-      const now = Date.now();
-      if (!force && (text.trim() === lastSpeak.trim()) && (now - lastSpeakTime) < SPEECH_COOLDOWN_MS) return;
-      if (!force && (now - lastSpeakTime) < 800) return; // short throttle
-      try{
-        speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(text); u.rate = VOICE_RATE; u.pitch = VOICE_PITCH; u.volume = VOICE_VOLUME;
-        const voices = speechSynthesis.getVoices(); if (voices.length) u.voice = voices.find(v=>v.lang.includes('en')) || voices[0];
-        speechSynthesis.speak(u); lastSpeak = text; lastSpeakTime = now;
-      }catch(e){console.error(e)}
+    function updateMap(lat, lon, accuracy) {
+      const pt = [lat, lon];
+      
+      // Create or update marker
+      if (!userMarker) {
+        userMarker = L.marker(pt, { 
+          icon: L.divIcon({ 
+            className:'user-location-marker', 
+            html:'<div style="width:16px;height:16px;border-radius:50%;background:#0ea5a4;box-shadow:0 0 0 6px rgba(14,165,164,0.08);"></div>', 
+            iconSize:[30,30], 
+            iconAnchor:[15,15] 
+          }) 
+        }).addTo(map);
+      } else {
+        userMarker.setLatLng(pt);
+      }
+      
+      // Create or update accuracy circle
+      if (!accuracyCircle) {
+        accuracyCircle = L.circle(pt, { 
+          radius: accuracy, 
+          color:'#0ea5a4', 
+          fillColor:'#d1f0ef', 
+          fillOpacity:0.22 
+        }).addTo(map);
+      } else { 
+        accuracyCircle.setLatLng(pt); 
+        accuracyCircle.setRadius(accuracy); 
+      }
+      
+      // Create or update pulsing visual
+      if (!accuracyVisual) {
+        accuracyVisual = L.circle(pt, {
+          radius: accuracy,
+          color: '#0ea5a4',
+          fillColor: 'rgba(14, 165, 164, 0.1)',
+          fillOpacity: 0.2,
+          className: 'accuracy-visual'
+        }).addTo(map);
+      } else {
+        accuracyVisual.setLatLng(pt);
+        accuracyVisual.setRadius(accuracy);
+      }
+      
+      // Adjust map view
+      map.setView(pt, INITIAL_ZOOM, { animate: true, duration: 1 });
     }
 
-    speechSynthesis.onvoiceschanged = ()=>{ speak('Welcome to Solar Hat. Tap any card to hear information about that feature.', {force:true}); };
+    function showLocError(err) {
+      switch(err.code) {
+        case err.PERMISSION_DENIED: 
+          speak('Location access denied. Please allow location access.');
+          break;
+        case err.POSITION_UNAVAILABLE: 
+          speak('Location unavailable. Please check your connection.');
+          break;
+        case err.TIMEOUT: 
+          speak('Location request timed out. Please try again.');
+          break;
+        default: 
+          speak('Unknown geolocation error. Please try again later.');
+          break;
+      }
+    }
 
-    /* card clicks -> TTS */
-    qa('.card').forEach(card => card.addEventListener('click', ()=>{ const msg = card.dataset.message || 'Opening section'; speak(msg); card.animate([{transform:'scale(.98)'},{transform:'scale(1)'}],{duration:220}); }));
+    async function updateLocationUI(position) {
+      const lat = position.coords.latitude, lon = position.coords.longitude;
+      const latF = lat.toFixed(6), lonF = lon.toFixed(6);
+      const acc = Math.round(position.coords.accuracy || 0);
 
-    /* Map */
-    let map, userMarker, accuracyCircle; const INITIAL_ZOOM = 15;
-    function initMap(){ if (map) return; map = L.map('map',{zoomControl:true}).setView([0,0],2); L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(map);} initMap();
-    function updateMap(lat,lon,accuracy){ const pt=[lat,lon]; if(!userMarker){ userMarker = L.marker(pt).addTo(map); } else userMarker.setLatLng(pt); if(!accuracyCircle){ accuracyCircle = L.circle(pt,{radius:accuracy, color:'#0ea5a4', fillOpacity:0.12}).addTo(map); } else { accuracyCircle.setLatLng(pt); accuracyCircle.setRadius(accuracy);} map.setView(pt, INITIAL_ZOOM, {animate:true}); }
+      coordsEl.textContent = `${latF}, ${lonF}`;
+      accEl.textContent = `${acc} m`;
+      lastUpdateEl.textContent = new Date().toLocaleTimeString();
+      
+      // Add visual indicator for accuracy level
+      let accClass = 'accuracy-low';
+      if (acc <= 30) accClass = 'accuracy-high';
+      else if (acc <= 100) accClass = 'accuracy-medium';
+      
+      accEl.innerHTML = `${acc} m <span class="accuracy-indicator"><span class="accuracy-dot ${accClass}"></span></span>`;
+      
+      openMapsBtn.style.display = 'inline-flex';
+      stopLocBtn.style.display = 'inline-flex';
+      
+      if (acc <= 30) accEl.style.color = 'var(--success)'; 
+      else if (acc <= 100) accEl.style.color = 'var(--warning)'; 
+      else accEl.style.color = 'var(--error)';
 
-    /* Geolocation & tracking */
-    let watchId = null, updateIntervalId = null; let lastLocationSpoken = {time:0, coords:null, accuracy:null};
-    function updateLocationUI(position){ const lat = position.coords.latitude, lon = position.coords.longitude; const latF = lat.toFixed(6), lonF = lon.toFixed(6); const acc = Math.round(position.coords.accuracy || 0);
-      coordsEl.textContent = `${latF}, ${lonF}`; accEl.textContent = `${acc} m`; lastUpdateEl.textContent = new Date().toLocaleTimeString();
-      accEl.innerHTML = `${acc} m`;
-      openMapsBtn.style.display = 'inline-flex'; stopLocBtn.style.display = 'inline-flex';
-      if (acc <= 30) accEl.style.color = 'green'; else if (acc <= 100) accEl.style.color = 'orange'; else accEl.style.color = 'red';
-      try{ updateMap(lat,lon,acc); }catch(e){console.error(e)}
-
-      // Speak location occasionally (every LOCATION_SPEAK_INTERVAL)
-      const now = Date.now();
-      const moved = lastLocationSpoken.coords ? (Math.hypot(lat-lastLocationSpoken.coords.lat, lon-lastLocationSpoken.coords.lon)*111000 > 50) : true;
-      if (moved || (now - lastLocationSpoken.time) > LOCATION_SPEAK_INTERVAL || (acc < (lastLocationSpoken.accuracy || 9999)-20)){
-        speak(`Location acquired. Accuracy within ${acc} meters.`); lastLocationSpoken = {time:now, coords:{lat,lon}, accuracy:acc};
+      // Update the map
+      try { 
+        updateMap(lat, lon, acc); 
+      } catch(e){ 
+        console.error('Map error', e); 
       }
 
-      // update weather for this location (and set periodic updates)
-      fetchOpenMeteoWeather(lat,lon);
-      if (updateIntervalId) clearInterval(updateIntervalId);
-      updateIntervalId = setInterval(()=>fetchOpenMeteoWeather(lat,lon), UPDATE_INTERVAL);
+      // Speak location only if significant change or time passed
+      const now = Date.now();
+      const moved = lastLocationSpoken.coords ? 
+        Math.sqrt(Math.pow(lat - lastLocationSpoken.coords.lat, 2) + Math.pow(lon - lastLocationSpoken.coords.lon, 2)) * 111000 > 50 : 
+        true;
+      const accuracyImproved = !lastLocationSpoken.accuracy || (lastLocationSpoken.accuracy - acc) > 20;
+      const timePassed = now - lastLocationSpoken.time > LOCATION_SPEAK_INTERVAL;
+      
+      if (moved || accuracyImproved || timePassed) {
+        speak(`Location acquired. Accuracy within ${acc} meters.`);
+        lastLocationSpoken = { 
+          coords: {lat, lon}, 
+          time: now, 
+          accuracy: acc 
+        };
+      }
+
+      // Fetch weather
+      const ok = await fetchOpenMeteoWeather(lat, lon);
+      if (!ok) {
+        const sim = simulateWeatherFor(lat, lon);
+        applyWeather(sim, 'Simulated (fallback)');
+      }
     }
 
-    function startWatch(){ if (!('geolocation' in navigator)) { speak('Geolocation not supported'); return; } if (watchId !== null) return; locBtn.disabled = true; locBtn.textContent = 'Locating...';
-      watchId = navigator.geolocation.watchPosition(pos=>{ updateLocationUI(pos); locBtn.disabled=false; locBtn.textContent='Get Location'; }, err=>{ console.error(err); speak('Location error'); locBtn.disabled=false; locBtn.textContent='Get Location'; if (watchId!==null){ navigator.geolocation.clearWatch(watchId); watchId=null; } }, {enableHighAccuracy:true,timeout:10000,maximumAge:0}); }
-    function stopWatch(){ if (watchId!==null){ navigator.geolocation.clearWatch(watchId); watchId=null; stopLocBtn.style.display='none'; speak('Location tracking stopped'); } if (updateIntervalId){ clearInterval(updateIntervalId); updateIntervalId=null; } }
-    locBtn?.addEventListener('click', startWatch); stopLocBtn?.addEventListener('click', stopWatch); openMapsBtn?.addEventListener('click', ()=>{ const txt = coordsEl.textContent; if (!txt||txt==='—') return; const [lat,lon] = txt.split(',').map(s=>s.trim()); window.open(`https://www.google.com/maps/search/?api=1&query=${lat},${lon}`,'_blank'); });
+    function startWatch() {
+      if (!('geolocation' in navigator)) { 
+        speak('Geolocation not supported on this device.'); 
+        return; 
+      }
+      if (watchId !== null) { 
+        speak('Already tracking your location.'); 
+        return; 
+      }
+      locBtn.disabled = true; 
+      locBtn.innerHTML = '<svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Locating... <span class="loading"></span>';
+      coordsEl.textContent = 'Locating...'; 
+      accEl.textContent = '—'; 
+      tempEl.textContent = '—';
 
-    /* Weather (Open-Meteo) */
-    const weatherCodeMap = {0:['Clear sky','☀️'],1:['Mainly clear','🌤️'],2:['Partly cloudy','⛅'],3:['Overcast','☁️'],45:['Fog','🌫️'],48:['Rime fog','🌫️'],51:['Light drizzle','🌦️'],53:['Moderate drizzle','🌧️'],55:['Dense drizzle','🌧️'],61:['Slight rain','🌧️'],63:['Moderate rain','🌧️'],65:['Heavy rain','🌧️'],71:['Slight snow','❄️'],73:['Moderate snow','❄️'],75:['Heavy snow','❄️'],80:['Rain showers','🌦️'],95:['Thunderstorm','⛈️']};
+      watchId = navigator.geolocation.watchPosition(pos => {
+        updateLocationUI(pos);
+        locBtn.disabled = false;
+        locBtn.innerHTML = '<svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Get Location';
+        
+        // Start auto-update interval
+        if (updateInterval) clearInterval(updateInterval);
+        updateInterval = setInterval(() => {
+          if (watchId !== null) {
+            navigator.geolocation.getCurrentPosition(updateLocationUI, showLocError, {
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 0
+            });
+          }
+        }, UPDATE_INTERVAL);
+      }, err => {
+        showLocError(err);
+        locBtn.disabled = false; 
+        locBtn.innerHTML = '<svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Get Location';
+        coordsEl.textContent = 'Failed';
+        tempEl.textContent = '—';
+        if (watchId !== null) { 
+          navigator.geolocation.clearWatch(watchId); 
+          watchId = null; 
+        }
+      }, { enableHighAccuracy:true, timeout:10000, maximumAge:0 });
+    }
 
-    async function fetchOpenMeteoWeather(lat,lon){ try{
+    function stopWatch() {
+      if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId); 
+        watchId = null;
+        stopLocBtn.style.display = 'none';
+        speak('Location tracking stopped.');
+        
+        // Stop auto-update interval
+        if (updateInterval) {
+          clearInterval(updateInterval);
+          updateInterval = null;
+        }
+      }
+    }
+
+    if (locBtn) locBtn.addEventListener('click', startWatch);
+    if (stopLocBtn) stopLocBtn.addEventListener('click', stopWatch);
+    if (openMapsBtn) openMapsBtn.addEventListener('click', () => {
+      const txt = coordsEl.textContent;
+      if (!txt || txt === '—' || txt === 'Locating...') return;
+      const [lat, lon] = txt.split(',').map(s => s.trim());
+      window.open(`https://www.google.com/maps/search/?api=1&query=${lat},${lon}`, '_blank');
+    });
+
+    /* ---------- Open-Meteo fetching (no key) ---------- */
+    const weatherCodeMap = {
+      0:['Clear sky','☀️'],1:['Mainly clear','🌤️'],2:['Partly cloudy','⛅'],3:['Overcast','☁️'],
+      45:['Fog','🌫️'],48:['Rime fog','🌫️'],51:['Light drizzle','🌦️'],53:['Moderate drizzle','🌧️'],
+      55:['Dense drizzle','🌧️'],61:['Slight rain','🌧️'],63:['Moderate rain','🌧️'],65:['Heavy rain','🌧️'],
+      71:['Slight snow','❄️'],73:['Moderate snow','❄️'],75:['Heavy snow','❄️'],80:['Rain showers','🌦️'],
+      95:['Thunderstorm','⛈️']
+    };
+
+    async function fetchOpenMeteoWeather(lat, lon) {
+      try {
         const ep = `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lon)}&current_weather=true&hourly=relativehumidity_2m&timezone=auto`;
-        wSource.textContent = 'Open-Meteo'; wIcon.textContent = '⏳'; wTemp.textContent='—'; wCond.textContent='Loading...';
-        const resp = await fetch(ep,{cache:'no-store'}); if(!resp.ok) throw new Error('Failed'); const data = await resp.json(); if(!data||!data.current_weather) throw new Error('No data');
-        const cw = data.current_weather; const temperature = Number(cw.temperature); const wind = Number(cw.windspeed); const code = Number(cw.weathercode);
-        let humidity = '—'; if (data.hourly && data.hourly.time && data.hourly.relativehumidity_2m){ const times = data.hourly.time, rh = data.hourly.relativehumidity_2m; let bestIdx=0, bestDiff=Infinity; for(let i=0;i<times.length;i++){ const t=new Date(times[i]); const diff = Math.abs(t - new Date()); if(diff<bestDiff){bestIdx=i;bestDiff=diff}} humidity = (typeof rh[bestIdx] !== 'undefined')? `${Math.round(rh[bestIdx])}%` : '—'; }
-        const mapVal = weatherCodeMap[code] || ['Clear','☀️']; const conditionText = mapVal[0], conditionIcon = mapVal[1];
-        const weather = { temperatureC: temperature, humidity: humidity, windKmh: `${wind} km/h`, condition: conditionText, icon: conditionIcon };
-        applyWeather(weather,'Open-Meteo');
+        if (wSource) wSource.textContent = 'Open-Meteo';
+        if (wIcon) wIcon.innerHTML = '<span class="loading"></span>';
+        if (wTemp) wTemp.textContent = '—';
+        if (wCond) wCond.textContent = 'Loading...';
+        
+        const resp = await fetch(ep, {cache:'no-store'});
+        if (!resp.ok) throw new Error('Open-Meteo error');
+        const data = await resp.json();
+        if (!data || !data.current_weather) throw new Error('No current_weather');
 
-        // speak weather occasionally
-        const now = Date.now(); const tempChanged = Math.abs(temperature - (window.__lastWeatherTemp||0)) > 2; const condChanged = (conditionText !== (window.__lastWeatherCond||''));
-        if (tempChanged || condChanged || (now - (window.__lastWeatherTime||0)) > UPDATE_INTERVAL){ speak(`Current temperature is ${temperature.toFixed(1)} degrees Celsius and ${conditionText}`, {force:true}); window.__lastWeatherTemp = temperature; window.__lastWeatherCond = conditionText; window.__lastWeatherTime = now; }
+        const cw = data.current_weather;
+        const temperature = Number(cw.temperature);
+        const wind = Number(cw.windspeed);
+        const code = Number(cw.weathercode);
+
+        // Find nearest humidity entry from hourly arrays
+        let humidity = '—';
+        if (data.hourly && data.hourly.time && data.hourly.relativehumidity_2m) {
+          const times = data.hourly.time, rh = data.hourly.relativehumidity_2m;
+          let bestIdx = 0, bestDiff = Infinity;
+          for (let i=0;i<times.length;i++){
+            const t = new Date(times[i]);
+            const diff = Math.abs(t - new Date());
+            if (diff < bestDiff) { bestIdx = i; bestDiff = diff; }
+          }
+          humidity = (typeof rh[bestIdx] !== 'undefined') ? `${Math.round(rh[bestIdx])}%` : '—';
+        }
+
+        const mapVal = weatherCodeMap[code] || ['Clear','🌤️'];
+        const conditionText = mapVal[0], conditionIcon = mapVal[1];
+
+        const weather = {
+          temperatureC: temperature,
+          humidity: humidity,
+          windKmh: `${wind} km/h`,
+          condition: conditionText,
+          icon: conditionIcon
+        };
+
+        applyWeather(weather, 'Open-Meteo');
+        if (tempEl) tempEl.textContent = `${temperature.toFixed(1)} °C`;
+        
+        // Speak weather only if significant change or time passed
+        const now = Date.now();
+        const tempChanged = Math.abs(temperature - (lastWeatherSpoken.temp || 0)) > 2;
+        const conditionChanged = conditionText !== (lastWeatherSpoken.condition || '');
+        const timePassed = now - lastWeatherSpoken.time > WEATHER_SPEAK_INTERVAL;
+        
+        if (tempChanged || conditionChanged || timePassed) {
+          speak(`Current temperature is ${temperature.toFixed(1)} degrees Celsius and ${conditionText}.`, {force:true});
+          lastWeatherSpoken = { 
+            temp: temperature, 
+            condition: conditionText, 
+            time: now 
+          };
+        }
+        
         return true;
-      }catch(err){ console.warn('Weather failed',err); wSource.textContent='Unavailable'; wIcon.textContent='⚠️'; wCond.textContent='Service unavailable'; wTemp.textContent='—'; return false; }
+      } catch (err) {
+        console.warn('Open-Meteo failed', err);
+        if (wSource) wSource.textContent = 'Simulated (fallback)';
+        if (wIcon) wIcon.textContent = '⚠️';
+        if (wCond) wCond.textContent = 'Service unavailable';
+        if (tempEl) tempEl.textContent = 'Unavailable';
+        return false;
+      }
     }
 
-    function applyWeather(w, source=''){ if (wTemp) wTemp.textContent = `${Number(w.temperatureC).toFixed(1)}°C`; if (wIcon) wIcon.textContent = w.icon||'—'; if (wCond) wCond.textContent = w.condition||'—'; if (wHum) wHum.textContent = w.humidity||'—'; if (wWind) wWind.textContent = w.windKmh||'—'; if (wSource) wSource.textContent = source||'—'; if (wExtras) wExtras.textContent = `Updated ${new Date().toLocaleTimeString()}`;
-      // show simple indicator (sun/moon) — choose icon from the weather emoji if possible
-      try{ themeIndicator.textContent = w.icon && typeof w.icon === 'string' ? w.icon : '☀️'; themeIndicator.title = w.condition || 'Weather'; }catch(e){}
+    /* ---------- Apply weather to UI + graceful visuals ---------- */
+    function applyWeather(w, source='Simulated') {
+      if (wTemp) wTemp.textContent = `${w.temperatureC.toFixed(1)}°C`;
+      if (wIcon) wIcon.textContent = w.icon || '—';
+      if (wCond) wCond.textContent = w.condition || '—';
+      if (wHum) wHum.textContent = w.humidity || '—';
+      if (wWind) wWind.textContent = w.windKmh || '—';
+      if (wSource) wSource.textContent = source || '—';
+      if (wExtras) wExtras.textContent = `Updated ${new Date().toLocaleTimeString()}`;
+
+      // Gentle style: pick background class by condition
+      const c = (w.condition || '').toLowerCase();
+      weatherGlass.classList.remove('bg-sunny','bg-cloudy','bg-rain','bg-snow');
+      if (c.includes('rain') || c.includes('drizzle') || c.includes('thunder')) weatherGlass.classList.add('bg-rain');
+      else if (c.includes('snow')) weatherGlass.classList.add('bg-snow');
+      else if (c.includes('clear') || c.includes('sun')) weatherGlass.classList.add('bg-sunny');
+      else weatherGlass.classList.add('bg-cloudy');
+
+      // Small animation to highlight update
+      weatherGlass.animate([{ transform: 'translateY(4px)', opacity: 0.96 }, { transform: 'translateY(0)', opacity:1 }], { duration: 420, easing: 'cubic-bezier(.2,.9,.2,1)' });
     }
 
-    /* fallback simulated weather */
-    function simulateWeatherFor(lat,lon){ const seed = Math.abs(Math.floor((lat*10000) ^ (lon*10000))); function rnd(min,max){ const x = Math.sin(seed + min*9973 + max*7919) * 43758.5453; const n = Math.abs(x - Math.floor(x)); return min + n*(max-min); }
-      const latAbs = Math.abs(lat); const base = 28 - (latAbs/90)*40; const t = base + rnd(-4,4); const humidity = Math.max(8,Math.min(95,Math.round(50 + rnd(-28,28)))); const wind = Math.max(0, +(rnd(0,22)).toFixed(1)); const r = rnd(0,100);
-      let cond = 'Partly cloudy'; if (r < 10 && t < 2) cond = 'Snow'; else if (r < 25 && t < 15) cond = 'Light rain'; else if (r < 55) cond = (t > 25 ? 'Sunny' : 'Partly cloudy'); else cond = 'Cloudy'; const icon = cond.toLowerCase().includes('snow') ? '❄️' : cond.toLowerCase().includes('rain') ? '🌧️' : cond.toLowerCase().includes('cloud') ? '☁️' : '☀️';
-      return { temperatureC: Number(t.toFixed(1)), humidity: `${humidity}%`, windKmh: `${wind} km/h`, condition: cond, icon };
+    /* ---------- Fallback simulated weather ---------- */
+    function simulateWeatherFor(lat, lon) {
+      // Deterministic pseudo-random based on coords
+      const seed = Math.abs(Math.floor((lat*10000) ^ (lon*10000)));
+      function rnd(min,max) { 
+        const x = Math.sin(seed + min*9973 + max*7919) * 43758.5453; 
+        const n = Math.abs(x - Math.floor(x)); 
+        return min + n*(max-min); 
+      }
+      
+      const latAbs = Math.abs(lat);
+      const base = 28 - (latAbs/90)*40;
+      const t = base + rnd(-4,4);
+      const humidity = Math.max(8, Math.min(95, Math.round(50 + rnd(-28,28))));
+      const wind = Math.max(0, +(rnd(0,22)).toFixed(1));
+      const r = rnd(0,100);
+      
+      let cond = 'Partly cloudy';
+      if (r < 10 && t < 2) cond = 'Snow';
+      else if (r < 25 && t < 15) cond = 'Light rain';
+      else if (r < 55) cond = (t > 25 ? 'Sunny' : 'Partly cloudy');
+      else cond = 'Cloudy';
+      
+      const icon = cond.toLowerCase().includes('snow') ? '❄️' : 
+                  cond.toLowerCase().includes('rain') ? '🌧️' : 
+                  cond.toLowerCase().includes('cloud') ? '☁️' : '☀️';
+      
+      return { 
+        temperatureC: Number(t.toFixed(1)), 
+        humidity: `${humidity}%`, 
+        windKmh: `${wind} km/h`, 
+        condition: cond, 
+        icon 
+      };
     }
 
-    // On load: try quick location & weather
-    (function init(){ if ('geolocation' in navigator){ navigator.geolocation.getCurrentPosition(pos=>{ try{ updateLocationUI(pos); }catch(e){} }, ()=>{}, {enableHighAccuracy:true,maximumAge:60000,timeout:6000}); }
-      // If no weather yet, simulate a fallback so UI isn't empty
-      setTimeout(()=>{ if (!wTemp || wTemp.textContent === '—'){ const s = simulateWeatherFor(0,0); applyWeather(s,'Simulated'); } }, 500);
+    /* ---------- On load: quick try to populate if permission already granted ---------- */
+    (function initApp() {
+      // Try to get location
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(pos => { 
+          try { 
+            updateLocationUI(pos); 
+          } catch (e) {} 
+        }, () => {}, { enableHighAccuracy:true, maximumAge:60000, timeout:6000 });
+      }
     })();
 
-    // stop tts when hidden
-    document.addEventListener('visibilitychange', ()=>{ if (document.visibilityState === 'hidden') { speechSynthesis.cancel(); } });
+    /* ---------- Handle tab visibility changes ---------- */
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') {
+        speechSynthesis.cancel();
+      }
+    });
+
+    /* ---------- End of script ---------- */
   </script>
 </body>
 </html>
