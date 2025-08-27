@@ -2,147 +2,697 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="SecureHat - Private and encrypted location sharing and chat application for educators and students">
   <title>SecureHat — Private Location Sharing & Chat</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
+    :root {
+      --primary: #4361ee;
+      --secondary: #3a0ca3;
+      --success: #4cc9f0;
+      --warning: #f72585;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --gray: #6c757d;
+      --light-gray: #e9ecef;
+      --border-radius: 12px;
+      --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      --transition: all 0.3s ease;
+    }
+
+    * {
+      box-sizing: border-box;
       margin: 0;
-      padding: 20px;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
+      color: var(--dark);
+      line-height: 1.6;
     }
-    h1 { margin-bottom: 10px; }
-    #container {
-      background: white;
-      border-radius: 10px;
-      padding: 20px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-      width: 100%;
-      max-width: 500px;
+
+    .app-container {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: var(--border-radius);
+      padding: 2rem;
+      box-shadow: var(--box-shadow);
+      width: 90%;
+      max-width: 600px;
+      margin: 2rem;
+      transition: var(--transition);
     }
+
+    header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .logo-icon {
+      font-size: 2rem;
+      color: var(--primary);
+    }
+
+    h1 {
+      color: var(--primary);
+      font-size: 2.2rem;
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+    }
+
+    .tagline {
+      color: var(--gray);
+      font-size: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card {
+      background: var(--light);
+      border-radius: var(--border-radius);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    h2 {
+      color: var(--secondary);
+      font-size: 1.4rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    h2 i {
+      font-size: 1.2rem;
+    }
+
+    .input-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: var(--dark);
+    }
+
     input, button {
-      padding: 10px;
-      margin: 5px 0;
+      padding: 12px 16px;
+      border-radius: var(--border-radius);
+      border: 2px solid var(--light-gray);
       width: 100%;
-      border-radius: 5px;
-      border: 1px solid #ccc;
+      font-size: 1rem;
+      transition: var(--transition);
     }
-    button { cursor: pointer; background: #4CAF50; color: white; }
-    button:hover { background: #45a049; }
+
+    input:focus {
+      border-color: var(--primary);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+    }
+
+    button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: var(--transition);
+    }
+
+    button:hover {
+      background: var(--secondary);
+      transform: translateY(-2px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      background: var(--gray);
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .code-display {
+      display: flex;
+      align-items: center;
+      background: var(--light-gray);
+      padding: 12px;
+      border-radius: var(--border-radius);
+      margin-top: 0.5rem;
+      font-family: monospace;
+      font-size: 1.2rem;
+      justify-content: space-between;
+    }
+
+    .code-value {
+      letter-spacing: 2px;
+      font-weight: bold;
+      color: var(--primary);
+    }
+
+    .copy-btn {
+      background: none;
+      color: var(--primary);
+      width: auto;
+      padding: 4px 8px;
+      font-size: 0.9rem;
+    }
+
+    .copy-btn:hover {
+      background: rgba(67, 97, 238, 0.1);
+    }
+
+    #chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 300px;
+    }
+
     #chat {
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      padding: 10px;
-      height: 200px;
+      border: 2px solid var(--light-gray);
+      border-radius: var(--border-radius);
+      padding: 1rem;
+      height: 100%;
       overflow-y: auto;
-      margin-top: 10px;
-      background: #fafafa;
+      margin-bottom: 1rem;
+      background: white;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
     }
-    .msg { margin: 5px 0; }
-    .me { color: blue; }
-    .them { color: green; }
+
+    .msg {
+      padding: 0.75rem 1rem;
+      border-radius: 18px;
+      max-width: 80%;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .me {
+      background: var(--primary);
+      color: white;
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+    }
+
+    .them {
+      background: var(--light-gray);
+      color: var(--dark);
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+    }
+
+    .msg-info {
+      font-size: 0.7rem;
+      opacity: 0.8;
+      margin-top: 4px;
+    }
+
+    .chat-input-container {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    #message {
+      flex: 1;
+      margin-bottom: 0;
+    }
+
+    #send {
+      width: auto;
+      padding: 12px;
+    }
+
+    .status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--light-gray);
+      font-size: 0.9rem;
+    }
+
+    .connection-status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--gray);
+    }
+
+    .status-dot.connected {
+      background: #4CAF50;
+    }
+
+    .notification {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--dark);
+      color: white;
+      padding: 12px 20px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 1000;
+    }
+
+    .notification.show {
+      opacity: 1;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 2rem;
+      color: white;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+
+    footer a {
+      color: white;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      .app-container {
+        padding: 1.5rem;
+        width: 95%;
+      }
+      
+      h1 {
+        font-size: 1.8rem;
+      }
+      
+      .card {
+        padding: 1rem;
+      }
+      
+      .msg {
+        max-width: 90%;
+      }
+    }
+
+    .hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
-  <h1>SecureHat</h1>
-  <div id="container">
-    <h2>Teacher Mode</h2>
-    <button id="createHost">Create Host</button>
-    <p>Your Code: <span id="hostCode">—</span></p>
+  <div class="app-container">
+    <header>
+      <div class="logo">
+        <i class="fas fa-hat-cowboy logo-icon"></i>
+        <h1>SecureHat</h1>
+      </div>
+      <p class="tagline">Private location sharing and encrypted chat for educators</p>
+    </header>
 
-    <h2>Student Mode</h2>
-    <input type="text" id="joinCode" placeholder="Enter teacher code" />
-    <button id="joinHost">Join Host</button>
+    <div class="card">
+      <h2><i class="fas fa-chalkboard-teacher"></i> Teacher Mode</h2>
+      <button id="createHost">
+        <i class="fas fa-plus-circle"></i> Create New Session
+      </button>
+      <div class="input-group">
+        <label>Your Session Code:</label>
+        <div class="code-display">
+          <span id="hostCode" class="code-value">—</span>
+          <button id="copyCode" class="copy-btn" disabled>
+            <i class="fas fa-copy"></i> Copy
+          </button>
+        </div>
+      </div>
+    </div>
 
-    <h2>Chat</h2>
-    <div id="chat"></div>
-    <input type="text" id="message" placeholder="Type a message..." disabled />
-    <button id="send" disabled>Send</button>
+    <div class="card">
+      <h2><i class="fas fa-user-graduate"></i> Student Mode</h2>
+      <div class="input-group">
+        <label for="joinCode">Enter Teacher's Code:</label>
+        <input type="text" id="joinCode" placeholder="e.g. 1234-5678" />
+      </div>
+      <button id="joinHost">
+        <i class="fas fa-sign-in-alt"></i> Join Session
+      </button>
+    </div>
+
+    <div class="card">
+      <h2><i class="fas fa-comments"></i> Secure Chat</h2>
+      <div id="chat-container">
+        <div id="chat"></div>
+        <div class="chat-input-container">
+          <input type="text" id="message" placeholder="Type a secure message..." disabled />
+          <button id="send" disabled>
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="status-bar">
+      <div class="connection-status">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusText">Disconnected</span>
+      </div>
+      <div id="connectionInfo"></div>
+    </div>
   </div>
+
+  <div class="notification" id="notification"></div>
+
+  <footer>
+    <p>SecureHat &copy; 2023 | Protecting your privacy with end-to-end encryption</p>
+  </footer>
 
   <!-- PeerJS from CDN -->
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
   <script>
-    let peer, conn;
-
-    // DOM elements
-    const hostCodeEl = document.getElementById("hostCode");
-    const joinCodeEl = document.getElementById("joinCode");
-    const messageEl = document.getElementById("message");
-    const chatEl = document.getElementById("chat");
-    const sendBtn = document.getElementById("send");
-
-    // Utility to add chat messages
-    function addMessage(text, sender) {
-      const div = document.createElement("div");
-      div.className = "msg " + sender;
-      div.textContent = sender === "me" ? "Me: " + text : "Them: " + text;
-      chatEl.appendChild(div);
-      chatEl.scrollTop = chatEl.scrollHeight;
-    }
-
-    // Teacher: Create host
-    document.getElementById("createHost").onclick = () => {
-      peer = new Peer(null, {
-        host: '0.peerjs.com',
-        port: 443,
-        path: '/',
-        secure: true
-      });
-
-      peer.on("open", id => {
-        hostCodeEl.textContent = id; // show code to share
-      });
-
-      peer.on("connection", connection => {
-        conn = connection;
-        setupConnection();
-      });
-    };
-
-    // Student: Join host
-    document.getElementById("joinHost").onclick = () => {
-      const code = joinCodeEl.value.trim();
-      if (!code) return alert("Please enter a code.");
-
-      peer = new Peer(null, {
-        host: '0.peerjs.com',
-        port: 443,
-        path: '/',
-        secure: true
-      });
-
-      peer.on("open", () => {
-        conn = peer.connect(code);
-        conn.on("open", setupConnection);
-      });
-    };
-
-    // Setup connection (for both teacher & student)
-    function setupConnection() {
-      messageEl.disabled = false;
-      sendBtn.disabled = false;
-
-      conn.on("data", data => {
-        addMessage(data, "them");
-      });
-
-      sendBtn.onclick = () => {
-        const msg = messageEl.value;
-        if (msg && conn.open) {
-          conn.send(msg);
-          addMessage(msg, "me");
-          messageEl.value = "";
-        }
+    // Improved SecureHat application with better architecture and features
+    const SecureHat = (() => {
+      // DOM elements
+      const elements = {
+        hostCode: document.getElementById("hostCode"),
+        copyCode: document.getElementById("copyCode"),
+        joinCode: document.getElementById("joinCode"),
+        message: document.getElementById("message"),
+        chat: document.getElementById("chat"),
+        sendBtn: document.getElementById("send"),
+        createHostBtn: document.getElementById("createHost"),
+        joinHostBtn: document.getElementById("joinHost"),
+        statusDot: document.getElementById("statusDot"),
+        statusText: document.getElementById("statusText"),
+        connectionInfo: document.getElementById("connectionInfo"),
+        notification: document.getElementById("notification")
       };
 
-      messageEl.addEventListener("keypress", e => {
-        if (e.key === "Enter") sendBtn.click();
-      });
-    }
+      // App state
+      let state = {
+        peer: null,
+        conn: null,
+        isHost: false,
+        isConnected: false,
+        peerId: null
+      };
+
+      // Initialize the application
+      function init() {
+        setupEventListeners();
+        showNotification("Welcome to SecureHat! Create or join a session to begin.");
+      }
+
+      // Set up event listeners
+      function setupEventListeners() {
+        elements.createHostBtn.addEventListener("click", createHost);
+        elements.joinHostBtn.addEventListener("click", joinHost);
+        elements.sendBtn.addEventListener("click", sendMessage);
+        elements.copyCode.addEventListener("click", copyCodeToClipboard);
+        
+        elements.message.addEventListener("keypress", e => {
+          if (e.key === "Enter") sendMessage();
+        });
+
+        // Enable/disable copy button based on code availability
+        elements.hostCode.addEventListener("DOMSubtreeModified", () => {
+          elements.copyCode.disabled = elements.hostCode.textContent === "—";
+        });
+      }
+
+      // Create host (Teacher mode)
+      function createHost() {
+        if (state.peer) {
+          state.peer.destroy();
+        }
+
+        elements.createHostBtn.disabled = true;
+        updateStatus("Connecting...", "warning");
+
+        state.peer = new Peer(null, {
+          host: '0.peerjs.com',
+          port: 443,
+          path: '/',
+          secure: true,
+          debug: 3
+        });
+
+        state.peer.on("open", id => {
+          state.isHost = true;
+          state.peerId = id;
+          elements.hostCode.textContent = formatCode(id);
+          updateStatus("Waiting for student to join...", "waiting");
+          elements.createHostBtn.disabled = false;
+          showNotification("Session created! Share your code with students.");
+        });
+
+        state.peer.on("connection", connection => {
+          setupConnection(connection);
+          updateStatus("Student joined!", "connected");
+          showNotification("Student joined the session!");
+        });
+
+        state.peer.on("error", err => {
+          console.error("PeerJS error:", err);
+          updateStatus("Connection error", "error");
+          showNotification("Error: " + err.type, "error");
+          elements.createHostBtn.disabled = false;
+        });
+
+        state.peer.on("disconnected", () => {
+          updateStatus("Disconnected", "disconnected");
+          showNotification("Disconnected from peer server");
+        });
+
+        state.peer.on("close", () => {
+          resetConnection();
+          updateStatus("Disconnected", "disconnected");
+        });
+      }
+
+      // Join host (Student mode)
+      function joinHost() {
+        const code = elements.joinCode.value.trim();
+        if (!code) {
+          showNotification("Please enter a session code", "error");
+          return;
+        }
+
+        elements.joinHostBtn.disabled = true;
+        updateStatus("Connecting...", "warning");
+
+        if (state.peer) {
+          state.peer.destroy();
+        }
+
+        state.peer = new Peer(null, {
+          host: '0.peerjs.com',
+          port: 443,
+          path: '/',
+          secure: true,
+          debug: 3
+        });
+
+        state.peer.on("open", () => {
+          try {
+            state.conn = state.peer.connect(code.replace(/-/g, ""));
+            
+            state.conn.on("open", () => {
+              setupConnection(state.conn);
+              updateStatus("Connected to teacher", "connected");
+              showNotification("Connected to teacher successfully!");
+              elements.joinHostBtn.disabled = false;
+            });
+
+            state.conn.on("error", err => {
+              console.error("Connection error:", err);
+              updateStatus("Connection failed", "error");
+              showNotification("Failed to connect: " + err, "error");
+              elements.joinHostBtn.disabled = false;
+            });
+          } catch (err) {
+            console.error("Connection error:", err);
+            updateStatus("Connection failed", "error");
+            showNotification("Failed to connect: Invalid code", "error");
+            elements.joinHostBtn.disabled = false;
+          }
+        });
+
+        state.peer.on("error", err => {
+          console.error("PeerJS error:", err);
+          updateStatus("Connection error", "error");
+          showNotification("Error: " + err.type, "error");
+          elements.joinHostBtn.disabled = false;
+        });
+      }
+
+      // Set up connection
+      function setupConnection(connection) {
+        state.conn = connection;
+        state.isConnected = true;
+        
+        elements.message.disabled = false;
+        elements.sendBtn.disabled = false;
+        
+        state.conn.on("data", data => {
+          addMessage(data, "them");
+        });
+
+        state.conn.on("close", () => {
+          resetConnection();
+          updateStatus("Disconnected", "disconnected");
+          showNotification("Connection closed");
+        });
+
+        state.conn.on("error", err => {
+          console.error("Connection error:", err);
+          updateStatus("Connection error", "error");
+          showNotification("Connection error: " + err, "error");
+        });
+
+        // Update connection info
+        elements.connectionInfo.textContent = state.isHost ? 
+          "Student connected" : "Connected to teacher";
+      }
+
+      // Send chat message
+      function sendMessage() {
+        const msg = elements.message.value.trim();
+        if (msg && state.conn.open) {
+          state.conn.send(msg);
+          addMessage(msg, "me");
+          elements.message.value = "";
+        }
+      }
+
+      // Add message to chat
+      function addMessage(text, sender) {
+        const msgDiv = document.createElement("div");
+        msgDiv.className = `msg ${sender}`;
+        
+        const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        msgDiv.innerHTML = `
+          <div>${text}</div>
+          <div class="msg-info">${sender === "me" ? "You" : (state.isHost ? "Student" : "Teacher")} • ${time}</div>
+        `;
+        
+        elements.chat.appendChild(msgDiv);
+        elements.chat.scrollTop = elements.chat.scrollHeight;
+      }
+
+      // Copy code to clipboard
+      function copyCodeToClipboard() {
+        const code = elements.hostCode.textContent;
+        if (code && code !== "—") {
+          navigator.clipboard.writeText(code.replace(/-/g, ""))
+            .then(() => {
+              showNotification("Code copied to clipboard!");
+            })
+            .catch(err => {
+              console.error("Could not copy text: ", err);
+              showNotification("Failed to copy code", "error");
+            });
+        }
+      }
+
+      // Format code with hyphen for readability
+      function formatCode(code) {
+        return code.length > 4 ? code.substring(0, 4) + "-" + code.substring(4) : code;
+      }
+
+      // Update connection status
+      function updateStatus(text, status) {
+        elements.statusText.textContent = text;
+        elements.statusDot.className = "status-dot";
+        
+        switch(status) {
+          case "connected":
+            elements.statusDot.classList.add("connected");
+            break;
+          case "error":
+            elements.statusDot.style.background = "red";
+            break;
+          case "warning":
+            elements.statusDot.style.background = "orange";
+            break;
+          default:
+            elements.statusDot.style.background = "";
+        }
+      }
+
+      // Show notification
+      function showNotification(message, type = "success") {
+        elements.notification.textContent = message;
+        elements.notification.style.background = type === "error" ? "#f72585" : "#4361ee";
+        elements.notification.classList.add("show");
+        
+        setTimeout(() => {
+          elements.notification.classList.remove("show");
+        }, 3000);
+      }
+
+      // Reset connection
+      function resetConnection() {
+        state.isConnected = false;
+        state.conn = null;
+        elements.message.disabled = true;
+        elements.sendBtn.disabled = true;
+        elements.connectionInfo.textContent = "";
+        
+        if (!state.isHost) {
+          elements.hostCode.textContent = "—";
+        }
+      }
+
+      // Public methods
+      return {
+        init: init
+      };
+    })();
+
+    // Initialize the app when the DOM is loaded
+    document.addEventListener("DOMContentLoaded", SecureHat.init);
   </script>
 </body>
 </html>
