@@ -3,22 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="SecureHat - Private and encrypted location sharing and chat application for educators and students">
   <title>SecureHat — Private Location Sharing & Chat</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
-      --primary: #4361ee;
-      --secondary: #3a0ca3;
-      --success: #4cc9f0;
-      --warning: #f72585;
-      --light: #f8f9fa;
+      --primary: #6C63FF;
+      --secondary: #4CC9F0;
+      --accent: #F72585;
+      --light: #F8F9FA;
       --dark: #212529;
-      --gray: #6c757d;
-      --light-gray: #e9ecef;
-      --border-radius: 12px;
-      --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-      --transition: all 0.3s ease;
+      --success: #4CAF50;
+      --warning: #FF9800;
+      --error: #F44336;
+      --gray: #6C757D;
+      --light-gray: #E9ECEF;
+      --border-radius: 16px;
+      --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      --smooth-transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     }
 
     * {
@@ -31,7 +32,7 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       margin: 0;
-      padding: 0;
+      padding: 20px;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -45,17 +46,17 @@
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(10px);
       border-radius: var(--border-radius);
-      padding: 2rem;
-      box-shadow: var(--box-shadow);
+      padding: 2.5rem;
+      box-shadow: var(--card-shadow);
       width: 90%;
       max-width: 600px;
-      margin: 2rem;
-      transition: var(--transition);
+      margin: 20px 0;
+      transition: var(--smooth-transition);
     }
 
     header {
       text-align: center;
-      margin-bottom: 1.5rem;
+      margin-bottom: 2rem;
     }
 
     .logo {
@@ -67,72 +68,89 @@
     }
 
     .logo-icon {
-      font-size: 2rem;
+      font-size: 2.5rem;
       color: var(--primary);
+      filter: drop-shadow(0 4px 6px rgba(108, 99, 255, 0.2));
     }
 
     h1 {
       color: var(--primary);
-      font-size: 2.2rem;
+      font-size: 2.5rem;
       margin-bottom: 0.5rem;
-      font-weight: 700;
+      font-weight: 800;
+      letter-spacing: -0.5px;
     }
 
     .tagline {
       color: var(--gray);
-      font-size: 1rem;
+      font-size: 1.1rem;
       margin-bottom: 1.5rem;
+      font-weight: 500;
     }
 
     .card {
       background: var(--light);
       border-radius: var(--border-radius);
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      padding: 1.8rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      transition: var(--smooth-transition);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
     }
 
     h2 {
       color: var(--secondary);
-      font-size: 1.4rem;
-      margin-bottom: 1rem;
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      font-weight: 700;
     }
 
     h2 i {
-      font-size: 1.2rem;
+      font-size: 1.3rem;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
     .input-group {
-      margin-bottom: 1rem;
+      margin-bottom: 1.2rem;
+      position: relative;
     }
 
     label {
       display: block;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.6rem;
       font-weight: 600;
       color: var(--dark);
+      font-size: 0.95rem;
     }
 
     input, button {
-      padding: 12px 16px;
+      padding: 14px 18px;
       border-radius: var(--border-radius);
       border: 2px solid var(--light-gray);
       width: 100%;
       font-size: 1rem;
-      transition: var(--transition);
+      transition: var(--smooth-transition);
+      font-family: inherit;
     }
 
     input:focus {
       border-color: var(--primary);
       outline: none;
-      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+      box-shadow: 0 0 0 4px rgba(108, 99, 255, 0.2);
     }
 
     button {
-      background: var(--primary);
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
       color: white;
       border: none;
       cursor: pointer;
@@ -141,12 +159,29 @@
       align-items: center;
       justify-content: center;
       gap: 0.5rem;
-      transition: var(--transition);
+      transition: var(--smooth-transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: var(--smooth-transition);
+    }
+
+    button:hover::before {
+      left: 100%;
     }
 
     button:hover {
-      background: var(--secondary);
-      transform: translateY(-2px);
+      transform: translateY(-3px);
+      box-shadow: 0 7px 14px rgba(108, 99, 255, 0.3);
     }
 
     button:active {
@@ -157,62 +192,71 @@
       background: var(--gray);
       cursor: not-allowed;
       transform: none;
+      box-shadow: none;
     }
 
     .code-display {
       display: flex;
       align-items: center;
       background: var(--light-gray);
-      padding: 12px;
+      padding: 14px;
       border-radius: var(--border-radius);
       margin-top: 0.5rem;
-      font-family: monospace;
-      font-size: 1.2rem;
+      font-family: 'Fira Code', monospace;
+      font-size: 1.3rem;
       justify-content: space-between;
+      border: 2px dashed var(--primary);
+      background-color: rgba(108, 99, 255, 0.05);
     }
 
     .code-value {
-      letter-spacing: 2px;
+      letter-spacing: 3px;
       font-weight: bold;
       color: var(--primary);
+      text-shadow: 0 2px 4px rgba(108, 99, 255, 0.1);
     }
 
     .copy-btn {
       background: none;
       color: var(--primary);
       width: auto;
-      padding: 4px 8px;
+      padding: 6px 12px;
       font-size: 0.9rem;
+      border: 2px solid var(--primary);
     }
 
     .copy-btn:hover {
-      background: rgba(67, 97, 238, 0.1);
+      background: rgba(108, 99, 255, 0.1);
+      transform: translateY(-2px);
     }
 
     #chat-container {
       display: flex;
       flex-direction: column;
-      height: 300px;
+      height: 320px;
     }
 
     #chat {
       border: 2px solid var(--light-gray);
       border-radius: var(--border-radius);
-      padding: 1rem;
+      padding: 1.2rem;
       height: 100%;
       overflow-y: auto;
-      margin-bottom: 1rem;
+      margin-bottom: 1.2rem;
       background: white;
       display: flex;
       flex-direction: column;
-      gap: 0.75rem;
+      gap: 0.9rem;
+      background: rgba(255, 255, 255, 0.8);
     }
 
     .msg {
-      padding: 0.75rem 1rem;
-      border-radius: 18px;
+      padding: 0.9rem 1.2rem;
+      border-radius: 20px;
       max-width: 80%;
-      animation: fadeIn 0.3s ease;
+      animation: fadeIn 0.4s ease;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      position: relative;
     }
 
     @keyframes fadeIn {
@@ -221,28 +265,29 @@
     }
 
     .me {
-      background: var(--primary);
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
       color: white;
       align-self: flex-end;
-      border-bottom-right-radius: 4px;
+      border-bottom-right-radius: 5px;
     }
 
     .them {
       background: var(--light-gray);
       color: var(--dark);
       align-self: flex-start;
-      border-bottom-left-radius: 4px;
+      border-bottom-left-radius: 5px;
     }
 
     .msg-info {
-      font-size: 0.7rem;
+      font-size: 0.75rem;
       opacity: 0.8;
       margin-top: 4px;
+      display: block;
     }
 
     .chat-input-container {
       display: flex;
-      gap: 0.5rem;
+      gap: 0.7rem;
     }
 
     #message {
@@ -252,49 +297,101 @@
 
     #send {
       width: auto;
-      padding: 12px;
+      padding: 14px;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
     }
 
     .status-bar {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-top: 1rem;
-      padding-top: 1rem;
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
       border-top: 1px solid var(--light-gray);
-      font-size: 0.9rem;
+      font-size: 0.95rem;
     }
 
     .connection-status {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.7rem;
     }
 
     .status-dot {
-      width: 10px;
-      height: 10px;
+      width: 12px;
+      height: 12px;
       border-radius: 50%;
       background: var(--gray);
+      transition: var(--smooth-transition);
+      box-shadow: 0 0 10px currentColor;
     }
 
     .status-dot.connected {
-      background: #4CAF50;
+      background: var(--success);
+      box-shadow: 0 0 10px var(--success);
+    }
+
+    .status-dot.connecting {
+      background: var(--warning);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+
+    .status-dot.error {
+      background: var(--error);
+      box-shadow: 0 0 10px var(--error);
+    }
+
+    .feedback-message {
+      text-align: center;
+      padding: 12px;
+      border-radius: var(--border-radius);
+      margin: 10px 0;
+      font-weight: 500;
+      display: none;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateY(-10px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .feedback-success {
+      background-color: rgba(76, 175, 80, 0.15);
+      color: var(--success);
+      border: 1px solid rgba(76, 175, 80, 0.3);
+      display: block;
+    }
+
+    .feedback-error {
+      background-color: rgba(244, 67, 54, 0.15);
+      color: var(--error);
+      border: 1px solid rgba(244, 67, 54, 0.3);
+      display: block;
     }
 
     .notification {
       position: fixed;
-      bottom: 20px;
+      bottom: 25px;
       left: 50%;
       transform: translateX(-50%);
       background: var(--dark);
       color: white;
-      padding: 12px 20px;
+      padding: 14px 24px;
       border-radius: var(--border-radius);
-      box-shadow: var(--box-shadow);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
       opacity: 0;
       transition: opacity 0.3s ease;
       z-index: 1000;
+      font-weight: 500;
     }
 
     .notification.show {
@@ -305,40 +402,59 @@
       text-align: center;
       margin-top: 2rem;
       color: white;
-      font-size: 0.9rem;
-      opacity: 0.8;
+      font-size: 0.95rem;
+      opacity: 0.9;
     }
 
     footer a {
       color: white;
       text-decoration: none;
+      transition: var(--smooth-transition);
     }
 
     footer a:hover {
       text-decoration: underline;
+      color: var(--secondary);
     }
 
     @media (max-width: 768px) {
       .app-container {
-        padding: 1.5rem;
+        padding: 1.8rem;
         width: 95%;
       }
       
       h1 {
-        font-size: 1.8rem;
+        font-size: 2rem;
       }
       
       .card {
-        padding: 1rem;
+        padding: 1.4rem;
       }
       
       .msg {
-        max-width: 90%;
+        max-width: 85%;
       }
     }
 
-    .hidden {
+    .connection-animation {
       display: none;
+      text-align: center;
+      margin: 15px 0;
+    }
+
+    .loader {
+      width: 40px;
+      height: 40px;
+      margin: 0 auto;
+      border: 4px solid var(--light-gray);
+      border-top: 4px solid var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   </style>
 </head>
@@ -373,6 +489,11 @@
       <div class="input-group">
         <label for="joinCode">Enter Teacher's Code:</label>
         <input type="text" id="joinCode" placeholder="e.g. 1234-5678" />
+        <div class="feedback-message" id="connectionFeedback"></div>
+      </div>
+      <div class="connection-animation" id="connectionAnimation">
+        <div class="loader"></div>
+        <p>Connecting...</p>
       </div>
       <button id="joinHost">
         <i class="fas fa-sign-in-alt"></i> Join Session
@@ -410,8 +531,7 @@
   <!-- PeerJS from CDN -->
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
   <script>
-    // Improved SecureHat application with better architecture and features
-    const SecureHat = (() => {
+    document.addEventListener('DOMContentLoaded', function() {
       // DOM elements
       const elements = {
         hostCode: document.getElementById("hostCode"),
@@ -425,7 +545,9 @@
         statusDot: document.getElementById("statusDot"),
         statusText: document.getElementById("statusText"),
         connectionInfo: document.getElementById("connectionInfo"),
-        notification: document.getElementById("notification")
+        notification: document.getElementById("notification"),
+        connectionFeedback: document.getElementById("connectionFeedback"),
+        connectionAnimation: document.getElementById("connectionAnimation")
       };
 
       // App state
@@ -434,7 +556,8 @@
         conn: null,
         isHost: false,
         isConnected: false,
-        peerId: null
+        peerId: null,
+        connectionAttempt: null
       };
 
       // Initialize the application
@@ -458,6 +581,31 @@
         elements.hostCode.addEventListener("DOMSubtreeModified", () => {
           elements.copyCode.disabled = elements.hostCode.textContent === "—";
         });
+
+        // Auto-connect when code is entered
+        elements.joinCode.addEventListener("input", function() {
+          const code = this.value.trim();
+          
+          // Clear previous feedback
+          elements.connectionFeedback.classList.remove("feedback-success", "feedback-error");
+          elements.connectionFeedback.style.display = "none";
+          
+          // If code is 9 characters (including hyphen) or 8 characters (without hyphen)
+          if (code.length === 9 || code.length === 8) {
+            // Show connecting animation
+            elements.connectionAnimation.style.display = "block";
+            
+            // Clear any previous connection attempt
+            if (state.connectionAttempt) {
+              clearTimeout(state.connectionAttempt);
+            }
+            
+            // Attempt connection after a brief delay
+            state.connectionAttempt = setTimeout(() => {
+              joinHost();
+            }, 800);
+          }
+        });
       }
 
       // Create host (Teacher mode)
@@ -467,7 +615,7 @@
         }
 
         elements.createHostBtn.disabled = true;
-        updateStatus("Connecting...", "warning");
+        updateStatus("Connecting...", "connecting");
 
         state.peer = new Peer(null, {
           host: '0.peerjs.com',
@@ -512,14 +660,17 @@
 
       // Join host (Student mode)
       function joinHost() {
-        const code = elements.joinCode.value.trim();
+        const code = elements.joinCode.value.trim().replace(/-/g, "");
         if (!code) {
-          showNotification("Please enter a session code", "error");
+          showFeedback("Please enter a session code", "error");
           return;
         }
 
         elements.joinHostBtn.disabled = true;
-        updateStatus("Connecting...", "warning");
+        updateStatus("Connecting...", "connecting");
+        
+        // Hide animation if it's visible
+        elements.connectionAnimation.style.display = "none";
 
         if (state.peer) {
           state.peer.destroy();
@@ -535,11 +686,12 @@
 
         state.peer.on("open", () => {
           try {
-            state.conn = state.peer.connect(code.replace(/-/g, ""));
+            state.conn = state.peer.connect(code);
             
             state.conn.on("open", () => {
               setupConnection(state.conn);
               updateStatus("Connected to teacher", "connected");
+              showFeedback("Connection successful! You're now connected.", "success");
               showNotification("Connected to teacher successfully!");
               elements.joinHostBtn.disabled = false;
             });
@@ -547,13 +699,13 @@
             state.conn.on("error", err => {
               console.error("Connection error:", err);
               updateStatus("Connection failed", "error");
-              showNotification("Failed to connect: " + err, "error");
+              showFeedback("Connection failed. Please check the code and try again.", "error");
               elements.joinHostBtn.disabled = false;
             });
           } catch (err) {
             console.error("Connection error:", err);
             updateStatus("Connection failed", "error");
-            showNotification("Failed to connect: Invalid code", "error");
+            showFeedback("Failed to connect: Invalid code format", "error");
             elements.joinHostBtn.disabled = false;
           }
         });
@@ -561,7 +713,7 @@
         state.peer.on("error", err => {
           console.error("PeerJS error:", err);
           updateStatus("Connection error", "error");
-          showNotification("Error: " + err.type, "error");
+          showFeedback("Connection error: " + err.type, "error");
           elements.joinHostBtn.disabled = false;
         });
       }
@@ -614,7 +766,7 @@
         
         msgDiv.innerHTML = `
           <div>${text}</div>
-          <div class="msg-info">${sender === "me" ? "You" : (state.isHost ? "Student" : "Teacher")} • ${time}</div>
+          <span class="msg-info">${sender === "me" ? "You" : (state.isHost ? "Student" : "Teacher")} • ${time}</span>
         `;
         
         elements.chat.appendChild(msgDiv);
@@ -651,25 +803,34 @@
             elements.statusDot.classList.add("connected");
             break;
           case "error":
-            elements.statusDot.style.background = "red";
+            elements.statusDot.classList.add("error");
             break;
-          case "warning":
-            elements.statusDot.style.background = "orange";
+          case "connecting":
+          case "waiting":
+            elements.statusDot.classList.add("connecting");
             break;
           default:
-            elements.statusDot.style.background = "";
+            // No additional class for disconnected
         }
       }
 
       // Show notification
       function showNotification(message, type = "success") {
         elements.notification.textContent = message;
-        elements.notification.style.background = type === "error" ? "#f72585" : "#4361ee";
+        elements.notification.style.background = type === "error" ? "var(--error)" : "var(--primary)";
         elements.notification.classList.add("show");
         
         setTimeout(() => {
           elements.notification.classList.remove("show");
         }, 3000);
+      }
+      
+      // Show feedback message
+      function showFeedback(message, type) {
+        elements.connectionFeedback.textContent = message;
+        elements.connectionFeedback.classList.remove("feedback-success", "feedback-error");
+        elements.connectionFeedback.classList.add(type === "error" ? "feedback-error" : "feedback-success");
+        elements.connectionFeedback.style.display = "block";
       }
 
       // Reset connection
@@ -685,14 +846,9 @@
         }
       }
 
-      // Public methods
-      return {
-        init: init
-      };
-    })();
-
-    // Initialize the app when the DOM is loaded
-    document.addEventListener("DOMContentLoaded", SecureHat.init);
+      // Initialize the app
+      init();
+    });
   </script>
 </body>
 </html>
