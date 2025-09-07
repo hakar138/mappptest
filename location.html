@@ -146,6 +146,8 @@
             100% { box-shadow: 0 0 0 0 rgba(251, 197, 49, 0); }
         }
         .landmarks-toggle { margin-top: 16px; }
+        .explore-card { background: rgba(255,255,255,0.05); border-left: 4px solid #4facfe; }
+        .distance-info { font-size: 0.9rem; margin-top: 8px; color: rgba(255,255,255,0.8); }
     </style>
 </head>
 <body>
@@ -175,6 +177,18 @@
     <div class="rejoin-notice">
         <i class="fas fa-rotate-left" style="color:#4facfe"></i>
         <div><strong>Rejoin Anytime:</strong> You can leave and rejoin active sessions using the same session code at any time.</div>
+    </div>
+
+    <!-- Landmark Exploration Card -->
+    <div class="card fade-in explore-card">
+        <div class="card-title"><i class="fas fa-landmark"></i> Landmark Explorer</div>
+        <div class="form-note">Explore nearby landmarks without joining a session. Your location is not shared with anyone.</div>
+        
+        <div class="btn-container">
+            <button id="explore-landmarks" class="btn"><i class="fas fa-location-arrow"></i> Show My Location & Nearby Landmarks</button>
+        </div>
+        
+        <div id="landmark-exploration-results" style="margin-top: 16px;"></div>
     </div>
 
     <!-- Setup -->
@@ -383,6 +397,8 @@ const codeHint = document.getElementById('code-hint');
 const sessionTimer = document.getElementById('session-timer');
 const yourDuration = document.getElementById('your-duration');
 const landmarkNotifications = document.getElementById('landmark-notifications');
+const exploreLandmarksBtn = document.getElementById('explore-landmarks');
+const landmarkExplorationResults = document.getElementById('landmark-exploration-results');
 
 /* ========= State ========= */
 let peer = null;
@@ -403,16 +419,33 @@ let peerDurationInterval = null;
 let peerDuration = 0;
 let visitedLandmarks = new Set();
 let currentAudio = null;
+let explorationMode = false;
 
 /* ========= Landmarks Data ========= */
 const kurdistanLandmarks = [
     {
+        name: "Dohuk University",
+        lat: 36.85867482205875,
+        lng: 42.92293340508652,
+        radius: 500, // meters
+        description: "Dohuk University is a public university located in Dohuk, Kurdistan Region of Iraq. It was established in 1992 and has since become a leading institution of higher education in the region.",
+        audio: "https://actions.google.com/sounds/v1/crowds/crowd_talk_large_room_1.ogg" // Placeholder
+    },
+    {
+        name: "Duhok Dam",
+        lat: 36.87576329293842,
+        lng: 43.00708128886517,
+        radius: 1000,
+        description: "Duhok Dam is an earth-fill dam on the Duhok River. It provides water for irrigation and drinking water to the city of Duhok. The reservoir created by the dam is also a popular recreational area.",
+        audio: "https://actions.google.com/sounds/v1/water/water_splash_in_pond.ogg"
+    },
+    {
         name: "Erbil Citadel",
         lat: 36.1905,
         lng: 44.0086,
-        radius: 500, // meters
+        radius: 500,
         description: "One of the oldest continuously inhabited sites in the world, dating back at least 6,000 years.",
-        audio: "https://actions.google.com/sounds/v1/crowds/crowd_talk_large_room_1.ogg" // Placeholder - replace with actual audio
+        audio: "https://actions.google.com/sounds/v1/ambiences/indoor_market.ogg"
     },
     {
         name: "Sami Abdulrahman Park",
@@ -423,84 +456,12 @@ const kurdistanLandmarks = [
         audio: "https://actions.google.com/sounds/v1/ambiences/park_with_children_playing.ogg"
     },
     {
-        name: "Duhok Dam",
-        lat: 36.8667,
-        lng: 42.9833,
-        radius: 1000,
-        description: "A scenic reservoir providing water and recreation for the Duhok region.",
-        audio: "https://actions.google.com/sounds/v1/water/water_splash_in_pond.ogg"
-    },
-    {
         name: "Halabja Memorial",
         lat: 35.1778,
         lng: 45.9861,
         radius: 200,
         description: "A memorial dedicated to the victims of the 1988 chemical attack on Halabja.",
         audio: "https://actions.google.com/sounds/v1/office/office_paper_shake.ogg"
-    },
-    {
-        name: "Rawanduz Canyon",
-        lat: 36.6167,
-        lng: 44.5333,
-        radius: 800,
-        description: "Breathtaking mountain scenery with deep gorges and waterfalls in the Zagros Mountains.",
-        audio: "https://actions.google.com/sounds/v1/weather/rain_on_umbrella.ogg"
-    },
-    {
-        name: "Lalish Temple",
-        lat: 36.7667,
-        lng: 43.3000,
-        radius: 300,
-        description: "The holiest temple of the Yazidi faith, located in the Shekhan District.",
-        audio: "https://actions.google.com/sounds/v1/ambiences/indoor_market.ogg"
-    },
-    {
-        name: "Mount Korek",
-        lat: 36.9333,
-        lng: 44.9333,
-        radius: 1000,
-        description: "A mountain resort with cable car access offering stunning views of the region.",
-        audio: "https://actions.google.com/sounds/v1/weather/wind_blowing_leaves.ogg"
-    },
-    {
-        name: "Sulaymaniyah Museum",
-        lat: 35.5575,
-        lng: 45.4356,
-        radius: 200,
-        description: "The second largest museum in Iraq, showcasing artifacts from ancient Kurdish history.",
-        audio: "https://actions.google.com/sounds/v1/crowds/crowd_background_chatter_1.ogg"
-    },
-    {
-        name: "Amedi",
-        lat: 37.0925,
-        lng: 43.4875,
-        radius: 500,
-        description: "A historic town perched on a mesa, believed to be one of the oldest continuously inhabited places in the world.",
-        audio: "https://actions.google.com/sounds/v1/ambiences/indoor_market.ogg"
-    },
-    {
-        name: "Gali Ali Beg",
-        lat: 36.6833,
-        lng: 44.5333,
-        radius: 300,
-        description: "A spectacular waterfall and canyon considered one of the most beautiful natural sites in Kurdistan.",
-        audio: "https://actions.google.com/sounds/v1/water/waterfall_1.ogg"
-    },
-    {
-        name: "Hamilton Road",
-        lat: 36.9833,
-        lng: 44.2333,
-        radius: 1000,
-        description: "A historic mountain road built in the 1920s with stunning views of the Zagros Mountains.",
-        audio: "https://actions.google.com/sounds/v1/transportation/car_driving_by_exterior.ogg"
-    },
-    {
-        name: "Dokan Lake",
-        lat: 35.9500,
-        lng: 44.9500,
-        radius: 1500,
-        description: "A large artificial lake created by the Dokan Dam, offering beautiful scenery and recreational activities.",
-        audio: "https://actions.google.com/sounds/v1/water/boat_rowing.ogg"
     }
 ];
 
@@ -697,12 +658,86 @@ function playLandmarkAudio(audioUrl, landmarkName) {
     showNotification(`Now playing information about ${landmarkName}`);
 }
 
+function exploreLandmarks() {
+    if (!navigator.geolocation) {
+        showNotification('Geolocation is not supported by your browser', true);
+        return;
+    }
+
+    exploreLandmarksBtn.disabled = true;
+    exploreLandmarksBtn.innerHTML = `<i class="fas fa-sync fa-spin"></i> Getting Location...`;
+    explorationMode = true;
+
+    navigator.geolocation.getCurrentPosition(
+        position => {
+            exploreLandmarksBtn.disabled = false;
+            exploreLandmarksBtn.innerHTML = `<i class="fas fa-location-arrow"></i> Show My Location & Nearby Landmarks`;
+
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+
+            // Center map on user's location
+            if (myMarker) map.removeLayer(myMarker);
+            myMarker = L.marker([lat, lng]).addTo(map).bindPopup('<b>Your Location</b>').openPopup();
+            map.setView([lat, lng], 13);
+
+            // Check for nearby landmarks
+            const nearbyLandmarks = getNearbyLandmarks(lat, lng);
+
+            // Display results
+            landmarkExplorationResults.innerHTML = '';
+            if (nearbyLandmarks.length === 0) {
+                landmarkExplorationResults.innerHTML = '<div class="message-system">No landmarks found nearby.</div>';
+            } else {
+                nearbyLandmarks.forEach(landmark => {
+                    const distance = calculateDistance(lat, lng, landmark.lat, landmark.lng);
+                    const notification = document.createElement('div');
+                    notification.className = 'landmark-notification';
+                    notification.innerHTML = `
+                        <i class="fas fa-landmark"></i>
+                        <div class="landmark-info">
+                            <div class="landmark-title">${landmark.name} (${Math.round(distance)}m away)</div>
+                            <div class="landmark-description">${landmark.description}</div>
+                            <div class="distance-info">Within ${landmark.radius}m radius</div>
+                            <div class="audio-controls">
+                                <button class="audio-btn" data-audio="${landmark.audio}" title="Play information">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                                <span>Listen to information about this place</span>
+                            </div>
+                        </div>
+                    `;
+                    landmarkExplorationResults.appendChild(notification);
+                });
+
+                // Auto-play the first landmark audio
+                if (landmarkAudioToggle.checked && nearbyLandmarks.length > 0) {
+                    playLandmarkAudio(nearbyLandmarks[0].audio, nearbyLandmarks[0].name);
+                }
+            }
+        },
+        error => {
+            exploreLandmarksBtn.disabled = false;
+            exploreLandmarksBtn.innerHTML = `<i class="fas fa-location-arrow"></i> Show My Location & Nearby Landmarks`;
+            explorationMode = false;
+            showNotification('Unable to retrieve your location: ' + error.message, true);
+        }
+    );
+}
+
+function getNearbyLandmarks(lat, lng) {
+    return kurdistanLandmarks.filter(landmark => {
+        const distance = calculateDistance(lat, lng, landmark.lat, landmark.lng);
+        return distance <= landmark.radius;
+    });
+}
+
 // Add event delegation for audio buttons
 document.addEventListener('click', function(e) {
     if (e.target.closest('.audio-btn')) {
         const button = e.target.closest('.audio-btn');
         const audioUrl = button.dataset.audio;
-        const landmarkName = button.closest('.landmark-notification').querySelector('.landmark-title').textContent.replace("You're near ", "");
+        const landmarkName = button.closest('.landmark-notification').querySelector('.landmark-title').textContent.replace(/ \(\d+m away\)/, "");
         
         playLandmarkAudio(audioUrl, landmarkName);
     }
@@ -1303,6 +1338,9 @@ chatInput.addEventListener('keydown', (e) => {
         chatSend.click();
     }
 });
+
+/* Explore landmarks button */
+exploreLandmarksBtn.addEventListener('click', exploreLandmarks);
 
 window.addEventListener('beforeunload', (e) => {
     const sessionActive = localStorage.getItem('session_active') === 'true';
