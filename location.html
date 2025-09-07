@@ -1,854 +1,1067 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SecureHat — Private Location Sharing & Chat</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    :root {
-      --primary: #6C63FF;
-      --secondary: #4CC9F0;
-      --accent: #F72585;
-      --light: #F8F9FA;
-      --dark: #212529;
-      --success: #4CAF50;
-      --warning: #FF9800;
-      --error: #F44336;
-      --gray: #6C757D;
-      --light-gray: #E9ECEF;
-      --border-radius: 16px;
-      --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-      --smooth-transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      margin: 0;
-      padding: 20px;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      color: var(--dark);
-      line-height: 1.6;
-    }
-
-    .app-container {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
-      border-radius: var(--border-radius);
-      padding: 2.5rem;
-      box-shadow: var(--card-shadow);
-      width: 90%;
-      max-width: 600px;
-      margin: 20px 0;
-      transition: var(--smooth-transition);
-    }
-
-    header {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.75rem;
-      margin-bottom: 0.5rem;
-    }
-
-    .logo-icon {
-      font-size: 2.5rem;
-      color: var(--primary);
-      filter: drop-shadow(0 4px 6px rgba(108, 99, 255, 0.2));
-    }
-
-    h1 {
-      color: var(--primary);
-      font-size: 2.5rem;
-      margin-bottom: 0.5rem;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-    }
-
-    .tagline {
-      color: var(--gray);
-      font-size: 1.1rem;
-      margin-bottom: 1.5rem;
-      font-weight: 500;
-    }
-
-    .card {
-      background: var(--light);
-      border-radius: var(--border-radius);
-      padding: 1.8rem;
-      margin-bottom: 2rem;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-      transition: var(--smooth-transition);
-      border: 1px solid rgba(255, 255, 255, 0.5);
-    }
-
-    .card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
-    }
-
-    h2 {
-      color: var(--secondary);
-      font-size: 1.5rem;
-      margin-bottom: 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-weight: 700;
-    }
-
-    h2 i {
-      font-size: 1.3rem;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .input-group {
-      margin-bottom: 1.2rem;
-      position: relative;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 0.6rem;
-      font-weight: 600;
-      color: var(--dark);
-      font-size: 0.95rem;
-    }
-
-    input, button {
-      padding: 14px 18px;
-      border-radius: var(--border-radius);
-      border: 2px solid var(--light-gray);
-      width: 100%;
-      font-size: 1rem;
-      transition: var(--smooth-transition);
-      font-family: inherit;
-    }
-
-    input:focus {
-      border-color: var(--primary);
-      outline: none;
-      box-shadow: 0 0 0 4px rgba(108, 99, 255, 0.2);
-    }
-
-    button {
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      transition: var(--smooth-transition);
-      position: relative;
-      overflow: hidden;
-    }
-
-    button::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-      transition: var(--smooth-transition);
-    }
-
-    button:hover::before {
-      left: 100%;
-    }
-
-    button:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 7px 14px rgba(108, 99, 255, 0.3);
-    }
-
-    button:active {
-      transform: translateY(0);
-    }
-
-    button:disabled {
-      background: var(--gray);
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-
-    .code-display {
-      display: flex;
-      align-items: center;
-      background: var(--light-gray);
-      padding: 14px;
-      border-radius: var(--border-radius);
-      margin-top: 0.5rem;
-      font-family: 'Fira Code', monospace;
-      font-size: 1.3rem;
-      justify-content: space-between;
-      border: 2px dashed var(--primary);
-      background-color: rgba(108, 99, 255, 0.05);
-    }
-
-    .code-value {
-      letter-spacing: 3px;
-      font-weight: bold;
-      color: var(--primary);
-      text-shadow: 0 2px 4px rgba(108, 99, 255, 0.1);
-    }
-
-    .copy-btn {
-      background: none;
-      color: var(--primary);
-      width: auto;
-      padding: 6px 12px;
-      font-size: 0.9rem;
-      border: 2px solid var(--primary);
-    }
-
-    .copy-btn:hover {
-      background: rgba(108, 99, 255, 0.1);
-      transform: translateY(-2px);
-    }
-
-    #chat-container {
-      display: flex;
-      flex-direction: column;
-      height: 320px;
-    }
-
-    #chat {
-      border: 2px solid var(--light-gray);
-      border-radius: var(--border-radius);
-      padding: 1.2rem;
-      height: 100%;
-      overflow-y: auto;
-      margin-bottom: 1.2rem;
-      background: white;
-      display: flex;
-      flex-direction: column;
-      gap: 0.9rem;
-      background: rgba(255, 255, 255, 0.8);
-    }
-
-    .msg {
-      padding: 0.9rem 1.2rem;
-      border-radius: 20px;
-      max-width: 80%;
-      animation: fadeIn 0.4s ease;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-      position: relative;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .me {
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      color: white;
-      align-self: flex-end;
-      border-bottom-right-radius: 5px;
-    }
-
-    .them {
-      background: var(--light-gray);
-      color: var(--dark);
-      align-self: flex-start;
-      border-bottom-left-radius: 5px;
-    }
-
-    .msg-info {
-      font-size: 0.75rem;
-      opacity: 0.8;
-      margin-top: 4px;
-      display: block;
-    }
-
-    .chat-input-container {
-      display: flex;
-      gap: 0.7rem;
-    }
-
-    #message {
-      flex: 1;
-      margin-bottom: 0;
-    }
-
-    #send {
-      width: auto;
-      padding: 14px;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-    }
-
-    .status-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 1.5rem;
-      padding-top: 1.5rem;
-      border-top: 1px solid var(--light-gray);
-      font-size: 0.95rem;
-    }
-
-    .connection-status {
-      display: flex;
-      align-items: center;
-      gap: 0.7rem;
-    }
-
-    .status-dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: var(--gray);
-      transition: var(--smooth-transition);
-      box-shadow: 0 0 10px currentColor;
-    }
-
-    .status-dot.connected {
-      background: var(--success);
-      box-shadow: 0 0 10px var(--success);
-    }
-
-    .status-dot.connecting {
-      background: var(--warning);
-      animation: pulse 1.5s infinite;
-    }
-
-    @keyframes pulse {
-      0% { opacity: 1; }
-      50% { opacity: 0.5; }
-      100% { opacity: 1; }
-    }
-
-    .status-dot.error {
-      background: var(--error);
-      box-shadow: 0 0 10px var(--error);
-    }
-
-    .feedback-message {
-      text-align: center;
-      padding: 12px;
-      border-radius: var(--border-radius);
-      margin: 10px 0;
-      font-weight: 500;
-      display: none;
-      animation: slideIn 0.3s ease;
-    }
-
-    @keyframes slideIn {
-      from { transform: translateY(-10px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-
-    .feedback-success {
-      background-color: rgba(76, 175, 80, 0.15);
-      color: var(--success);
-      border: 1px solid rgba(76, 175, 80, 0.3);
-      display: block;
-    }
-
-    .feedback-error {
-      background-color: rgba(244, 67, 54, 0.15);
-      color: var(--error);
-      border: 1px solid rgba(244, 67, 54, 0.3);
-      display: block;
-    }
-
-    .notification {
-      position: fixed;
-      bottom: 25px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--dark);
-      color: white;
-      padding: 14px 24px;
-      border-radius: var(--border-radius);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      z-index: 1000;
-      font-weight: 500;
-    }
-
-    .notification.show {
-      opacity: 1;
-    }
-
-    footer {
-      text-align: center;
-      margin-top: 2rem;
-      color: white;
-      font-size: 0.95rem;
-      opacity: 0.9;
-    }
-
-    footer a {
-      color: white;
-      text-decoration: none;
-      transition: var(--smooth-transition);
-    }
-
-    footer a:hover {
-      text-decoration: underline;
-      color: var(--secondary);
-    }
-
-    @media (max-width: 768px) {
-      .app-container {
-        padding: 1.8rem;
-        width: 95%;
-      }
-      
-      h1 {
-        font-size: 2rem;
-      }
-      
-      .card {
-        padding: 1.4rem;
-      }
-      
-      .msg {
-        max-width: 85%;
-      }
-    }
-
-    .connection-animation {
-      display: none;
-      text-align: center;
-      margin: 15px 0;
-    }
-
-    .loader {
-      width: 40px;
-      height: 40px;
-      margin: 0 auto;
-      border: 4px solid var(--light-gray);
-      border-top: 4px solid var(--primary);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-  </style>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>SecureHat — Private Location Sharing & Chat</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif }
+        body { min-height: 100vh; background: linear-gradient(135deg, #0d1c33, #10294f); color: #fff; padding: 16px 12px; overflow-x: hidden }
+        .container { max-width: 980px; margin: 0 auto }
+        header { text-align: center; margin-bottom: 24px }
+        .logo { display: flex; align-items: center; gap: 12px; justify-content: center; margin-bottom: 10px }
+        .logo-icon { width: 54px; height: 54px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: linear-gradient(45deg, #ff7e5f, #feb47b); box-shadow: 0 6px 20px rgba(0,0,0,.25) }
+        .logo-text { font-weight: 800; font-size: 1.8rem; background: linear-gradient(90deg, #ff7e5f, #feb47b); -webkit-background-clip: text; color: transparent; letter-spacing: 1px }
+        h1 { font-size: 1.6rem; margin-bottom: 8px }
+        .subtitle { opacity: .9; font-size: 1.05rem; max-width: 600px; margin: 0 auto }
+        .privacy-notice { background: rgba(255,255,255,.05); padding: 14px; border-radius: 10px; border-left: 4px solid #4cd137; margin: 16px 0; display: flex; align-items: center; gap: 12px; font-size: 0.95rem }
+        .card { background: rgba(255,255,255,.04); padding: 20px; border-radius: 14px; margin: 14px 0; border: 1px solid rgba(255,255,255,.08); box-shadow: 0 6px 20px rgba(0,0,0,.2); transition: transform 0.3s ease }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,0,0,.25) }
+        .card-title { display: flex; align-items: center; gap: 10px; color: #feb47b; font-weight: 700; margin-bottom: 14px; font-size: 1.25rem }
+        .form-group { margin-bottom: 16px }
+        .form-label { display: block; font-weight: 700; margin-bottom: 8px; font-size: 1rem }
+        .form-note { font-size: .9rem; opacity: .85; margin-top: 8px; line-height: 1.5 }
+        .form-control { width: 100%; padding: 14px; border-radius: 12px; border: none; background: rgba(255,255,255,.05); color: #fff; font-size: 1.05rem; transition: all 0.3s ease }
+        .form-control:focus { outline: 2px solid rgba(255,126,95,.4); background: rgba(255,255,255,.08); box-shadow: 0 0 0 4px rgba(255,126,95,.25) }
+        .btn-container { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px }
+        @media (max-width:720px) { .btn-container { grid-template-columns:1fr } }
+        .btn { padding: 14px; border-radius: 12px; border: none; cursor: pointer; font-weight: 700; background: linear-gradient(45deg,#ff7e5f,#feb47b); color: #fff; display: inline-flex; align-items: center; gap: 10px; justify-content: center; font-size: 1rem; transition: all 0.2s ease; box-shadow: 0 4px 8px rgba(0,0,0,.15) }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,.2) }
+        .btn:active { transform: translateY(1px) }
+        .btn-outline { background: transparent; border: 2px solid #ff7e5f; color: #ff7e5f }
+        .btn-stop { background: linear-gradient(45deg,#e84118,#c23616); color: #fff }
+        .btn-update { background: linear-gradient(45deg, #4facfe, #00f2fe); }
+        .btn-unshare { background: linear-gradient(45deg, #9c88ff, #8c7ae6); }
+        .small-btn { padding: 10px 14px; font-size: .95rem; border-radius: 10px }
+        .code-row { display: flex; gap: 12px; align-items: center; margin-top: 12px }
+        .code-input { flex: 1; padding: 14px; border-radius: 12px; border: none; background: rgba(255,255,255,.04); text-align: center; letter-spacing: 3px; font-weight: 700; color: #fff; font-size: 1.05rem }
+        .code-meta { font-size: .9rem; color: rgba(255,255,255,.85); margin-top: 8px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center }
+        .map-container { height: 320px; border-radius: 14px; overflow: hidden; margin-top: 16px; border: 2px solid rgba(255,255,255,.08) }
+        #map { width: 100%; height: 100% }
+        .user-list { display: grid; grid-template-columns: repeat(auto-fill,minmax(280px,1fr)); gap: 14px; margin-top: 16px }
+        .user-card { display: flex; gap: 14px; align-items: center; padding: 14px; border-radius: 12px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.05); transition: all 0.3s ease }
+        .user-card:hover { background: rgba(255,255,255,.07); transform: translateY(-3px); box-shadow: 0 6px 12px rgba(0,0,0,.2) }
+        .user-avatar { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: linear-gradient(45deg,#4facfe,#00f2fe); font-weight: 800; font-size: 1.4rem }
+        .user-info .user-name { font-weight: 700; font-size: 1.05rem; margin-bottom: 4px }
+        .status-dot { width: 12px; height: 12px; border-radius: 50%; background: #4cd137; display: inline-block; margin-right: 10px }
+        .chat-card { display: flex; flex-direction: column; height: 300px }
+        .chat-messages { flex: 1; overflow: auto; padding: 12px; border-radius: 10px; background: rgba(0,0,0,0.15); margin-bottom: 10px; font-size: 1rem; display: flex; flex-direction: column; gap: 8px }
+        .chat-input-row { display: flex; gap: 10px }
+        .chat-input { flex: 1; padding: 12px; border-radius: 10px; border: none; font-size: 1rem; background: rgba(255,255,255,.05); color: #fff }
+        .chat-send { padding: 12px 16px; border-radius: 10px; border: none; background: linear-gradient(45deg,#4facfe,#00f2fe); color: #fff; cursor: pointer; font-size: 1rem; transition: all 0.2s ease; min-width: 100px }
+        .chat-send:hover { background: linear-gradient(45deg,#3a9cf7,#00d9f2) }
+        .notification { position: fixed; right: 16px; top: 16px; background: rgba(0,0,0,.5); padding: 12px 18px; border-radius: 12px; backdrop-filter: blur(6px); transform: translateX(120%); transition: transform .35s; z-index: 9000; color: #fff; border-left: 4px solid #4cd137; max-width: calc(100% - 32px); font-size: 0.95rem; display: flex; align-items: center; gap: 10px }
+        .notification.show { transform: translateX(0) }
+        .notification.error { border-left-color: #e84118 }
+        footer { text-align: center; margin-top: 24px; font-size: 0.9rem; opacity: .8; padding: 16px 0 }
+        #join-modal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,.7); z-index: 10000; pointer-events: none }
+        #join-modal.show { display: flex; pointer-events: auto }
+        .join-box { width: 90%; max-width: 500px; background: linear-gradient(135deg,#0e2340,#102e4a); padding: 24px; border-radius: 16px; border: 1px solid rgba(255,255,255,.08); box-shadow: 0 25px 60px rgba(0,0,0,.6); animation: modalIn 0.4s ease }
+        #stop-confirmation { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,.75); z-index: 9999; pointer-events: none }
+        #stop-confirmation.show { display: flex; pointer-events: auto }
+        .confirmation-box { width: 90%; max-width: 540px; background: linear-gradient(135deg,#11264a,#183054); border-radius: 16px; padding: 24px; border: 1px solid rgba(255,255,255,.08); box-shadow: 0 22px 50px rgba(0,0,0,.7); text-align: center; pointer-events: auto; animation: modalIn 0.4s ease }
+        .confirmation-buttons { display: flex; gap: 14px; justify-content: center; margin-top: 20px }
+        .hidden { display: none !important }
+        .message-me { align-self: flex-end; background: linear-gradient(45deg,#ff7e5f,#feb47b); color: #000; padding: 10px 14px; border-radius: 14px; max-width: 85%; font-size: 0.95rem; animation: fadeIn 0.3s ease }
+        .message-peer { align-self: flex-start; background: rgba(255,255,255,0.1); color: #fff; padding: 10px 14px; border-radius: 14px; max-width: 85%; font-size: 0.95rem; animation: fadeIn 0.3s ease }
+        .message-system { text-align: center; color: rgba(255,255,255,0.8); font-style: italic; font-size: 0.9rem; margin: 12px 0; padding: 8px; border-radius: 8px; background: rgba(255,255,255,0.05) }
+        .btn-reconnect { background: linear-gradient(45deg, #4facfe, #00f2fe); }
+        .host-badge { background: #fbc531; color: #000; font-size: 0.8rem; padding: 4px 8px; border-radius: 10px; margin-left: 8px; font-weight: bold }
+        @media (max-width: 600px) {
+            body { padding: 14px 10px; }
+            .logo { flex-direction: column; text-align: center; }
+            .logo-icon { margin-bottom: 8px; }
+            .card { padding: 16px; }
+            .btn-container { grid-template-columns: 1fr; }
+            .code-row { flex-direction: column; }
+            .code-row button { width: 100%; }
+            .confirmation-buttons { flex-direction: column; }
+            .confirmation-buttons button { width: 100%; }
+            .chat-card { height: 260px; }
+            .map-container { height: 260px; }
+            .user-list { grid-template-columns: 1fr; }
+            .privacy-notice { flex-direction: column; text-align: center; }
+            .code-meta { flex-direction: column; align-items: flex-start; gap: 6px; }
+            .chat-input-row { flex-direction: column; }
+            .chat-send { width: 100%; }
+            .join-box { padding: 18px; }
+            .confirmation-box { padding: 20px; }
+        }
+        @media (max-width: 400px) {
+            .logo-text { font-size: 1.5rem; }
+            h1 { font-size: 1.4rem; }
+            .card-title { font-size: 1.1rem; }
+            .btn { padding: 12px; font-size: 0.95rem; }
+            .form-control { padding: 12px; }
+            .notification { padding: 10px 14px; font-size: 0.9rem; }
+        }
+        .toggle-container { display: flex; align-items: center; gap: 12px; margin-top: 14px; }
+        .switch { position: relative; display: inline-block; width: 54px; height: 28px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 28px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background: linear-gradient(45deg,#ff7e5f,#feb47b); }
+        input:checked + .slider:before { transform: translateX(26px); }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes modalIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in { animation: fadeIn 0.3s ease forwards; }
+        .session-info { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; background: rgba(255,255,255,.04); padding: 12px; border-radius: 10px; margin-bottom: 16px }
+        .session-timer { display: flex; align-items: center; gap: 8px; font-weight: 600; color: #feb47b }
+        .session-status { display: flex; align-items: center; gap: 10px; }
+        .status-indicator { width: 14px; height: 14px; border-radius: 50%; background: #fbc531 }
+        .status-indicator.connected { background: #4cd137 }
+        .session-role { background: rgba(251, 197, 49, 0.15); color: #fbc531; padding: 4px 10px; border-radius: 6px; font-size: 0.85rem }
+        .location-sharing { display: flex; align-items: center; gap: 8px; margin-top: 8px }
+        .location-sharing .dot { width: 10px; height: 10px; border-radius: 50%; background: #e84118 }
+        .location-sharing.active .dot { background: #4cd137 }
+        .location-sharing.active { color: #4cd137 }
+        .user-card .location-sharing { margin-top: 4px }
+        .tooltip { position: relative; display: inline-block; }
+        .tooltip .tooltiptext { visibility: hidden; width: 180px; background-color: rgba(0,0,0,0.8); color: #fff; text-align: center; border-radius: 6px; padding: 8px; position: absolute; z-index: 1; bottom: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s; font-size: 0.85rem }
+        .tooltip:hover .tooltiptext { visibility: visible; opacity: 1 }
+        .rejoin-notice { background: rgba(255,255,255,.05); padding: 10px; border-radius: 10px; border-left: 4px solid #4facfe; margin: 12px 0; display: flex; align-items: center; gap: 8px; font-size: 0.9rem }
+        .duration-badge { background: rgba(79, 172, 254, 0.2); color: #4facfe; padding: 4px 8px; border-radius: 20px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 4px }
+    </style>
 </head>
 <body>
-  <div class="app-container">
+<div class="container">
     <header>
-      <div class="logo">
-        <i class="fas fa-hat-cowboy logo-icon"></i>
-        <h1>SecureHat</h1>
-      </div>
-      <p class="tagline">Private location sharing and encrypted chat for educators</p>
+        <div class="logo">
+            <div class="logo-icon"><i class="fas fa-user-secret" style="font-size:22px"></i></div>
+            <div>
+                <div class="logo-text">SECUREHAT</div>
+                <div style="font-size:0.95rem;color:rgba(255,255,255,0.85);font-weight:600;margin-top:6px;">
+                    Private Location Sharing &amp; Chat
+                </div>
+                <div style="font-size:0.85rem;color:rgba(255,255,255,0.65);margin-top:8px;">
+                    <em>Developed by Kurdistan Innovator Team</em>
+                </div>
+            </div>
+        </div>
+        <h1>Private Location Sharing & Chat</h1>
+        <div class="subtitle muted">Your real name stays local-only unless you choose to share it</div>
     </header>
 
-    <div class="card">
-      <h2><i class="fas fa-chalkboard-teacher"></i> Teacher Mode</h2>
-      <button id="createHost">
-        <i class="fas fa-plus-circle"></i> Create New Session
-      </button>
-      <div class="input-group">
-        <label>Your Session Code:</label>
-        <div class="code-display">
-          <span id="hostCode" class="code-value">—</span>
-          <button id="copyCode" class="copy-btn" disabled>
-            <i class="fas fa-copy"></i> Copy
-          </button>
+    <div class="privacy-notice">
+        <i class="fas fa-shield-alt" style="color:#4cd137"></i>
+        <div><strong>Privacy Notice:</strong> Your real name is stored locally only. If you choose to share it, it will be visible to others in the session. All location data is peer-to-peer and never stored on any server.</div>
+    </div>
+    
+    <div class="rejoin-notice">
+        <i class="fas fa-rotate-left" style="color:#4facfe"></i>
+        <div><strong>Rejoin Anytime:</strong> You can leave and rejoin active sessions using the same session code at any time.</div>
+    </div>
+
+    <!-- Setup -->
+    <div class="card fade-in" id="setup-card">
+        <div class="card-title"><i class="fas fa-user"></i> User Setup</div>
+
+        <div class="form-group">
+            <label class="form-label">Your Real Name</label>
+            <input id="real-name" class="form-control" type="text" placeholder="Type your real name (required)">
+            <div class="form-note">This name is stored locally only. You must type it each time you start/resume.</div>
         </div>
-      </div>
-    </div>
 
-    <div class="card">
-      <h2><i class="fas fa-user-graduate"></i> Student Mode</h2>
-      <div class="input-group">
-        <label for="joinCode">Enter Teacher's Code:</label>
-        <input type="text" id="joinCode" placeholder="e.g. 1234-5678" />
-        <div class="feedback-message" id="connectionFeedback"></div>
-      </div>
-      <div class="connection-animation" id="connectionAnimation">
-        <div class="loader"></div>
-        <p>Connecting...</p>
-      </div>
-      <button id="joinHost">
-        <i class="fas fa-sign-in-alt"></i> Join Session
-      </button>
-    </div>
-
-    <div class="card">
-      <h2><i class="fas fa-comments"></i> Secure Chat</h2>
-      <div id="chat-container">
-        <div id="chat"></div>
-        <div class="chat-input-container">
-          <input type="text" id="message" placeholder="Type a secure message..." disabled />
-          <button id="send" disabled>
-            <i class="fas fa-paper-plane"></i>
-          </button>
+        <div class="form-group">
+            <label class="form-label">Session Code</label>
+            <div class="code-row">
+                <input id="session-code" class="code-input" type="password" placeholder="Enter or generate a secure code">
+                <button id="gen-code" class="btn small-btn" title="Generate a secure, hard-to-guess code"><i class="fas fa-lock"></i> Generate</button>
+                <button id="reveal-code" class="btn btn-outline small-btn" title="Reveal/Hide generated code">Reveal</button>
+            </div>
+            <div class="code-meta">
+                <span id="code-hint">Tip: generate a secure code to reduce guessing. Reveal shows it briefly and enables copy.</span>
+                <button id="copy-session-code" class="btn btn-outline small-btn" disabled>Copy</button>
+            </div>
         </div>
-      </div>
+        
+        <!-- Show real name toggle -->
+        <div class="toggle-container">
+            <label class="switch">
+                <input type="checkbox" id="show-real-name-toggle">
+                <span class="slider"></span>
+            </label>
+            <span>Show my real name to others</span>
+        </div>
+        <div class="form-note" style="margin-top:8px">Enabling this will share your real name with other participants.</div>
+
+        <div class="btn-container">
+            <button id="create-session" class="btn"><i class="fas fa-plus-circle"></i> Create Session</button>
+            <button id="open-join" class="btn btn-outline"><i class="fas fa-user-friends"></i> Join Session</button>
+        </div>
     </div>
 
-    <div class="status-bar">
-      <div class="connection-status">
-        <div class="status-dot" id="statusDot"></div>
-        <span id="statusText">Disconnected</span>
+    <!-- Active session card -->
+    <div class="card hidden fade-in" id="session-card">
+        <div class="card-title"><i class="fas fa-satellite"></i> Active Session</div>
+        
+        <div class="session-info">
+            <div class="session-status">
+                <div class="status-indicator" id="connection-dot"></div>
+                <div id="status-text">Ready to connect</div>
+            </div>
+            <div class="session-timer">
+                <i class="fas fa-clock"></i>
+                <span id="session-timer">00:00:00</span>
+            </div>
+            <div class="session-role" id="host-indicator">HOST</div>
+        </div>
+
+        <div class="code-container">
+            <input id="display-code" class="code-input" readonly placeholder="Session Code">
+            <button id="copy-code" class="btn btn-outline" title="Copy code"><i class="fas fa-copy"></i></button>
+        </div>
+
+        <div class="btn-container" style="margin-top:16px;grid-template-columns:1fr 1fr 1fr">
+            <button id="resume-session" class="btn btn-reconnect"><i class="fas fa-plug"></i> Reconnect</button>
+            <button id="share-location" class="btn"><i class="fas fa-location-dot"></i> Share Location</button>
+            <button id="stop-session" class="btn btn-stop"><i class="fas fa-power-off"></i> Stop</button>
+        </div>
+        
+        <!-- Location management buttons -->
+        <div class="btn-container hidden" id="location-controls" style="margin-top:16px;grid-template-columns:1fr 1fr">
+            <button id="update-location" class="btn btn-update"><i class="fas fa-sync-alt"></i> Update Location</button>
+            <button id="stop-sharing" class="btn btn-unshare"><i class="fas fa-location-slash"></i> Stop Sharing</button>
+        </div>
+
+        <div class="form-note" style="margin-top:14px">Note: You can reconnect anytime using the session code.</div>
+    </div>
+
+    <!-- Map -->
+    <div class="card fade-in">
+        <div class="card-title"><i class="fas fa-map-marked-alt"></i> Location Map</div>
+        <div class="map-container"><div id="map"></div></div>
+    </div>
+
+    <!-- Connected users + chat -->
+    <div class="card fade-in">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+            <div class="card-title"><i class="fas fa-users"></i> Connected Users</div>
+            <div class="muted">Chat & messages are anonymized unless you share your name</div>
+        </div>
+
+        <div class="user-list" id="user-list">
+            <div class="user-card" id="you-card">
+                <div class="user-avatar">Y</div>
+                <div class="user-info">
+                    <div class="user-name" id="your-name-display">You <span class="duration-badge"><i class="fas fa-clock"></i> <span id="your-duration">0s</span></span></div>
+                    <div class="location-sharing">
+                        <span class="dot"></span>
+                        <span><i class="fas fa-location-slash"></i> Location not shared</span>
+                    </div>
+                    <div style="margin-top:10px"><span class="status-dot"></span> Online</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top:16px" class="chat-card">
+            <div class="chat-messages" id="chat-messages" aria-live="polite">
+                <div class="message-system">Welcome to SecureHat! Start by creating or joining a session.</div>
+            </div>
+            <div class="chat-input-row" style="margin-top:10px">
+                <input id="chat-input" class="chat-input" placeholder="Type a message..." />
+                <button id="chat-send" class="chat-send"><i class="fas fa-paper-plane"></i> Send</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+      <div>SecureHat © Privacy First | No Database | Session persists until stopped</div>
+      <div style="margin-top:8px;font-size:0.85rem;opacity:0.85;">
+        Built and maintained by <strong>Kurdistan Innovator Team</strong>
       </div>
-      <div id="connectionInfo"></div>
+    </footer>
+</div>
+
+<!-- Notification -->
+<div id="notification" class="notification" role="status" aria-live="polite"><i class="fas fa-info-circle"></i> <span id="notification-message">Ready to start</span></div>
+
+<!-- Join modal -->
+<div id="join-modal" aria-hidden="true">
+  <div class="join-box">
+    <h3 style="margin:0 0 10px"><i class="fas fa-user-friends"></i> Join Session</h3>
+    <p class="muted" style="margin:0 0 16px">Enter the session code provided by the host.</p>
+    <input id="join-code-input" class="form-control" placeholder="Enter join session code">
+    <div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end">
+      <button id="join-cancel" class="btn btn-outline">Cancel</button>
+      <button id="join-now" class="btn"><i class="fas fa-sign-in-alt"></i> Join Now</button>
     </div>
   </div>
+</div>
 
-  <div class="notification" id="notification"></div>
+<!-- Stop confirmation modal -->
+<div id="stop-confirmation" role="dialog" aria-modal="true" aria-labelledby="stop-title">
+    <div class="confirmation-box">
+        <h3 id="stop-title"><i class="fas fa-exclamation-triangle" style="color:#ffb86b"></i> Confirm Session Stop</h3>
+        <p style="margin-top:12px">Are you sure you want to stop the current session? This will end the session for all participants.</p>
+        <div class="confirmation-buttons">
+            <button id="confirm-stop" class="btn btn-stop"><i class="fas fa-check"></i> Yes, Stop Session</button>
+            <button id="cancel-stop" class="btn btn-outline"><i class="fas fa-times"></i> Cancel</button>
+        </div>
+    </div>
+</div>
 
-  <footer>
-    <p>SecureHat &copy; 2023 | Protecting your privacy with end-to-end encryption</p>
-  </footer>
+<script>
+/* ========= DOM refs ========= */
+const realNameInput = document.getElementById('real-name');
+const sessionCodeInput = document.getElementById('session-code');
+const genCodeBtn = document.getElementById('gen-code');
+const revealCodeBtn = document.getElementById('reveal-code');
+const copySessionCodeBtn = document.getElementById('copy-session-code');
+const showRealNameToggle = document.getElementById('show-real-name-toggle');
+const yourNameDisplay = document.getElementById('your-name-display');
+const locationControls = document.getElementById('location-controls');
+const updateLocationBtn = document.getElementById('update-location');
+const stopSharingBtn = document.getElementById('stop-sharing');
+const hostIndicator = document.getElementById('host-indicator');
+const createSessionBtn = document.getElementById('create-session');
+const openJoinBtn = document.getElementById('open-join');
+const joinModal = document.getElementById('join-modal');
+const joinCodeInput = document.getElementById('join-code-input');
+const joinNowBtn = document.getElementById('join-now');
+const joinCancelBtn = document.getElementById('join-cancel');
+const setupCard = document.getElementById('setup-card');
+const sessionCard = document.getElementById('session-card');
+const displayCodeInput = document.getElementById('display-code');
+const copyCodeBtn = document.getElementById('copy-code');
+const shareLocationBtn = document.getElementById('share-location');
+const stopSessionBtn = document.getElementById('stop-session');
+const resumeSessionBtn = document.getElementById('resume-session');
+const statusText = document.getElementById('status-text');
+const connectionDot = document.getElementById('connection-dot');
+const notification = document.getElementById('notification');
+const notificationMessage = document.getElementById('notification-message');
+const userList = document.getElementById('user-list');
+const stopConfirmation = document.getElementById('stop-confirmation');
+const confirmStopBtn = document.getElementById('confirm-stop');
+const cancelStopBtn = document.getElementById('cancel-stop');
+const chatMessages = document.getElementById('chat-messages');
+const chatInput = document.getElementById('chat-input');
+const chatSend = document.getElementById('chat-send');
+const codeHint = document.getElementById('code-hint');
+const sessionTimer = document.getElementById('session-timer');
+const yourDuration = document.getElementById('your-duration');
 
-  <!-- PeerJS from CDN -->
-  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // DOM elements
-      const elements = {
-        hostCode: document.getElementById("hostCode"),
-        copyCode: document.getElementById("copyCode"),
-        joinCode: document.getElementById("joinCode"),
-        message: document.getElementById("message"),
-        chat: document.getElementById("chat"),
-        sendBtn: document.getElementById("send"),
-        createHostBtn: document.getElementById("createHost"),
-        joinHostBtn: document.getElementById("joinHost"),
-        statusDot: document.getElementById("statusDot"),
-        statusText: document.getElementById("statusText"),
-        connectionInfo: document.getElementById("connectionInfo"),
-        notification: document.getElementById("notification"),
-        connectionFeedback: document.getElementById("connectionFeedback"),
-        connectionAnimation: document.getElementById("connectionAnimation")
-      };
+/* ========= State ========= */
+let peer = null;
+let conn = null;
+let myAlias = '';
+let myMarker = null;
+let peerMarker = null;
+let notificationTimeout = null;
+let sessionRoleCached = null;
+let locationShared = false;
+let isHost = false;
+let peerAlias = null;
+let codeRevealed = false;
+let autoHideTimeout = null;
+let sessionStartTime = null;
+let timerInterval = null;
+let peerDurationInterval = null;
+let peerDuration = 0;
 
-      // App state
-      let state = {
-        peer: null,
-        conn: null,
-        isHost: false,
-        isConnected: false,
-        peerId: null,
-        connectionAttempt: null
-      };
+/* ========= Map init ========= */
+const map = L.map('map', { 
+    attributionControl: false,
+    center: [34.5, 45.5], // Kurdistan approximate center
+    zoom: 7
+});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
 
-      // Initialize the application
-      function init() {
-        setupEventListeners();
-        showNotification("Welcome to SecureHat! Create or join a session to begin.");
-      }
+/* ========= Helpers ========= */
+function generateAnonAlias(){ 
+    const adjectives = ["Swift", "Clever", "Brave", "Wise", "Gentle", "Fierce", "Noble", "Silent", "Bright", "Calm"];
+    const nouns = ["Fox", "Eagle", "Lion", "Wolf", "Hawk", "Bear", "Deer", "Owl", "Horse", "Falcon"];
+    const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+    const noun = nouns[Math.floor(Math.random() * nouns.length)];
+    return `${adj} ${noun}`;
+}
 
-      // Set up event listeners
-      function setupEventListeners() {
-        elements.createHostBtn.addEventListener("click", createHost);
-        elements.joinHostBtn.addEventListener("click", joinHost);
-        elements.sendBtn.addEventListener("click", sendMessage);
-        elements.copyCode.addEventListener("click", copyCodeToClipboard);
-        
-        elements.message.addEventListener("keypress", e => {
-          if (e.key === "Enter") sendMessage();
-        });
+function showNotification(msg, isError=false, duration=3000){
+    if(notificationTimeout){ clearTimeout(notificationTimeout); notificationTimeout=null; }
+    notificationMessage.textContent = msg;
+    notification.classList.add('show');
+    if(isError) notification.classList.add('error'); else notification.classList.remove('error');
+    notificationTimeout = setTimeout(()=>{ notification.classList.remove('show'); notification.classList.remove('error'); }, duration);
+}
 
-        // Enable/disable copy button based on code availability
-        elements.hostCode.addEventListener("DOMSubtreeModified", () => {
-          elements.copyCode.disabled = elements.hostCode.textContent === "—";
-        });
+function updateStatus(text, connected=false){
+    statusText.textContent = text;
+    connectionDot.className = connected ? 'status-indicator connected' : 'status-indicator';
+}
 
-        // Auto-connect when code is entered
-        elements.joinCode.addEventListener("input", function() {
-          const code = this.value.trim();
-          
-          // Clear previous feedback
-          elements.connectionFeedback.classList.remove("feedback-success", "feedback-error");
-          elements.connectionFeedback.style.display = "none";
-          
-          // If code is 9 characters (including hyphen) or 8 characters (without hyphen)
-          if (code.length === 9 || code.length === 8) {
-            // Show connecting animation
-            elements.connectionAnimation.style.display = "block";
-            
-            // Clear any previous connection attempt
-            if (state.connectionAttempt) {
-              clearTimeout(state.connectionAttempt);
+function updateSessionTimer() {
+    if (!sessionStartTime) return;
+    
+    const elapsed = Date.now() - sessionStartTime;
+    const seconds = Math.floor((elapsed / 1000) % 60);
+    const minutes = Math.floor((elapsed / (1000 * 60)) % 60);
+    const hours = Math.floor(elapsed / (1000 * 60 * 60));
+    
+    const formattedTime = 
+        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    
+    sessionTimer.textContent = formattedTime;
+    
+    // Update personal duration
+    yourDuration.textContent = formatDuration(elapsed);
+}
+
+function formatDuration(milliseconds) {
+    const seconds = Math.floor((milliseconds / 1000) % 60);
+    const minutes = Math.floor((milliseconds / (1000 * 60)) % 60);
+    const hours = Math.floor(milliseconds / (1000 * 60 * 60));
+    
+    if (hours > 0) {
+        return `${hours}h ${minutes}m ${seconds}s`;
+    } else if (minutes > 0) {
+        return `${minutes}m ${seconds}s`;
+    } else {
+        return `${seconds}s`;
+    }
+}
+
+function safeSend(payload){
+    if(!conn || conn.open === false) return;
+    try { conn.send(payload); } catch(e){ console.error('send failed', e); showNotification('Send failed', true); }
+}
+
+function destroyExistingPeer(){
+    if(conn){ try{ conn.close(); }catch(e){} conn=null; }
+    if(peer){ try{ peer.destroy(); }catch(e){} peer=null; }
+}
+
+async function copyToClipboard(text){
+    try {
+        if(navigator.clipboard && window.isSecureContext){
+            await navigator.clipboard.writeText(text);
+        } else {
+            const ta = document.createElement('textarea'); ta.value=text;
+            ta.style.position='fixed'; ta.style.left='-9999px'; document.body.appendChild(ta);
+            ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+        }
+        showNotification('Code copied to clipboard');
+    } catch(e){ console.error(e); showNotification('Copy failed', true); }
+}
+
+function appendMessage(text, fromMe=false, isSystem=false){
+    const el = document.createElement('div');
+    if(isSystem) {
+        el.className = 'message-system';
+        el.textContent = text;
+    } else {
+        el.className = fromMe ? 'message-me' : 'message-peer';
+        el.textContent = text;
+    }
+    chatMessages.appendChild(el);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function generateSecureCode(length = 8) {
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const arr = new Uint8Array(length);
+    window.crypto.getRandomValues(arr);
+    let s = '';
+    for (let i = 0; i < arr.length; i++) {
+        s += alphabet[arr[i] % alphabet.length];
+    }
+    return s;
+}
+
+genCodeBtn.addEventListener('click', () => {
+    const code = generateSecureCode(8);
+    sessionCodeInput.value = code;
+    maskCodeDisplay();
+    showNotification('Secure code generated. Click Reveal to view and copy.');
+});
+
+function maskCodeDisplay() {
+    codeRevealed = false;
+    sessionCodeInput.type = 'password';
+    sessionCodeInput.style.letterSpacing = 'normal';
+    revealCodeBtn.textContent = 'Reveal';
+    copySessionCodeBtn.disabled = true;
+    if (autoHideTimeout) { clearTimeout(autoHideTimeout); autoHideTimeout = null; }
+}
+
+function revealCodeTemporarily() {
+    if (!sessionCodeInput.value) {
+        showNotification('No code to reveal', true);
+        return;
+    }
+    codeRevealed = true;
+    sessionCodeInput.type = 'text';
+    sessionCodeInput.style.letterSpacing = '3px';
+    revealCodeBtn.textContent = 'Hide';
+    copySessionCodeBtn.disabled = false;
+    if (autoHideTimeout) clearTimeout(autoHideTimeout);
+    autoHideTimeout = setTimeout(() => {
+        maskCodeDisplay();
+        showNotification('Code auto-hidden for security');
+    }, 20000);
+}
+
+revealCodeBtn.addEventListener('click', () => {
+    if (codeRevealed) {
+        maskCodeDisplay();
+    } else {
+        revealCodeTemporarily();
+    }
+});
+
+copySessionCodeBtn.addEventListener('click', () => {
+    if (!sessionCodeInput.value) { showNotification('No code to copy', true); return; }
+    if (!codeRevealed) { showNotification('Reveal the code first to enable copying', true); return; }
+    copyToClipboard(sessionCodeInput.value);
+});
+
+/* ========= Join modal behavior ========= */
+
+openJoinBtn.addEventListener('click', () => {
+    joinModal.classList.add('show');
+    joinModal.setAttribute('aria-hidden', 'false');
+    joinCodeInput.value = '';
+    setTimeout(()=> joinCodeInput.focus(), 60);
+});
+
+joinCancelBtn.addEventListener('click', () => {
+    joinModal.classList.remove('show');
+    joinModal.setAttribute('aria-hidden', 'true');
+});
+
+joinNowBtn.addEventListener('click', () => {
+    const code = (joinCodeInput.value || '').trim();
+    if (!code || code.length < 4) {
+        showNotification('Enter a valid join code (min 4 chars)', true);
+        return;
+    }
+    sessionCodeInput.value = code;
+    maskCodeDisplay();
+    joinModal.classList.remove('show');
+    joinModal.setAttribute('aria-hidden', 'true');
+    if (!realNameInput.value.trim()) {
+        showNotification('Type your real name before joining.', true);
+        setupCard.classList.remove('hidden');
+        sessionCard.classList.add('hidden');
+        return;
+    }
+    startSession(false);
+});
+
+joinModal.addEventListener('click', (e) => {
+    if (e.target === joinModal) {
+        joinModal.classList.remove('show');
+        joinModal.setAttribute('aria-hidden', 'true');
+    }
+});
+
+/* ========= Create / Join ========= */
+
+function startSession(host){
+    isHost = host;
+    const code = (sessionCodeInput.value || '').trim();
+    const realName = (realNameInput.value || '').trim();
+
+    if(!realName){
+        showNotification('Type your real name to proceed', true); return;
+    }
+    if(code.length < 4){ showNotification('Enter a valid code (min 4 chars)', true); return; }
+
+    if(localStorage.getItem('session_active') === 'true' && host){
+        showNotification('A session is already active locally. Stop it first or Resume.', true);
+        return;
+    }
+
+    localStorage.setItem('local_real_name', realName);
+    localStorage.setItem('session_code', code);
+    localStorage.setItem('session_active', 'true');
+    localStorage.setItem('session_role', host ? 'host' : 'joiner');
+    sessionRoleCached = host ? 'host' : 'joiner';
+    
+    // Set alias based on user preference
+    const showRealName = showRealNameToggle.checked;
+    if(showRealName) {
+        myAlias = realName;
+    } else {
+        myAlias = generateAnonAlias();
+    }
+
+    setupCard.classList.add('hidden');
+    sessionCard.classList.remove('hidden');
+    displayCodeInput.value = code;
+    updateStatus('Connecting...', false);
+    
+    locationControls.classList.add('hidden');
+    locationShared = false;
+
+    if(isHost) {
+        hostIndicator.classList.remove('hidden');
+    } else {
+        hostIndicator.classList.add('hidden');
+    }
+    
+    // Clear chat and add welcome message
+    chatMessages.innerHTML = '';
+    if(isHost) {
+        appendMessage("You created a session. Share the code with others to join.", false, true);
+    } else {
+        appendMessage("Joining session...", false, true);
+    }
+
+    // Start session timer
+    sessionStartTime = Date.now();
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(updateSessionTimer, 1000);
+    updateSessionTimer();
+
+    destroyExistingPeer();
+
+    try {
+        peer = host ? new Peer(code) : new Peer();
+    } catch(e){ console.error('Peer create failed', e); showNotification('Peer init failed', true); updateStatus('Error', false); return; }
+
+    setControlsDisabled(true);
+
+    reconnectAttempts = 0;
+    const MAX_JOIN_ATTEMPTS = 8;
+    const JOIN_INTERVAL_MS = 1500;
+
+    peer.on('open', (id) => {
+        if(!host){
+            function tryConnect(){
+                reconnectAttempts++;
+                try {
+                    conn = peer.connect(code, { reliable: true, serialization: 'json' });
+                } catch(err){
+                    console.warn('connect exception', err);
+                    conn = null;
+                }
+                if(conn){
+                    conn.on('open', () => {
+                        updateStatus('Connected to host', true);
+                        showNotification('Connected to host');
+                        safeSend({ type:'alias', alias: myAlias });
+                        appendMessage(`You joined the session as ${myAlias}`, false, true);
+                        reconnectAttempts = 0;
+                    });
+                    conn.on('error', (err) => { 
+                        console.error('conn error', err); 
+                        showNotification('Connection error: ' + err.message, true); 
+                    });
+                    setupDataChannel(conn);
+                } else {
+                    if(reconnectAttempts < MAX_JOIN_ATTEMPTS){
+                        updateStatus(`Reconnecting... (${reconnectAttempts}/${MAX_JOIN_ATTEMPTS})`, false);
+                        setTimeout(tryConnect, JOIN_INTERVAL_MS);
+                    } else {
+                        showNotification('Unable to connect to host (no host found).', true);
+                        updateStatus('Unable to connect', false);
+                        setControlsDisabled(false);
+                    }
+                }
             }
-            
-            // Attempt connection after a brief delay
-            state.connectionAttempt = setTimeout(() => {
-              joinHost();
-            }, 800);
-          }
-        });
-      }
-
-      // Create host (Teacher mode)
-      function createHost() {
-        if (state.peer) {
-          state.peer.destroy();
+            tryConnect();
+        } else {
+            updateStatus('Hosting — waiting for peers', true);
+            showNotification('Hosting session — share the code (reveal briefly to copy).');
+            setControlsDisabled(false);
         }
-
-        elements.createHostBtn.disabled = true;
-        updateStatus("Connecting...", "connecting");
-
-        state.peer = new Peer(null, {
-          host: '0.peerjs.com',
-          port: 443,
-          path: '/',
-          secure: true,
-          debug: 3
-        });
-
-        state.peer.on("open", id => {
-          state.isHost = true;
-          state.peerId = id;
-          elements.hostCode.textContent = formatCode(id);
-          updateStatus("Waiting for student to join...", "waiting");
-          elements.createHostBtn.disabled = false;
-          showNotification("Session created! Share your code with students.");
-        });
-
-        state.peer.on("connection", connection => {
-          setupConnection(connection);
-          updateStatus("Student joined!", "connected");
-          showNotification("Student joined the session!");
-        });
-
-        state.peer.on("error", err => {
-          console.error("PeerJS error:", err);
-          updateStatus("Connection error", "error");
-          showNotification("Error: " + err.type, "error");
-          elements.createHostBtn.disabled = false;
-        });
-
-        state.peer.on("disconnected", () => {
-          updateStatus("Disconnected", "disconnected");
-          showNotification("Disconnected from peer server");
-        });
-
-        state.peer.on("close", () => {
-          resetConnection();
-          updateStatus("Disconnected", "disconnected");
-        });
-      }
-
-      // Join host (Student mode)
-      function joinHost() {
-        const code = elements.joinCode.value.trim().replace(/-/g, "");
-        if (!code) {
-          showFeedback("Please enter a session code", "error");
-          return;
-        }
-
-        elements.joinHostBtn.disabled = true;
-        updateStatus("Connecting...", "connecting");
-        
-        // Hide animation if it's visible
-        elements.connectionAnimation.style.display = "none";
-
-        if (state.peer) {
-          state.peer.destroy();
-        }
-
-        state.peer = new Peer(null, {
-          host: '0.peerjs.com',
-          port: 443,
-          path: '/',
-          secure: true,
-          debug: 3
-        });
-
-        state.peer.on("open", () => {
-          try {
-            state.conn = state.peer.connect(code);
-            
-            state.conn.on("open", () => {
-              setupConnection(state.conn);
-              updateStatus("Connected to teacher", "connected");
-              showFeedback("Connection successful! You're now connected.", "success");
-              showNotification("Connected to teacher successfully!");
-              elements.joinHostBtn.disabled = false;
-            });
-
-            state.conn.on("error", err => {
-              console.error("Connection error:", err);
-              updateStatus("Connection failed", "error");
-              showFeedback("Connection failed. Please check the code and try again.", "error");
-              elements.joinHostBtn.disabled = false;
-            });
-          } catch (err) {
-            console.error("Connection error:", err);
-            updateStatus("Connection failed", "error");
-            showFeedback("Failed to connect: Invalid code format", "error");
-            elements.joinHostBtn.disabled = false;
-          }
-        });
-
-        state.peer.on("error", err => {
-          console.error("PeerJS error:", err);
-          updateStatus("Connection error", "error");
-          showFeedback("Connection error: " + err.type, "error");
-          elements.joinHostBtn.disabled = false;
-        });
-      }
-
-      // Set up connection
-      function setupConnection(connection) {
-        state.conn = connection;
-        state.isConnected = true;
-        
-        elements.message.disabled = false;
-        elements.sendBtn.disabled = false;
-        
-        state.conn.on("data", data => {
-          addMessage(data, "them");
-        });
-
-        state.conn.on("close", () => {
-          resetConnection();
-          updateStatus("Disconnected", "disconnected");
-          showNotification("Connection closed");
-        });
-
-        state.conn.on("error", err => {
-          console.error("Connection error:", err);
-          updateStatus("Connection error", "error");
-          showNotification("Connection error: " + err, "error");
-        });
-
-        // Update connection info
-        elements.connectionInfo.textContent = state.isHost ? 
-          "Student connected" : "Connected to teacher";
-      }
-
-      // Send chat message
-      function sendMessage() {
-        const msg = elements.message.value.trim();
-        if (msg && state.conn.open) {
-          state.conn.send(msg);
-          addMessage(msg, "me");
-          elements.message.value = "";
-        }
-      }
-
-      // Add message to chat
-      function addMessage(text, sender) {
-        const msgDiv = document.createElement("div");
-        msgDiv.className = `msg ${sender}`;
-        
-        const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        
-        msgDiv.innerHTML = `
-          <div>${text}</div>
-          <span class="msg-info">${sender === "me" ? "You" : (state.isHost ? "Student" : "Teacher")} • ${time}</span>
-        `;
-        
-        elements.chat.appendChild(msgDiv);
-        elements.chat.scrollTop = elements.chat.scrollHeight;
-      }
-
-      // Copy code to clipboard
-      function copyCodeToClipboard() {
-        const code = elements.hostCode.textContent;
-        if (code && code !== "—") {
-          navigator.clipboard.writeText(code.replace(/-/g, ""))
-            .then(() => {
-              showNotification("Code copied to clipboard!");
-            })
-            .catch(err => {
-              console.error("Could not copy text: ", err);
-              showNotification("Failed to copy code", "error");
-            });
-        }
-      }
-
-      // Format code with hyphen for readability
-      function formatCode(code) {
-        return code.length > 4 ? code.substring(0, 4) + "-" + code.substring(4) : code;
-      }
-
-      // Update connection status
-      function updateStatus(text, status) {
-        elements.statusText.textContent = text;
-        elements.statusDot.className = "status-dot";
-        
-        switch(status) {
-          case "connected":
-            elements.statusDot.classList.add("connected");
-            break;
-          case "error":
-            elements.statusDot.classList.add("error");
-            break;
-          case "connecting":
-          case "waiting":
-            elements.statusDot.classList.add("connecting");
-            break;
-          default:
-            // No additional class for disconnected
-        }
-      }
-
-      // Show notification
-      function showNotification(message, type = "success") {
-        elements.notification.textContent = message;
-        elements.notification.style.background = type === "error" ? "var(--error)" : "var(--primary)";
-        elements.notification.classList.add("show");
-        
-        setTimeout(() => {
-          elements.notification.classList.remove("show");
-        }, 3000);
-      }
-      
-      // Show feedback message
-      function showFeedback(message, type) {
-        elements.connectionFeedback.textContent = message;
-        elements.connectionFeedback.classList.remove("feedback-success", "feedback-error");
-        elements.connectionFeedback.classList.add(type === "error" ? "feedback-error" : "feedback-success");
-        elements.connectionFeedback.style.display = "block";
-      }
-
-      // Reset connection
-      function resetConnection() {
-        state.isConnected = false;
-        state.conn = null;
-        elements.message.disabled = true;
-        elements.sendBtn.disabled = true;
-        elements.connectionInfo.textContent = "";
-        
-        if (!state.isHost) {
-          elements.hostCode.textContent = "—";
-        }
-      }
-
-      // Initialize the app
-      init();
     });
-  </script>
+
+    peer.on('connection', (connection) => {
+        conn = connection;
+        setupDataChannel(conn);
+        updateStatus('Peer connected', true);
+        showNotification('Peer connected');
+        safeSend({ type:'alias', alias: myAlias });
+        appendMessage(`Peer ${myAlias} joined the session`, false, true);
+    });
+
+    peer.on('disconnected', () => { 
+        updateStatus('Disconnected', false); 
+        showNotification('Network disconnected', true); 
+        setControlsDisabled(false); 
+    });
+    
+    peer.on('close', () => { 
+        updateStatus('Closed', false); 
+        setControlsDisabled(false); 
+    });
+    
+    peer.on('error', (err) => { 
+        console.error('peer error', err); 
+        showNotification('Peer error: ' + String(err), true); 
+        updateStatus('Error', false); 
+        setControlsDisabled(false); 
+    });
+}
+
+function setupDataChannel(connection){
+    if(!connection) return;
+    connection.on('data', (data) => {
+        if(data.type === 'alias') {
+            peerAlias = data.alias;
+            updatePeerAlias(data);
+            appendMessage(`${data.alias} joined the session`, false, true);
+        }
+        else if(data.type === 'location') updatePeerLocation(data);
+        else if(data.type === 'chat') {
+            const txt = (data && data.text) ? String(data.text) : '';
+            appendMessage(`${peerAlias}: ${txt}`, false);
+        }
+        else if(data.type === 'host-migration') {
+            isHost = true;
+            hostIndicator.classList.remove('hidden');
+            appendMessage(`You are now the host of the session`, false, true);
+            showNotification('You are now the host');
+        }
+        else if(data.type === 'rejoin') {
+            appendMessage(`${data.alias} rejoined the session`, false, true);
+            showNotification(`${data.alias} has rejoined the session`);
+        }
+    });
+
+    connection.on('close', () => {
+        updateStatus('Peer disconnected', false);
+        if(peerMarker){ map.removeLayer(peerMarker); peerMarker=null; }
+        appendMessage(`${peerAlias} left the session`, false, true);
+        showNotification('Peer disconnected');
+        removePeerCard();
+        
+        // If we were not host and host disconnected, become new host
+        if(!isHost) {
+            isHost = true;
+            hostIndicator.classList.remove('hidden');
+            safeSend({ type: 'host-migration' });
+            appendMessage(`You are now the host of the session`, false, true);
+            showNotification('You are now the host');
+        }
+    });
+
+    connection.on('error', (err) => { 
+        console.error('data channel error', err); 
+        showNotification('Data channel error: ' + err.message, true); 
+    });
+}
+
+function updatePeerAlias(data){
+    removePeerCard();
+    const alias = (data && data.alias) ? String(data.alias) : generateAnonAlias();
+    const div = document.createElement('div'); 
+    div.className = 'user-card peer-card fade-in';
+    div.innerHTML = `<div class="user-avatar">${alias.charAt(0)}</div>
+        <div class="user-info">
+            <div class="user-name">${alias} <span class="duration-badge"><i class="fas fa-clock"></i> <span class="peer-duration">0s</span></span></div>
+            <div class="location-sharing">
+                <span class="dot"></span>
+                <span><i class="fas fa-location-slash"></i> Location not shared</span>
+            </div>
+            <div style="margin-top:10px"><span class="status-dot"></span> Online</div>
+        </div>`;
+    const youCard = document.getElementById('you-card');
+    userList.insertBefore(div, youCard.nextSibling);
+    
+    // Start peer duration timer
+    const peerStart = Date.now();
+    if (peerDurationInterval) clearInterval(peerDurationInterval);
+    peerDurationInterval = setInterval(() => {
+        const elapsed = Date.now() - peerStart;
+        const durationElement = div.querySelector('.peer-duration');
+        if (durationElement) {
+            durationElement.textContent = formatDuration(elapsed);
+        }
+    }, 1000);
+}
+
+function removePeerCard() {
+    const peerCards = userList.querySelectorAll('.peer-card');
+    peerCards.forEach(card => card.remove());
+    if (peerDurationInterval) {
+        clearInterval(peerDurationInterval);
+        peerDurationInterval = null;
+    }
+}
+
+function updatePeerLocation(d){
+    const latitude = Number(d.latitude), longitude = Number(d.longitude);
+    if(isNaN(latitude) || isNaN(longitude)) return;
+    
+    // Update peer location indicator
+    const peerCard = document.querySelector('.peer-card');
+    if(peerCard) {
+        peerCard.querySelector('.location-sharing').innerHTML = `
+            <span class="dot"></span>
+            <span><i class="fas fa-location-dot"></i> Location shared</span>
+        `;
+    }
+    
+    if(peerMarker) map.removeLayer(peerMarker);
+    peerMarker = L.marker([latitude, longitude]).addTo(map).bindPopup(`<b>${peerAlias}'s Location</b>`).openPopup();
+    
+    // Center map if both locations are available
+    if(myMarker) {
+        const bounds = L.latLngBounds([
+            [myMarker.getLatLng().lat, myMarker.getLatLng().lng],
+            [latitude, longitude]
+        ]);
+        map.fitBounds(bounds, { padding: [50, 50] });
+    } else {
+        map.setView([latitude, longitude], 13);
+    }
+}
+
+/* share location */
+function shareMyLocation(){
+    if(!peer) {
+        showNotification('No active session. Create or join a session first.', true);
+        return;
+    }
+    
+    if(!navigator.geolocation){ showNotification('Geolocation not supported', true); return; }
+
+    shareLocationBtn.disabled = true;
+    shareLocationBtn.innerHTML = `<i class="fas fa-sync fa-spin"></i> Getting...`;
+
+    navigator.geolocation.getCurrentPosition(pos => {
+        const latitude = pos.coords.latitude, longitude = pos.coords.longitude;
+        const myCard = document.getElementById('you-card');
+        myCard.querySelector('.location-sharing').innerHTML = `
+            <span class="dot"></span>
+            <span><i class="fas fa-location-dot"></i> Location shared</span>
+        `;
+        if(myMarker) map.removeLayer(myMarker);
+        myMarker = L.marker([latitude, longitude]).addTo(map).bindPopup('<b>Your Location</b>').openPopup();
+        
+        // Center map if peer location is available
+        if(peerMarker) {
+            const bounds = L.latLngBounds([
+                [latitude, longitude],
+                [peerMarker.getLatLng().lat, peerMarker.getLatLng().lng]
+            ]);
+            map.fitBounds(bounds, { padding: [50, 50] });
+        } else {
+            map.setView([latitude, longitude], 13);
+        }
+
+        if(conn && conn.open) {
+            safeSend({ type:'location', latitude: latitude, longitude: longitude, clientAlias: myAlias });
+        }
+
+        shareLocationBtn.disabled = false;
+        shareLocationBtn.innerHTML = `<i class="fas fa-location-dot"></i> Share Location`;
+        showNotification('Location shared');
+        
+        locationControls.classList.remove('hidden');
+        locationShared = true;
+    }, err => {
+        console.error('Geolocation error', err);
+        shareLocationBtn.disabled = false;
+        shareLocationBtn.innerHTML = `<i class="fas fa-location-dot"></i> Share Location`;
+        showNotification('Could not get location (enable location services)', true);
+    }, { enableHighAccuracy:true, maximumAge:30000, timeout:10000 });
+}
+
+/* update location */
+updateLocationBtn.addEventListener('click', () => {
+    shareMyLocation();
+    updateLocationBtn.innerHTML = `<i class="fas fa-sync fa-spin"></i> Updating...`;
+    showNotification('Updating your location...');
+});
+
+/* stop sharing location */
+stopSharingBtn.addEventListener('click', () => {
+    if(myMarker) {
+        map.removeLayer(myMarker);
+        myMarker = null;
+    }
+    
+    const myCard = document.getElementById('you-card');
+    myCard.querySelector('.location-sharing').innerHTML = `
+        <span class="dot"></span>
+        <span><i class="fas fa-location-slash"></i> Location not shared</span>
+    `;
+    
+    locationControls.classList.add('hidden');
+    locationShared = false;
+    
+    showNotification('Stopped sharing your location');
+});
+
+/* stop session */
+function stopSession(){
+    destroyExistingPeer();
+    localStorage.removeItem('session_active');
+    localStorage.removeItem('session_role');
+    localStorage.removeItem('session_code');
+    sessionRoleCached = null;
+
+    setupCard.classList.remove('hidden');
+    sessionCard.classList.add('hidden');
+    displayCodeInput.value = '';
+    updateStatus('Ready to connect', false);
+
+    if(myMarker){ map.removeLayer(myMarker); myMarker=null; }
+    if(peerMarker){ map.removeLayer(peerMarker); peerMarker=null; }
+
+    userList.innerHTML = `<div class="user-card" id="you-card">
+        <div class="user-avatar">Y</div>
+        <div class="user-info">
+            <div class="user-name" id="your-name-display">You <span class="duration-badge"><i class="fas fa-clock"></i> <span id="your-duration">0s</span></span></div>
+            <div class="location-sharing">
+                <span class="dot"></span>
+                <span><i class="fas fa-location-slash"></i> Location not shared</span>
+            </div>
+            <div style="margin-top:10px"><span class="status-dot"></span> Online</div>
+        </div>
+    </div>`;
+
+    chatMessages.innerHTML = '<div class="message-system">Welcome to SecureHat! Start by creating or joining a session.</div>';
+    
+    if(timerInterval) clearInterval(timerInterval);
+    sessionTimer.textContent = '00:00:00';
+    
+    locationControls.classList.add('hidden');
+    locationShared = false;
+    
+    hostIndicator.classList.add('hidden');
+    isHost = false;
+    
+    showNotification('Session stopped');
+}
+
+function setControlsDisabled(state){
+    [createSessionBtn, openJoinBtn, resumeSessionBtn, copyCodeBtn].forEach(b => { if(b) b.disabled = state; });
+}
+
+/* ========= Modal fixed behavior (stop modal) ========= */
+function showStopModal(){
+    const sessionActive = localStorage.getItem('session_active') === 'true';
+    if(!sessionActive){ showNotification('No active session to stop', true); return; }
+    stopConfirmation.classList.add('show');
+    confirmStopBtn.focus();
+}
+function hideStopModal(){ stopConfirmation.classList.remove('show'); }
+
+stopSessionBtn.addEventListener('click', (e) => { showStopModal(); });
+confirmStopBtn.addEventListener('click', (e) => { hideStopModal(); setTimeout(()=> stopSession(), 120); });
+cancelStopBtn.addEventListener('click', hideStopModal);
+stopConfirmation.addEventListener('click', (e) => { if(e.target === stopConfirmation) hideStopModal(); });
+const confirmationBox = stopConfirmation.querySelector('.confirmation-box');
+if(confirmationBox) confirmationBox.addEventListener('click', (e)=> e.stopPropagation());
+window.addEventListener('keydown', (e) => { if(e.key === 'Escape' && stopConfirmation.classList.contains('show')) hideStopModal(); });
+
+/* ========= Resume & load handling ========= */
+window.addEventListener('DOMContentLoaded', () => {
+    const showRealName = localStorage.getItem('show_real_name') === 'true';
+    showRealNameToggle.checked = showRealName;
+    
+    const sessionCode = localStorage.getItem('session_code');
+    const sessionActive = localStorage.getItem('session_active') === 'true';
+    const sessionRole = localStorage.getItem('session_role');
+
+    if(sessionCode && sessionActive && sessionRole){
+        displayCodeInput.value = sessionCode;
+        setupCard.classList.remove('hidden');
+        sessionCard.classList.remove('hidden');
+        updateStatus('Session active. Type your name and press Reconnect.', false);
+        sessionRoleCached = sessionRole;
+        
+        if(sessionRole === 'host') {
+            hostIndicator.classList.remove('hidden');
+            isHost = true;
+        }
+    } else {
+        setupCard.classList.remove('hidden');
+        sessionCard.classList.add('hidden');
+        updateStatus('Ready to connect', false);
+    }
+});
+
+function updateYourNameDisplay() {
+    const realName = localStorage.getItem('local_real_name') || 'You';
+    yourNameDisplay.textContent = realName;
+}
+
+showRealNameToggle.addEventListener('change', () => {
+    localStorage.setItem('show_real_name', showRealNameToggle.checked);
+});
+
+/* ========= Event listeners ========= */
+createSessionBtn.addEventListener('click', () => {
+    if(!sessionCodeInput.value.trim()){
+        showNotification('Enter or generate a session code before creating', true);
+        return;
+    }
+    startSession(true);
+});
+
+openJoinBtn.addEventListener('click', () => {
+    joinModal.classList.add('show');
+    joinModal.setAttribute('aria-hidden', 'false');
+});
+
+resumeSessionBtn.addEventListener('click', () => {
+    const persistedName = localStorage.getItem('local_real_name') || '';
+    if (persistedName) realNameInput.value = persistedName;
+    
+    if (!realNameInput.value.trim()) {
+        showNotification('Type your real name to reconnect.', true);
+        return;
+    }
+    
+    const persistedCode = localStorage.getItem('session_code') || displayCodeInput.value;
+    if (persistedCode) sessionCodeInput.value = persistedCode;
+    
+    const isHost = (localStorage.getItem('session_role') === 'host');
+    startSession(isHost);
+});
+
+copyCodeBtn.addEventListener('click', () => {
+    const txt = displayCodeInput.value || sessionCodeInput.value || '';
+    if(txt) copyToClipboard(txt); else showNotification('No code available to copy', true);
+});
+
+shareLocationBtn.addEventListener('click', shareMyLocation);
+
+/* Chat send */
+chatSend.addEventListener('click', () => {
+    const txt = chatInput.value.trim();
+    if(!txt) return;
+    
+    appendMessage(`${myAlias}: ${txt}`, true);
+    
+    if (conn && conn.open) {
+        safeSend({ type:'chat', text: txt, clientAlias: myAlias });
+    }
+    chatInput.value = '';
+});
+
+chatInput.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter' && !e.shiftKey){
+        e.preventDefault();
+        chatSend.click();
+    }
+});
+
+window.addEventListener('beforeunload', (e) => {
+    const sessionActive = localStorage.getItem('session_active') === 'true';
+    if(sessionActive){
+        e.preventDefault();
+        e.returnValue = '';
+    }
+});
+</script>
 </body>
 </html>
