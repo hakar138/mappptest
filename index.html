@@ -152,6 +152,11 @@
         .status-safe-bg { background: #4cd137; }
         .status-inactive-bg { background: #fbc531; }
         .status-danger-bg { background: #e84118; animation: pulse-danger 2s infinite; }
+        
+        /* Coordinate display styles */
+        .coordinates { font-size: 0.8rem; margin-top: 6px; color: rgba(255, 255, 255, 0.7); }
+        .coordinate-label { font-weight: 600; }
+        .map-coordinates { position: absolute; bottom: 10px; left: 10px; background: rgba(0, 0, 0, 0.6); padding: 8px 12px; border-radius: 4px; z-index: 1000; font-size: 0.9rem; }
     </style>
 </head>
 <body>
@@ -268,7 +273,10 @@
     <!-- Map -->
     <div class="card fade-in">
         <div class="card-title"><i class="fas fa-map-marked-alt"></i> Team Location Map</div>
-        <div class="map-container"><div id="map"></div></div>
+        <div class="map-container">
+            <div id="map"></div>
+            <div id="map-coordinates" class="map-coordinates hidden">Coordinates: <span id="coordinates-display">0, 0</span></div>
+        </div>
     </div>
 
     <!-- Connected users + chat -->
@@ -286,6 +294,10 @@
                     <div class="location-sharing">
                         <span class="dot"></span>
                         <span><i class="fas fa-location-slash"></i> Location not shared</span>
+                    </div>
+                    <div class="coordinates hidden" id="your-coordinates">
+                        <span class="coordinate-label">Lat:</span> <span id="your-lat">0</span>, 
+                        <span class="coordinate-label">Lng:</span> <span id="your-lng">0</span>
                     </div>
                     <div style="margin-top:10px"><span class="status-dot"></span> Online</div>
                 </div>
@@ -390,6 +402,11 @@ const sosButton = document.getElementById('sos-button');
 const voiceChatBtn = document.getElementById('voice-chat-btn');
 const voiceChatStatus = document.getElementById('voice-chat-status');
 const yourStatus = document.getElementById('your-status');
+const yourCoordinates = document.getElementById('your-coordinates');
+const yourLat = document.getElementById('your-lat');
+const yourLng = document.getElementById('your-lng');
+const mapCoordinates = document.getElementById('map-coordinates');
+const coordinatesDisplay = document.getElementById('coordinates-display');
 
 /* ========= State ========= */
 let peer = null;
@@ -423,6 +440,17 @@ const map = L.map('map', {
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
+
+// Add event listener to show coordinates on mouse move
+map.on('mousemove', (e) => {
+    const { lat, lng } = e.latlng;
+    coordinatesDisplay.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+    mapCoordinates.classList.remove('hidden');
+});
+
+map.on('mouseout', () => {
+    mapCoordinates.classList.add('hidden');
+});
 
 /* ========= Helpers ========= */
 function generateAnonAlias(){ 
@@ -616,6 +644,13 @@ function initVoiceChat() {
     } else {
         voiceChatBtn.disabled = true;
         voiceChatStatus.textContent = 'Voice chat not supported';
+    }
+}
+
+function updateCoordinatesDisplay(lat, lng, element) {
+    if (element) {
+        element.querySelector('.coordinate-lat').textContent = lat.toFixed(6);
+        element.querySelector('.coordinate-lng').textContent = lng.toFixed(6);
     }
 }
 
@@ -888,7 +923,7 @@ function setupDataChannel(connection){
                         html: '<div style="background-color: red; width: 20px; height: 20px; border-radius: 50%;"></div>',
                         iconSize: [20, 20]
                     })
-                }).addTo(map).bindPopup(`<b>🚨 EMERGENCY: ${data.alias}</b><br>${data.message}`).openPopup();
+                }).addTo(map).bindPopup(`<b>🚨 EMERGENCY: ${data.alias}</b><br>${data.message}<br>Coordinates: ${data.latitude.toFixed(6)}, ${data.longitude.toFixed(6)}`).openPopup();
             }
         }
         else if(data.type === 'danger-alert') {
@@ -903,7 +938,7 @@ function setupDataChannel(connection){
                         html: '<div style="background-color: orange; width: 20px; height: 20px; border-radius: 50%;"></div>',
                         iconSize: [20, 20]
                     })
-                }).addTo(map).bindPopup(`<b>⚠️ DANGER: ${data.alias}</b><br>${data.message}`).openPopup();
+                }).addTo(map).bindPopup(`<b>⚠️ DANGER: ${data.alias}</b><br>${data.message}<br>Coordinates: ${data.latitude.toFixed(6)}, ${data.longitude.toFixed(6)}`).openPopup();
             }
         }
     });
@@ -943,6 +978,10 @@ function updatePeerAlias(data){
                 <span class="dot"></span>
                 <span><i class="fas fa-location-slash"></i> Location not shared</span>
             </div>
+            <div class="coordinates hidden">
+                <span class="coordinate-label">Lat:</span> <span class="coordinate-lat">0</span>, 
+                <span class="coordinate-label">Lng:</span> <span class="coordinate-lng">0</span>
+            </div>
             <div style="margin-top:10px"><span class="status-dot"></span> Online</div>
         </div>`;
     const youCard = document.getElementById('you-card');
@@ -980,10 +1019,18 @@ function updatePeerLocation(d){
             <span class="dot"></span>
             <span><i class="fas fa-location-dot"></i> Location shared</span>
         `;
+        
+        // Show coordinates
+        const coordinatesElement = peerCard.querySelector('.coordinates');
+        coordinatesElement.classList.remove('hidden');
+        coordinatesElement.querySelector('.coordinate-lat').textContent = latitude.toFixed(6);
+        coordinatesElement.querySelector('.coordinate-lng').textContent = longitude.toFixed(6);
     }
     
     if(peerMarker) map.removeLayer(peerMarker);
-    peerMarker = L.marker([latitude, longitude]).addTo(map).bindPopup(`<b>${peerAlias}'s Location</b>`).openPopup();
+    peerMarker = L.marker([latitude, longitude]).addTo(map)
+        .bindPopup(`<b>${peerAlias}'s Location</b><br>Coordinates: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`)
+        .openPopup();
     
     // Center map if both locations are available
     if(myMarker) {
@@ -1016,8 +1063,16 @@ function shareMyLocation(){
             <span class="dot"></span>
             <span><i class="fas fa-location-dot"></i> Location shared</span>
         `;
+        
+        // Show coordinates
+        yourCoordinates.classList.remove('hidden');
+        yourLat.textContent = latitude.toFixed(6);
+        yourLng.textContent = longitude.toFixed(6);
+        
         if(myMarker) map.removeLayer(myMarker);
-        myMarker = L.marker([latitude, longitude]).addTo(map).bindPopup('<b>Your Location</b>').openPopup();
+        myMarker = L.marker([latitude, longitude]).addTo(map)
+            .bindPopup('<b>Your Location</b><br>Coordinates: ' + latitude.toFixed(6) + ', ' + longitude.toFixed(6))
+            .openPopup();
         
         // Store location and time for inactivity monitoring
         lastLocation = { lat: latitude, lng: longitude };
@@ -1075,6 +1130,9 @@ stopSharingBtn.addEventListener('click', () => {
         <span class="dot"></span>
         <span><i class="fas fa-location-slash"></i> Location not shared</span>
     `;
+    
+    // Hide coordinates
+    yourCoordinates.classList.add('hidden');
     
     locationControls.classList.add('hidden');
     locationShared = false;
@@ -1166,6 +1224,10 @@ function stopSession(){
             <div class="location-sharing">
                 <span class="dot"></span>
                 <span><i class="fas fa-location-slash"></i> Location not shared</span>
+            </div>
+            <div class="coordinates hidden" id="your-coordinates">
+                <span class="coordinate-label">Lat:</span> <span id="your-lat">0</span>, 
+                <span class="coordinate-label">Lng:</span> <span id="your-lng">0</span>
             </div>
             <div style="margin-top:10px"><span class="status-dot"></span> Online</div>
         </div>
