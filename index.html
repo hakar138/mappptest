@@ -9,6 +9,15 @@
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
+      .host-include-label {
+            margin-left: 12px; 
+            font-size: 0.85rem; 
+            display: none;
+            color: rgba(255,255,255,0.8);
+        }
+        .host-include-label input {
+            margin-right: 6px;
+        }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif }
         body { min-height: 100vh; background: linear-gradient(135deg, #0d1c33, #10294f); color: #fff; padding: 16px 12px; overflow-x: hidden }
         .container { max-width: 980px; margin: 0 auto }
@@ -168,6 +177,7 @@
         .chat-tabs { display: flex; gap: 5px; }
         .chat-tab { padding: 5px 10px; border-radius: 15px; background: rgba(255,255,255,0.05); cursor: pointer; }
         .chat-tab.active { background: rgba(79, 172, 254, 0.3); }
+     
     </style>
 </head>
 <body>
@@ -284,6 +294,34 @@
         <div id="coordinates-display" class="coordinates-display">Coordinates: Not available</div>
     </div>
 
+ <div class="container">
+    <!-- ... existing header and cards ... -->
+    
+    <!-- Active session card -->
+    <div class="card hidden fade-in" id="session-card">
+        <div class="card-title"><i class="fas fa-satellite"></i> Active Session</div>
+        
+        <div class="session-info">
+            <div class="session-status">
+                <div class="status-indicator" id="connection-dot"></div>
+                <div id="status-text">Ready to connect</div>
+            </div>
+            <div class="session-timer">
+                <i class="fas fa-clock"></i>
+                <span id="session-timer">00:00:00</span>
+            </div>
+            <div class="session-role" id="host-indicator">HOST</div>
+            <!-- Added host include checkbox -->
+            <label class="host-include-label" id="host-include-label">
+                <input type="checkbox" id="host-include-checkbox" /> Include host in movement checks
+            </label>
+        </div>
+        
+        <!-- ... rest of session card ... -->
+    </div>
+    
+    <!-- ... rest of HTML ... -->
+</div>
     <!-- Connected users + chat -->
     <div class="card fade-in">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
@@ -1545,6 +1583,237 @@ window.addEventListener('beforeunload', (e) => {
         e.returnValue = '';
     }
 });
+ <script>
+/* ========= DOM refs ========= */
+// ... existing DOM refs ...
+
+// Added refs for host include checkbox
+const hostIncludeLabel = document.getElementById('host-include-label');
+const hostIncludeCheckbox = document.getElementById('host-include-checkbox');
+
+/* ========= State ========= */
+// ... existing state variables ...
+
+// Added state for host inclusion in checks
+let hostIncludeInChecks = false; // default: host is exempt
+
+/* ========= Helpers ========= */
+// ... existing helper functions ...
+
+/* ========= Voice Recording ========= */
+// ... existing voice recording code ...
+
+/* ========= Danger Monitoring System ========= */
+function startDangerMonitoring() {
+    if (dangerCheckInterval) clearInterval(dangerCheckInterval);
+    
+    dangerCheckInterval = setInterval(() => {
+        checkForDanger();
+    }, 10000); // Check every 10 seconds
+}
+
+function checkForDanger() {
+    if (!lastPosition || !lastPositionTime) return;
+    
+    // NEW: if current device is host and host hasn't opted in, skip auto danger checks
+    if (isHost && !hostIncludeInChecks) {
+        console.log("Host skipped by auto-check; hostInclude=false");
+        return;
+    }
+
+    const currentTime = Date.now();
+    const timeDiff = (currentTime - lastPositionTime) / 1000; // in seconds
+    
+    // If user hasn't moved for 90 seconds, mark as in danger
+    if (timeDiff > 90) {
+        setDangerStatus(myAlias, true);
+        
+        // Send danger alert to peers
+        if (conn && conn.open) {
+            safeSend({
+                type: 'danger',
+                clientAlias: myAlias,
+                inDanger: true,
+                position: lastPosition,
+                timestamp: currentTime
+            });
+        }
+        
+        // Play voice alert every 10 seconds
+        if (!voiceAlertInterval) {
+            playDangerAlert();
+            voiceAlertInterval = setInterval(playDangerAlert, 10000);
+        }
+    }
+}
+
+// ... rest of danger monitoring functions ...
+
+function setDangerStatus(alias, inDanger) {
+    dangerStatus[alias] = inDanger;
+    
+    // Update UI
+    const userCards = document.querySelectorAll('.user-card');
+    userCards.forEach(card => {
+        const nameElement = card.querySelector('.user-name');
+        if (nameElement && nameElement.textContent.includes(alias)) {
+            if (inDanger) {
+                card.classList.add('danger');
+                card.classList.add('danger-animation');
+                
+                // Add danger icon
+                if (!card.querySelector('.danger-icon')) {
+                    const dangerIcon = document.createElement('i');
+                    dangerIcon.className = 'fas fa-exclamation-triangle danger-icon';
+                    nameElement.appendChild(dangerIcon);
+                }
+                
+                // Show danger alert in chat with special message for exempt host
+                if (alias !== myAlias) {
+                    dangerAlert.classList.remove('hidden');
+                    if (isHost && !hostIncludeInChecks) {
+                        appendMessage(`${alias} (Host) has been flagged in danger — Host is exempt from auto-SOS. Manual response required.`, false, true);
+                    } else {
+                        appendMessage(`${alias} is in danger! Please check their location.`, false, true);
+                    }
+                }
+            } else {
+                card.classList.remove('danger');
+                card.classList.remove('danger-animation');
+                
+                // Remove danger icon
+                const dangerIcon = card.querySelector('.danger-icon');
+                if (dangerIcon) dangerIcon.remove();
+                
+                if (alias !== myAlias && Object.values(dangerStatus).every(status => !status)) {
+                    dangerAlert.classList.add('hidden');
+                }
+            }
+        }
+    });
+    
+    // Clear danger markers if no longer in danger
+    if (!inDanger) {
+        clearDangerMarkers(alias);
+    }
+}
+
+// ... rest of the JavaScript code ...
+
+/* ========= Create / Join ========= */
+function startSession(host){
+    isHost = host;
+    const code = (sessionCodeInput.value || '').trim();
+    const realName = (realNameInput.value || '').trim();
+
+    if(!realName){
+        showNotification('Type your real name to proceed', true); return;
+    }
+    if(code.length < 4){ showNotification('Enter a valid code (min 4 chars)', true); return; }
+
+    if(localStorage.getItem('session_active') === 'true' && host){
+        showNotification('A session is already active locally. Stop it first or Resume.', true);
+        return;
+    }
+
+    localStorage.setItem('local_real_name', realName);
+    localStorage.setItem('session_code', code);
+    localStorage.setItem('session_active', 'true');
+    localStorage.setItem('session_role', host ? 'host' : 'joiner');
+    sessionRoleCached = host ? 'host' : 'joiner';
+    
+    // Set alias based on user preference
+    const showRealName = showRealNameToggle.checked;
+    if(showRealName) {
+        myAlias = realName;
+    } else {
+        myAlias = generateAnonAlias();
+    }
+
+    setupCard.classList.add('hidden');
+    sessionCard.classList.remove('hidden');
+    displayCodeInput.value = code;
+    updateStatus('Connecting...', false);
+    
+    locationControls.classList.add('hidden');
+    locationShared = false;
+    sosButton.classList.remove('hidden');
+
+    if(isHost) {
+        hostIndicator.classList.remove('hidden');
+        hostIncludeLabel.style.display = 'inline-block';
+        hostIncludeCheckbox.checked = hostIncludeInChecks;
+        updateHostBadgeText();
+    } else {
+        hostIndicator.classList.add('hidden');
+        hostIncludeLabel.style.display = 'none';
+    }
+    
+    // ... rest of startSession function ...
+}
+
+// ... rest of the JavaScript code ...
+
+/* ========= Resume & load handling ========= */
+window.addEventListener('DOMContentLoaded', () => {
+    const showRealName = localStorage.getItem('show_real_name') === 'true';
+    showRealNameToggle.checked = showRealName;
+    
+    // Read persisted host include choice
+    hostIncludeInChecks = (localStorage.getItem('host_include_checks') === 'true');
+    
+    const sessionCode = localStorage.getItem('session_code');
+    const sessionActive = localStorage.getItem('session_active') === 'true';
+    const sessionRole = localStorage.getItem('session_role');
+
+    if(sessionCode && sessionActive && sessionRole){
+        displayCodeInput.value = sessionCode;
+        setupCard.classList.remove('hidden');
+        sessionCard.classList.remove('hidden');
+        updateStatus('Session active. Type your name and press Reconnect.', false);
+        sessionRoleCached = sessionRole;
+        
+        if(sessionRole === 'host') {
+            hostIndicator.classList.remove('hidden');
+            hostIncludeLabel.style.display = 'inline-block';
+            hostIncludeCheckbox.checked = hostIncludeInChecks;
+            updateHostBadgeText();
+            isHost = true;
+        }
+    } else {
+        setupCard.classList.remove('hidden');
+        sessionCard.classList.add('hidden');
+        updateStatus('Ready to connect', false);
+    }
+    
+    // Request notification permission
+    requestNotificationPermission();
+    
+    // Setup voice recording
+    setupVoiceRecording();
+    
+    // Wire the host include checkbox
+    if (hostIncludeCheckbox) {
+        hostIncludeCheckbox.addEventListener('change', () => {
+            hostIncludeInChecks = !!hostIncludeCheckbox.checked;
+            localStorage.setItem('host_include_checks', hostIncludeInChecks ? 'true' : 'false');
+            updateHostBadgeText();
+            showNotification(hostIncludeInChecks ? 'Host will be included in auto-checks' : 'Host excluded from auto-checks');
+        });
+    }
+});
+
+function updateHostBadgeText() {
+    if (isHost) {
+        if (hostIncludeInChecks) {
+            hostIndicator.textContent = 'HOST (in auto-checks)';
+        } else {
+            hostIndicator.textContent = 'HOST (exempt from auto-SOS)';
+        }
+    }
+}
+
+// ... rest of the JavaScript code ...
 </script>
 </body>
 </html>
