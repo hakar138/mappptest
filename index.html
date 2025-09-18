@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -50,7 +51,7 @@
         .status-dot { width: 12px; height: 12px; border-radius: 50%; background: #4cd137; display: inline-block; margin-right: 10px }
         .chat-card { display: flex; flex-direction: column; height: 300px }
         .chat-messages { flex: 1; overflow: auto; padding: 12px; border-radius: 10px; background: rgba(0,0,0,0.15); margin-bottom: 10px; font-size: 1rem; display: flex; flex-direction: column; gap: 8px }
-        .chat-input-row { display: flex; gap: 10px }
+        .chat-input-row { display: flex; gap: 10px; margin-top: 10px }
         .chat-input { flex: 1; padding: 12px; border-radius: 10px; border: none; font-size: 1rem; background: rgba(255,255,255,.05); color: #fff }
         .chat-send { padding: 12px 16px; border-radius: 10px; border: none; background: linear-gradient(45deg,#4facfe,#00f2fe); color: #fff; cursor: pointer; font-size: 1rem; transition: all 0.2s ease; min-width: 100px }
         .chat-send:hover { background: linear-gradient(45deg,#3a9cf7,#00d9f2) }
@@ -132,42 +133,32 @@
         .rejoin-notice { background: rgba(255,255,255,.05); padding: 10px; border-radius: 10px; border-left: 4px solid #4facfe; margin: 12px 0; display: flex; align-items: center; gap: 8px; font-size: 0.9rem }
         .duration-badge { background: rgba(79, 172, 254, 0.2); color: #4facfe; padding: 4px 8px; border-radius: 20px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 4px }
         
-        /* New styles for voice chat and danger features */
-        .voice-chat-container { display: flex; gap: 10px; margin-top: 10px; align-items: center; }
-        .voice-btn { background: linear-gradient(45deg, #9c88ff, #8c7ae6); }
-        .voice-btn.recording { background: linear-gradient(45deg, #e84118, #c23616); animation: pulse 1s infinite; }
-        .voice-message { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 18px; background: rgba(79, 172, 254, 0.2); margin: 8px 0; }
-        .voice-message.me { background: rgba(255, 126, 95, 0.2); align-self: flex-end; }
-        .voice-player { flex: 1; }
-        .sos-btn { background: linear-gradient(45deg, #e84118, #c23616); margin-top: 10px; }
-        .danger-status { color: #e84118; font-weight: bold; }
-        .danger-animation { animation: danger-pulse 2s infinite; }
-        .coordinates-display { font-size: 0.85rem; margin-top: 8px; opacity: 0.8; }
-        .chat-message-time { font-size: 0.7rem; opacity: 0.7; margin-top: 4px; }
-        .chat-message-container { display: flex; flex-direction: column; max-width: 85%; }
-        .chat-message-container.me { align-self: flex-end; }
-        .chat-message-container.peer { align-self: flex-start; }
-        
+        /* Emergency System Styles */
+        .emergency-marker { background: #e84118 !important; }
+        .danger-alert { background: rgba(232, 65, 24, 0.2); border-left: 4px solid #e84118; padding: 12px; border-radius: 8px; margin: 10px 0; animation: pulse 2s infinite; }
         @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+            0% { box-shadow: 0 0 0 0 rgba(232, 65, 24, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(232, 65, 24, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(232, 65, 24, 0); }
         }
+        .countdown { color: #e84118; font-weight: bold; font-size: 1.2rem; margin: 10px 0; }
+        .emergency-btns { display: flex; gap: 10px; margin-top: 10px; }
+        .sos-btn { background: linear-gradient(45deg, #e84118, #c23616); }
+        .cancel-sos-btn { background: linear-gradient(45deg, #4cd137, #3498db); }
         
-        @keyframes danger-pulse {
-            0% { background-color: rgba(232, 65, 24, 0.1); }
-            50% { background-color: rgba(232, 65, 24, 0.3); }
-            100% { background-color: rgba(232, 65, 24, 0.1); }
+        /* Voice Message Styles */
+        .voice-message { background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; margin: 5px 0; }
+        .voice-controls { display: flex; align-items: center; gap: 10px; }
+        .voice-record-btn { background: #e84118; color: white; border: none; padding: 8px 12px; border-radius: 20px; cursor: pointer; }
+        .voice-play-btn { background: #4cd137; color: white; border: none; padding: 8px 12px; border-radius: 20px; cursor: pointer; }
+        .voice-timer { color: #feb47b; font-weight: bold; }
+        
+        /* Mobile-friendly chat improvements */
+        @media (max-width: 768px) {
+            .chat-input { padding: 16px; font-size: 1.1rem; }
+            .chat-send { padding: 16px; font-size: 1.1rem; }
+            .voice-record-btn, .voice-play-btn { padding: 12px 16px; font-size: 1.1rem; }
         }
-        
-        .user-card.danger { border: 2px solid #e84118; background: rgba(232, 65, 24, 0.1); }
-        .danger-icon { color: #e84118; margin-left: 5px; }
-        
-        /* Improved chat UI */
-        .chat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .chat-tabs { display: flex; gap: 5px; }
-        .chat-tab { padding: 5px 10px; border-radius: 15px; background: rgba(255,255,255,0.05); cursor: pointer; }
-        .chat-tab.active { background: rgba(79, 172, 254, 0.3); }
     </style>
 </head>
 <body>
@@ -178,7 +169,7 @@
             <div>
                 <div class="logo-text">SECUREHAT</div>
                 <div style="font-size:0.95rem;color:rgba(255,255,255,0.85);font-weight:600;margin-top:6px;">
-                    Private Location Sharing &amp; Chat
+                    Private Location Sharing & Chat
                 </div>
                 <div style="font-size:0.85rem;color:rgba(255,255,255,0.65);margin-top:8px;">
                     <em>Developed by Kurdistan Innovator Team</em>
@@ -188,27 +179,22 @@
         <h1>Private Location Sharing & Chat</h1>
         <div class="subtitle muted">Your real name stays local-only unless you choose to share it</div>
     </header>
-
     <div class="privacy-notice">
         <i class="fas fa-shield-alt" style="color:#4cd137"></i>
         <div><strong>Privacy Notice:</strong> Your real name is stored locally only. If you choose to share it, it will be visible to others in the session. All location data is peer-to-peer and never stored on any server.</div>
     </div>
-    
     <div class="rejoin-notice">
         <i class="fas fa-rotate-left" style="color:#4facfe"></i>
         <div><strong>Rejoin Anytime:</strong> You can leave and rejoin active sessions using the same session code at any time.</div>
     </div>
-
     <!-- Setup -->
     <div class="card fade-in" id="setup-card">
         <div class="card-title"><i class="fas fa-user"></i> User Setup</div>
-
         <div class="form-group">
             <label class="form-label">Your Real Name</label>
             <input id="real-name" class="form-control" type="text" placeholder="Type your real name (required)">
             <div class="form-note">This name is stored locally only. You must type it each time you start/resume.</div>
         </div>
-
         <div class="form-group">
             <label class="form-label">Session Code</label>
             <div class="code-row">
@@ -221,7 +207,6 @@
                 <button id="copy-session-code" class="btn btn-outline small-btn" disabled>Copy</button>
             </div>
         </div>
-        
         <!-- Show real name toggle -->
         <div class="toggle-container">
             <label class="switch">
@@ -231,17 +216,14 @@
             <span>Show my real name to others</span>
         </div>
         <div class="form-note" style="margin-top:8px">Enabling this will share your real name with other participants.</div>
-
         <div class="btn-container">
             <button id="create-session" class="btn"><i class="fas fa-plus-circle"></i> Create Session</button>
             <button id="open-join" class="btn btn-outline"><i class="fas fa-user-friends"></i> Join Session</button>
         </div>
     </div>
-
     <!-- Active session card -->
     <div class="card hidden fade-in" id="session-card">
         <div class="card-title"><i class="fas fa-satellite"></i> Active Session</div>
-        
         <div class="session-info">
             <div class="session-status">
                 <div class="status-indicator" id="connection-dot"></div>
@@ -253,44 +235,33 @@
             </div>
             <div class="session-role" id="host-indicator">HOST</div>
         </div>
-
         <div class="code-container">
             <input id="display-code" class="code-input" readonly placeholder="Session Code">
             <button id="copy-code" class="btn btn-outline" title="Copy code"><i class="fas fa-copy"></i></button>
         </div>
-
         <div class="btn-container" style="margin-top:16px;grid-template-columns:1fr 1fr 1fr">
             <button id="resume-session" class="btn btn-reconnect"><i class="fas fa-plug"></i> Reconnect</button>
             <button id="share-location" class="btn"><i class="fas fa-location-dot"></i> Share Location</button>
             <button id="stop-session" class="btn btn-stop"><i class="fas fa-power-off"></i> Stop</button>
         </div>
-        
-        <!-- SOS Button -->
-        <button id="sos-button" class="btn sos-btn hidden"><i class="fas fa-life-ring"></i> SOS Emergency</button>
-        
         <!-- Location management buttons -->
         <div class="btn-container hidden" id="location-controls" style="margin-top:16px;grid-template-columns:1fr 1fr">
             <button id="update-location" class="btn btn-update"><i class="fas fa-sync-alt"></i> Update Location</button>
             <button id="stop-sharing" class="btn btn-unshare"><i class="fas fa-location-slash"></i> Stop Sharing</button>
         </div>
-
         <div class="form-note" style="margin-top:14px">Note: You can reconnect anytime using the session code.</div>
     </div>
-
     <!-- Map -->
     <div class="card fade-in">
         <div class="card-title"><i class="fas fa-map-marked-alt"></i> Location Map</div>
         <div class="map-container"><div id="map"></div></div>
-        <div id="coordinates-display" class="coordinates-display">Coordinates: Not available</div>
     </div>
-
     <!-- Connected users + chat -->
     <div class="card fade-in">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
             <div class="card-title"><i class="fas fa-users"></i> Connected Users</div>
             <div class="muted">Chat & messages are anonymized unless you share your name</div>
         </div>
-
         <div class="user-list" id="user-list">
             <div class="user-card" id="you-card">
                 <div class="user-avatar">Y</div>
@@ -301,35 +272,29 @@
                         <span><i class="fas fa-location-slash"></i> Location not shared</span>
                     </div>
                     <div style="margin-top:10px"><span class="status-dot"></span> Online</div>
+                    <!-- Emergency buttons -->
+                    <div class="emergency-btns">
+                        <button id="sos-btn" class="btn sos-btn small-btn"><i class="fas fa-exclamation-triangle"></i> SOS</button>
+                        <button id="cancel-sos-btn" class="btn cancel-sos-btn small-btn" disabled><i class="fas fa-times"></i> Cancel SOS</button>
+                    </div>
                 </div>
             </div>
         </div>
-
         <div style="margin-top:16px" class="chat-card">
-            <div class="chat-header">
-                <div class="chat-tabs">
-                    <div class="chat-tab active">Text</div>
-                    <div class="chat-tab">Voice</div>
-                </div>
-                <div id="danger-alert" class="danger-status hidden"><i class="fas fa-exclamation-triangle danger-icon"></i> Danger Detected</div>
-            </div>
-            
             <div class="chat-messages" id="chat-messages" aria-live="polite">
                 <div class="message-system">Welcome to SecureHat! Start by creating or joining a session.</div>
             </div>
-            
             <div class="chat-input-row" style="margin-top:10px">
                 <input id="chat-input" class="chat-input" placeholder="Type a message..." />
                 <button id="chat-send" class="chat-send"><i class="fas fa-paper-plane"></i> Send</button>
             </div>
-            
-            <div class="voice-chat-container hidden" id="voice-container">
-                <button id="record-voice" class="btn voice-btn"><i class="fas fa-microphone"></i> Record Voice</button>
-                <div id="recording-status">Press to record voice message</div>
+            <!-- Voice message controls -->
+            <div class="chat-input-row" style="margin-top:10px">
+                <button id="voice-record-btn" class="voice-record-btn"><i class="fas fa-microphone"></i> Record Voice</button>
+                <div id="recording-timer" class="voice-timer hidden">Recording: 0s</div>
             </div>
         </div>
     </div>
-
     <footer>
       <div>SecureHat © Privacy First | No Database | Session persists until stopped</div>
       <div style="margin-top:8px;font-size:0.85rem;opacity:0.85;">
@@ -337,10 +302,8 @@
       </div>
     </footer>
 </div>
-
 <!-- Notification -->
 <div id="notification" class="notification" role="status" aria-live="polite"><i class="fas fa-info-circle"></i> <span id="notification-message">Ready to start</span></div>
-
 <!-- Join modal -->
 <div id="join-modal" aria-hidden="true">
   <div class="join-box">
@@ -353,7 +316,6 @@
     </div>
   </div>
 </div>
-
 <!-- Stop confirmation modal -->
 <div id="stop-confirmation" role="dialog" aria-modal="true" aria-labelledby="stop-title">
     <div class="confirmation-box">
@@ -365,7 +327,6 @@
         </div>
     </div>
 </div>
-
 <script>
 /* ========= DOM refs ========= */
 const realNameInput = document.getElementById('real-name');
@@ -406,12 +367,10 @@ const chatSend = document.getElementById('chat-send');
 const codeHint = document.getElementById('code-hint');
 const sessionTimer = document.getElementById('session-timer');
 const yourDuration = document.getElementById('your-duration');
-const sosButton = document.getElementById('sos-button');
-const recordVoiceBtn = document.getElementById('record-voice');
-const voiceContainer = document.getElementById('voice-container');
-const recordingStatus = document.getElementById('recording-status');
-const dangerAlert = document.getElementById('danger-alert');
-const coordinatesDisplay = document.getElementById('coordinates-display');
+const sosBtn = document.getElementById('sos-btn');
+const cancelSosBtn = document.getElementById('cancel-sos-btn');
+const voiceRecordBtn = document.getElementById('voice-record-btn');
+const recordingTimer = document.getElementById('recording-timer');
 
 /* ========= State ========= */
 let peer = null;
@@ -430,15 +389,21 @@ let sessionStartTime = null;
 let timerInterval = null;
 let peerDurationInterval = null;
 let peerDuration = 0;
+
+// Emergency system state
+let isSOSActive = false;
+let inactivityTimer = null;
+let inactivityCountdown = null;
+let lastPosition = null;
+let positionCheckInterval = null;
+let emergencyBroadcastInterval = null;
+
+// Voice recording state
 let mediaRecorder = null;
 let audioChunks = [];
 let isRecording = false;
-let dangerCheckInterval = null;
-let lastPosition = null;
-let lastPositionTime = null;
-let dangerMarkers = [];
-let voiceAlertInterval = null;
-let dangerStatus = {};
+let recordingStartTime = null;
+let recordingTimerInterval = null;
 
 /* ========= Map init ========= */
 const map = L.map('map', { 
@@ -449,14 +414,6 @@ const map = L.map('map', {
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
-
-// Add danger icon
-const dangerIcon = L.icon({
-    iconUrl: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiBmaWxsPSIjZTg0MTE4Ij48cGF0aCBkPSJNMjU2IDhDMTE5LjA0MyA4IDggMTE5LjA4MyA4IDI1NmMwIDEzNi45OTcgMTExLjA0MyAyNDggMjQ4IDI0OHMyNDgtMTExLjAwMyAyNDgtMjQ4QzUwNCAxMTkuMDgzIDM5Mi45NTcgOCAyNTYgOHptMCA0MjRjLTEzLjI1NSAwLTI0LTEwLjc0NS0yNC0yNHMxMC43NDUtMjQgMjQtMjQgMjQgMTAuNzQ1IDI0IDI0LTEwLjc0NSAyNC0yNCAyNHptMC0zNjhjLTE3LjY3MyAwLTMyIDE0LjMyNy0zMiAzMnYxNzZjMCAxNy42NzMgMTQuMzI3IDMyIDMyIDMyczMyLTE0LjMyNyAzMi0zMlY5NmMwLTE3LjY3My0xNC4zMjctMzItMzItMzJ6Ii8+PC9zdmc+',
-    iconSize: [25, 25],
-    iconAnchor: [12, 25],
-    popupAnchor: [0, -25]
-});
 
 /* ========= Helpers ========= */
 function generateAnonAlias(){ 
@@ -473,21 +430,6 @@ function showNotification(msg, isError=false, duration=3000){
     notification.classList.add('show');
     if(isError) notification.classList.add('error'); else notification.classList.remove('error');
     notificationTimeout = setTimeout(()=>{ notification.classList.remove('show'); notification.classList.remove('error'); }, duration);
-    
-    // Also show browser notification if allowed
-    if ("Notification" in window && Notification.permission === "granted") {
-        new Notification("SecureHat Alert", {
-            body: msg,
-            icon: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiBmaWxsPSIjZmY3ZTVmIj48cGF0aCBkPSJNMjU2IDhDMTE5LjA0MyA4IDggMTE5LjA4MyA4IDI1NmMwIDEzNi45OTcgMTExLjA0MyAyNDggMjQ4IDI0OHMyNDgtMTExLjAwMyAyNDgtMjQ4QzUwNCAxMTkuMDgzIDM5Mi45NTcgOCAyNTYgOHptMCA0MjRjLTEzLjI1NSAwLTI0LTEwLjc0NS0yNC0yNHMxMC43NDUtMjQgMjQtMjQgMjQgMTAuNzQ1IDI0IDI0LTEwLjc0NSAyNC0yNCAyNHptMC0zNjhjLTE3LjY3MyAwLTMyIDE0LjMyNy0zMiAzMnYxNzZjMCAxNy42NzMgMTQuMzI3IDMyIDMyIDMyczMyLTE0LjMyNyAzMi0zMlY5NmMwLTE3LjY3My0xNC4zMjctMzItMzItMzJ6Ii8+PC9zdmc+"
-        });
-    }
-}
-
-// Request notification permission
-function requestNotificationPermission() {
-    if ("Notification" in window) {
-        Notification.requestPermission();
-    }
 }
 
 function updateStatus(text, connected=false){
@@ -497,17 +439,13 @@ function updateStatus(text, connected=false){
 
 function updateSessionTimer() {
     if (!sessionStartTime) return;
-    
     const elapsed = Date.now() - sessionStartTime;
     const seconds = Math.floor((elapsed / 1000) % 60);
     const minutes = Math.floor((elapsed / (1000 * 60)) % 60);
     const hours = Math.floor(elapsed / (1000 * 60 * 60));
-    
     const formattedTime = 
         `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    
     sessionTimer.textContent = formattedTime;
-    
     // Update personal duration
     yourDuration.textContent = formatDuration(elapsed);
 }
@@ -516,7 +454,6 @@ function formatDuration(milliseconds) {
     const seconds = Math.floor((milliseconds / 1000) % 60);
     const minutes = Math.floor((milliseconds / (1000 * 60)) % 60);
     const hours = Math.floor(milliseconds / (1000 * 60 * 60));
-    
     if (hours > 0) {
         return `${hours}h ${minutes}m ${seconds}s`;
     } else if (minutes > 0) {
@@ -549,44 +486,43 @@ async function copyToClipboard(text){
     } catch(e){ console.error(e); showNotification('Copy failed', true); }
 }
 
-function appendMessage(text, fromMe=false, isSystem=false, timestamp=null, voiceData=null){
-    const messageContainer = document.createElement('div');
-    messageContainer.className = `chat-message-container ${fromMe ? 'me' : 'peer'}`;
-    
+function appendMessage(text, fromMe=false, isSystem=false, isVoice=false){
     const el = document.createElement('div');
     if(isSystem) {
         el.className = 'message-system';
         el.textContent = text;
-        messageContainer.appendChild(el);
-    } else if (voiceData) {
-        // Voice message
-        el.className = fromMe ? 'voice-message me' : 'voice-message peer';
-        
-        const voiceIcon = document.createElement('i');
-        voiceIcon.className = fromMe ? 'fas fa-microphone-alt' : 'fas fa-microphone-alt';
-        
-        const audio = document.createElement('audio');
-        audio.className = 'voice-player';
-        audio.controls = true;
-        audio.src = voiceData;
-        
-        el.appendChild(voiceIcon);
-        el.appendChild(audio);
-        messageContainer.appendChild(el);
+    } else if(isVoice) {
+        el.className = fromMe ? 'message-me' : 'message-peer';
+        el.innerHTML = `<div class="voice-message">
+            <div class="voice-controls">
+                <button class="voice-play-btn"><i class="fas fa-play"></i> Play Voice Message</button>
+                <span class="voice-duration">${text}</span>
+            </div>
+        </div>`;
+        // Add event listener for play button
+        el.querySelector('.voice-play-btn').addEventListener('click', function() {
+            const playBtn = this;
+            playBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+            
+            // Create audio element from the base64 string
+            const audio = new Audio(text);
+            audio.oncanplaythrough = function() {
+                playBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+                audio.play();
+            };
+            audio.onended = function() {
+                playBtn.innerHTML = '<i class="fas fa-play"></i> Play Voice Message';
+            };
+            audio.onerror = function() {
+                playBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
+                showNotification('Failed to play voice message', true);
+            };
+        });
     } else {
-        // Text message
         el.className = fromMe ? 'message-me' : 'message-peer';
         el.textContent = text;
-        messageContainer.appendChild(el);
     }
-    
-    // Add timestamp
-    const timeEl = document.createElement('div');
-    timeEl.className = 'chat-message-time';
-    timeEl.textContent = timestamp || new Date().toLocaleTimeString();
-    messageContainer.appendChild(timeEl);
-    
-    chatMessages.appendChild(messageContainer);
+    chatMessages.appendChild(el);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
@@ -648,238 +584,7 @@ copySessionCodeBtn.addEventListener('click', () => {
     copyToClipboard(sessionCodeInput.value);
 });
 
-/* ========= Voice Recording ========= */
-function setupVoiceRecording() {
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        recordVoiceBtn.addEventListener('click', toggleRecording);
-    } else {
-        voiceContainer.classList.add('hidden');
-        showNotification('Voice recording not supported on this device', true);
-    }
-}
-
-function toggleRecording() {
-    if (isRecording) {
-        stopRecording();
-    } else {
-        startRecording();
-    }
-}
-
-function startRecording() {
-    navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(stream => {
-            mediaRecorder = new MediaRecorder(stream);
-            audioChunks = [];
-            
-            mediaRecorder.addEventListener('dataavailable', event => {
-                audioChunks.push(event.data);
-            });
-            
-            mediaRecorder.addEventListener('stop', () => {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                sendVoiceMessage(audioBlob);
-                
-                // Stop all audio tracks
-                stream.getTracks().forEach(track => track.stop());
-            });
-            
-            mediaRecorder.start();
-            isRecording = true;
-            recordVoiceBtn.classList.add('recording');
-            recordingStatus.textContent = 'Recording... Click to stop';
-        })
-        .catch(error => {
-            console.error('Error accessing microphone:', error);
-            showNotification('Could not access microphone', true);
-        });
-}
-
-function stopRecording() {
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-        mediaRecorder.stop();
-        isRecording = false;
-        recordVoiceBtn.classList.remove('recording');
-        recordingStatus.textContent = 'Press to record voice message';
-    }
-}
-
-function sendVoiceMessage(audioBlob) {
-    const reader = new FileReader();
-    reader.readAsDataURL(audioBlob);
-    reader.onloadend = function() {
-        const base64Audio = reader.result;
-        
-        // Display the voice message locally
-        appendMessage('Voice message', true, false, null, base64Audio);
-        
-        // Send to peer
-        if (conn && conn.open) {
-            safeSend({ 
-                type: 'voice', 
-                audio: base64Audio,
-                clientAlias: myAlias,
-                timestamp: new Date().toISOString()
-            });
-        }
-    };
-}
-
-/* ========= Danger Monitoring System ========= */
-function startDangerMonitoring() {
-    if (dangerCheckInterval) clearInterval(dangerCheckInterval);
-    
-    dangerCheckInterval = setInterval(() => {
-        checkForDanger();
-    }, 10000); // Check every 10 seconds
-}
-
-function checkForDanger() {
-    if (!lastPosition || !lastPositionTime) return;
-    
-    const currentTime = Date.now();
-    const timeDiff = (currentTime - lastPositionTime) / 1000; // in seconds
-    
-    // If user hasn't moved for 90 seconds, mark as in danger
-    if (timeDiff > 90) {
-        setDangerStatus(myAlias, true);
-        
-        // Send danger alert to peers
-        if (conn && conn.open) {
-            safeSend({
-                type: 'danger',
-                clientAlias: myAlias,
-                inDanger: true,
-                position: lastPosition,
-                timestamp: currentTime
-            });
-        }
-        
-        // Play voice alert every 10 seconds
-        if (!voiceAlertInterval) {
-            playDangerAlert();
-            voiceAlertInterval = setInterval(playDangerAlert, 10000);
-        }
-    }
-}
-
-function playDangerAlert() {
-    const alertMessage = `${myAlias} is in danger! Please check their location.`;
-    showNotification(alertMessage, true);
-    
-    // Use speech synthesis if available
-    if ('speechSynthesis' in window) {
-        const speech = new SpeechSynthesisUtterance(alertMessage);
-        window.speechSynthesis.speak(speech);
-    }
-}
-
-function setDangerStatus(alias, inDanger) {
-    dangerStatus[alias] = inDanger;
-    
-    // Update UI
-    const userCards = document.querySelectorAll('.user-card');
-    userCards.forEach(card => {
-        const nameElement = card.querySelector('.user-name');
-        if (nameElement && nameElement.textContent.includes(alias)) {
-            if (inDanger) {
-                card.classList.add('danger');
-                card.classList.add('danger-animation');
-                
-                // Add danger icon
-                if (!card.querySelector('.danger-icon')) {
-                    const dangerIcon = document.createElement('i');
-                    dangerIcon.className = 'fas fa-exclamation-triangle danger-icon';
-                    nameElement.appendChild(dangerIcon);
-                }
-                
-                // Show danger alert in chat
-                if (alias !== myAlias) {
-                    dangerAlert.classList.remove('hidden');
-                    appendMessage(`${alias} is in danger! Please check their location.`, false, true);
-                }
-            } else {
-                card.classList.remove('danger');
-                card.classList.remove('danger-animation');
-                
-                // Remove danger icon
-                const dangerIcon = card.querySelector('.danger-icon');
-                if (dangerIcon) dangerIcon.remove();
-                
-                if (alias !== myAlias && Object.values(dangerStatus).every(status => !status)) {
-                    dangerAlert.classList.add('hidden');
-                }
-            }
-        }
-    });
-    
-    // Clear danger markers if no longer in danger
-    if (!inDanger) {
-        clearDangerMarkers(alias);
-    }
-}
-
-function addDangerMarker(position, alias) {
-    // Remove existing danger marker for this user
-    clearDangerMarkers(alias);
-    
-    const marker = L.marker([position.latitude, position.longitude], { icon: dangerIcon })
-        .addTo(map)
-        .bindPopup(`<b>DANGER: ${alias}</b><br>User may be in danger`);
-    
-    dangerMarkers.push({ alias, marker });
-    
-    // Flash the marker
-    let visible = true;
-    const flashInterval = setInterval(() => {
-        if (visible) {
-            marker.setOpacity(0.3);
-        } else {
-            marker.setOpacity(1);
-        }
-        visible = !visible;
-    }, 1000);
-    
-    // Store the interval to clear it later
-    marker.flashInterval = flashInterval;
-}
-
-function clearDangerMarkers(alias) {
-    for (let i = dangerMarkers.length - 1; i >= 0; i--) {
-        if (dangerMarkers[i].alias === alias) {
-            clearInterval(dangerMarkers[i].marker.flashInterval);
-            map.removeLayer(dangerMarkers[i].marker);
-            dangerMarkers.splice(i, 1);
-        }
-    }
-}
-
-/* ========= SOS Functionality ========= */
-sosButton.addEventListener('click', () => {
-    if (!conn || !conn.open) {
-        showNotification('Not connected to any peers', true);
-        return;
-    }
-    
-    // Immediately mark as in danger
-    setDangerStatus(myAlias, true);
-    
-    // Send SOS alert to peers
-    safeSend({
-        type: 'sos',
-        clientAlias: myAlias,
-        position: lastPosition,
-        timestamp: Date.now()
-    });
-    
-    // Play immediate alert
-    playDangerAlert();
-    
-    showNotification('SOS alert sent to all team members', false);
-});
-
 /* ========= Join modal behavior ========= */
-
 openJoinBtn.addEventListener('click', () => {
     joinModal.classList.add('show');
     joinModal.setAttribute('aria-hidden', 'false');
@@ -919,28 +624,23 @@ joinModal.addEventListener('click', (e) => {
 });
 
 /* ========= Create / Join ========= */
-
 function startSession(host){
     isHost = host;
     const code = (sessionCodeInput.value || '').trim();
     const realName = (realNameInput.value || '').trim();
-
     if(!realName){
         showNotification('Type your real name to proceed', true); return;
     }
     if(code.length < 4){ showNotification('Enter a valid code (min 4 chars)', true); return; }
-
     if(localStorage.getItem('session_active') === 'true' && host){
         showNotification('A session is already active locally. Stop it first or Resume.', true);
         return;
     }
-
     localStorage.setItem('local_real_name', realName);
     localStorage.setItem('session_code', code);
     localStorage.setItem('session_active', 'true');
     localStorage.setItem('session_role', host ? 'host' : 'joiner');
     sessionRoleCached = host ? 'host' : 'joiner';
-    
     // Set alias based on user preference
     const showRealName = showRealNameToggle.checked;
     if(showRealName) {
@@ -948,25 +648,17 @@ function startSession(host){
     } else {
         myAlias = generateAnonAlias();
     }
-
     setupCard.classList.add('hidden');
     sessionCard.classList.remove('hidden');
     displayCodeInput.value = code;
     updateStatus('Connecting...', false);
-    
     locationControls.classList.add('hidden');
     locationShared = false;
-    sosButton.classList.remove('hidden');
-
     if(isHost) {
         hostIndicator.classList.remove('hidden');
     } else {
         hostIndicator.classList.add('hidden');
     }
-    
-    // Show voice chat UI
-    voiceContainer.classList.remove('hidden');
-    
     // Clear chat and add welcome message
     chatMessages.innerHTML = '';
     if(isHost) {
@@ -974,28 +666,19 @@ function startSession(host){
     } else {
         appendMessage("Joining session...", false, true);
     }
-
     // Start session timer
     sessionStartTime = Date.now();
     if (timerInterval) clearInterval(timerInterval);
     timerInterval = setInterval(updateSessionTimer, 1000);
     updateSessionTimer();
-
-    // Start danger monitoring
-    startDangerMonitoring();
-
     destroyExistingPeer();
-
     try {
         peer = host ? new Peer(code) : new Peer();
     } catch(e){ console.error('Peer create failed', e); showNotification('Peer init failed', true); updateStatus('Error', false); return; }
-
     setControlsDisabled(true);
-
     reconnectAttempts = 0;
     const MAX_JOIN_ATTEMPTS = 8;
     const JOIN_INTERVAL_MS = 1500;
-
     peer.on('open', (id) => {
         if(!host){
             function tryConnect(){
@@ -1037,7 +720,6 @@ function startSession(host){
             setControlsDisabled(false);
         }
     });
-
     peer.on('connection', (connection) => {
         conn = connection;
         setupDataChannel(conn);
@@ -1046,18 +728,15 @@ function startSession(host){
         safeSend({ type:'alias', alias: myAlias });
         appendMessage(`Peer ${myAlias} joined the session`, false, true);
     });
-
     peer.on('disconnected', () => { 
         updateStatus('Disconnected', false); 
         showNotification('Network disconnected', true); 
         setControlsDisabled(false); 
     });
-    
     peer.on('close', () => { 
         updateStatus('Closed', false); 
         setControlsDisabled(false); 
     });
-    
     peer.on('error', (err) => { 
         console.error('peer error', err); 
         showNotification('Peer error: ' + String(err), true); 
@@ -1079,6 +758,9 @@ function setupDataChannel(connection){
             const txt = (data && data.text) ? String(data.text) : '';
             appendMessage(`${peerAlias}: ${txt}`, false);
         }
+        else if(data.type === 'voice') {
+            appendMessage(data.audioData, false, false, true);
+        }
         else if(data.type === 'host-migration') {
             isHost = true;
             hostIndicator.classList.remove('hidden');
@@ -1089,49 +771,19 @@ function setupDataChannel(connection){
             appendMessage(`${data.alias} rejoined the session`, false, true);
             showNotification(`${data.alias} has rejoined the session`);
         }
-        else if(data.type === 'voice') {
-            appendMessage('Voice message', false, false, data.timestamp, data.audio);
-        }
-        else if(data.type === 'danger') {
-            setDangerStatus(data.clientAlias, data.inDanger);
-            if (data.inDanger && data.position) {
-                addDangerMarker(data.position, data.clientAlias);
-                appendMessage(`${data.clientAlias} is in danger!`, false, true);
-            } else {
-                clearDangerMarkers(data.clientAlias);
-            }
-        }
         else if(data.type === 'sos') {
-            setDangerStatus(data.clientAlias, true);
-            if (data.position) {
-                addDangerMarker(data.position, data.clientAlias);
-            }
-            appendMessage(`EMERGENCY: ${data.clientAlias} sent an SOS!`, false, true);
-            
-            // Play immediate alert
-            const alertMessage = `EMERGENCY: ${data.clientAlias} needs help!`;
-            showNotification(alertMessage, true);
-            
-            if ('speechSynthesis' in window) {
-                const speech = new SpeechSynthesisUtterance(alertMessage);
-                window.speechSynthesis.speak(speech);
-            }
+            handleSOS(data);
+        }
+        else if(data.type === 'cancel-sos') {
+            handleCancelSOS(data);
         }
     });
-
     connection.on('close', () => {
         updateStatus('Peer disconnected', false);
         if(peerMarker){ map.removeLayer(peerMarker); peerMarker=null; }
         appendMessage(`${peerAlias} left the session`, false, true);
         showNotification('Peer disconnected');
         removePeerCard();
-        
-        // Clear danger status for disconnected peer
-        if (peerAlias) {
-            setDangerStatus(peerAlias, false);
-            clearDangerMarkers(peerAlias);
-        }
-        
         // If we were not host and host disconnected, become new host
         if(!isHost) {
             isHost = true;
@@ -1141,7 +793,6 @@ function setupDataChannel(connection){
             showNotification('You are now the host');
         }
     });
-
     connection.on('error', (err) => { 
         console.error('data channel error', err); 
         showNotification('Data channel error: ' + err.message, true); 
@@ -1161,9 +812,26 @@ function updatePeerAlias(data){
                 <span><i class="fas fa-location-slash"></i> Location not shared</span>
             </div>
             <div style="margin-top:10px"><span class="status-dot"></span> Online</div>
+            <!-- Emergency buttons for peer -->
+            <div class="emergency-btns">
+                <button class="btn sos-btn small-btn peer-sos" data-alias="${alias}"><i class="fas fa-exclamation-triangle"></i> SOS</button>
+                <button class="btn cancel-sos-btn small-btn peer-cancel-sos" data-alias="${alias}" disabled><i class="fas fa-times"></i> Cancel SOS</button>
+            </div>
         </div>`;
     const youCard = document.getElementById('you-card');
     userList.insertBefore(div, youCard.nextSibling);
+    
+    // Add event listeners to peer SOS buttons
+    const peerSOSBtn = div.querySelector('.peer-sos');
+    const peerCancelSOSBtn = div.querySelector('.peer-cancel-sos');
+    
+    peerSOSBtn.addEventListener('click', () => {
+        triggerSOS();
+    });
+    
+    peerCancelSOSBtn.addEventListener('click', () => {
+        cancelSOS();
+    });
     
     // Start peer duration timer
     const peerStart = Date.now();
@@ -1190,6 +858,11 @@ function updatePeerLocation(d){
     const latitude = Number(d.latitude), longitude = Number(d.longitude);
     if(isNaN(latitude) || isNaN(longitude)) return;
     
+    // Check if this is a host or not for inactivity detection
+    if(!isHost && !isSOSActive) {
+        checkInactivity(latitude, longitude);
+    }
+    
     // Update peer location indicator
     const peerCard = document.querySelector('.peer-card');
     if(peerCard) {
@@ -1198,9 +871,21 @@ function updatePeerLocation(d){
             <span><i class="fas fa-location-dot"></i> Location shared</span>
         `;
     }
-    
     if(peerMarker) map.removeLayer(peerMarker);
-    peerMarker = L.marker([latitude, longitude]).addTo(map).bindPopup(`<b>${peerAlias}'s Location</b><br>Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(6)}`).openPopup();
+    
+    // Create marker with appropriate color based on SOS status
+    const markerColor = d.isSOS ? 'red' : '#3388ff';
+    const icon = L.divIcon({
+        className: 'custom-marker',
+        html: `<div style="background:${markerColor};width:12px;height:12px;border-radius:50%;border:2px solid white;box-shadow:0 0 4px rgba(0,0,0,0.5);"></div>`,
+        iconSize: [16, 16],
+        iconAnchor: [8, 8]
+    });
+    
+    peerMarker = L.marker([latitude, longitude], {icon: icon})
+        .addTo(map)
+        .bindPopup(`<b>${d.clientAlias}'s Location</b><br>Lat: ${latitude.toFixed(6)}<br>Lng: ${longitude.toFixed(6)}${d.isSOS ? '<br><span style="color:red;font-weight:bold;">EMERGENCY: User in danger!</span>' : ''}`)
+        .openPopup();
     
     // Center map if both locations are available
     if(myMarker) {
@@ -1212,25 +897,6 @@ function updatePeerLocation(d){
     } else {
         map.setView([latitude, longitude], 13);
     }
-    
-    // Update danger status if user has moved
-    if (peerAlias && dangerStatus[peerAlias]) {
-        // Check if user has moved more than 1 meter
-        const movedDistance = calculateDistance(
-            lastPosition.latitude, lastPosition.longitude,
-            latitude, longitude
-        );
-        
-        if (movedDistance > 1) { // More than 1 meter
-            setDangerStatus(peerAlias, false);
-            safeSend({
-                type: 'danger',
-                clientAlias: peerAlias,
-                inDanger: false,
-                timestamp: Date.now()
-            });
-        }
-    }
 }
 
 /* share location */
@@ -1239,12 +905,9 @@ function shareMyLocation(){
         showNotification('No active session. Create or join a session first.', true);
         return;
     }
-    
     if(!navigator.geolocation){ showNotification('Geolocation not supported', true); return; }
-
     shareLocationBtn.disabled = true;
     shareLocationBtn.innerHTML = `<i class="fas fa-sync fa-spin"></i> Getting...`;
-
     navigator.geolocation.getCurrentPosition(pos => {
         const latitude = pos.coords.latitude, longitude = pos.coords.longitude;
         const myCard = document.getElementById('you-card');
@@ -1253,10 +916,20 @@ function shareMyLocation(){
             <span><i class="fas fa-location-dot"></i> Location shared</span>
         `;
         if(myMarker) map.removeLayer(myMarker);
-        myMarker = L.marker([latitude, longitude]).addTo(map).bindPopup(`<b>Your Location</b><br>Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(6)}`).openPopup();
         
-        // Update coordinates display
-        coordinatesDisplay.textContent = `Coordinates: Lat ${latitude.toFixed(6)}, Lng ${longitude.toFixed(6)}`;
+        // Create marker with appropriate color based on SOS status
+        const markerColor = isSOSActive ? 'red' : '#3388ff';
+        const icon = L.divIcon({
+            className: 'custom-marker',
+            html: `<div style="background:${markerColor};width:12px;height:12px;border-radius:50%;border:2px solid white;box-shadow:0 0 4px rgba(0,0,0,0.5);"></div>`,
+            iconSize: [16, 16],
+            iconAnchor: [8, 8]
+        });
+        
+        myMarker = L.marker([latitude, longitude], {icon: icon})
+            .addTo(map)
+            .bindPopup(`<b>Your Location</b><br>Lat: ${latitude.toFixed(6)}<br>Lng: ${longitude.toFixed(6)}${isSOSActive ? '<br><span style="color:red;font-weight:bold;">EMERGENCY: You are in danger!</span>' : ''}`)
+            .openPopup();
         
         // Center map if peer location is available
         if(peerMarker) {
@@ -1268,67 +941,34 @@ function shareMyLocation(){
         } else {
             map.setView([latitude, longitude], 13);
         }
-
+        
         if(conn && conn.open) {
-            safeSend({ type:'location', latitude: latitude, longitude: longitude, clientAlias: myAlias });
+            safeSend({ 
+                type:'location', 
+                latitude: latitude, 
+                longitude: longitude, 
+                clientAlias: myAlias,
+                isSOS: isSOSActive
+            });
         }
-
+        
+        // Store position for inactivity detection (if not host)
+        if(!isHost) {
+            lastPosition = { lat: latitude, lng: longitude, timestamp: Date.now() };
+            startInactivityMonitoring();
+        }
+        
         shareLocationBtn.disabled = false;
         shareLocationBtn.innerHTML = `<i class="fas fa-location-dot"></i> Share Location`;
         showNotification('Location shared');
-        
         locationControls.classList.remove('hidden');
         locationShared = true;
-        
-        // Update last position for danger monitoring
-        lastPosition = { latitude, longitude };
-        lastPositionTime = Date.now();
-        
-        // Clear danger status if user has moved
-        if (dangerStatus[myAlias]) {
-            const movedDistance = calculateDistance(
-                lastPosition.latitude, lastPosition.longitude,
-                latitude, longitude
-            );
-            
-            if (movedDistance > 1) { // More than 1 meter
-                setDangerStatus(myAlias, false);
-                
-                if (voiceAlertInterval) {
-                    clearInterval(voiceAlertInterval);
-                    voiceAlertInterval = null;
-                }
-                
-                safeSend({
-                    type: 'danger',
-                    clientAlias: myAlias,
-                    inDanger: false,
-                    timestamp: Date.now()
-                });
-            }
-        }
     }, err => {
         console.error('Geolocation error', err);
         shareLocationBtn.disabled = false;
         shareLocationBtn.innerHTML = `<i class="fas fa-location-dot"></i> Share Location`;
         showNotification('Could not get location (enable location services)', true);
     }, { enableHighAccuracy:true, maximumAge:30000, timeout:10000 });
-}
-
-// Calculate distance between two coordinates in meters
-function calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371e3; // Earth radius in meters
-    const φ1 = lat1 * Math.PI/180;
-    const φ2 = lat2 * Math.PI/180;
-    const Δφ = (lat2-lat1) * Math.PI/180;
-    const Δλ = (lon2-lon1) * Math.PI/180;
-
-    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-            Math.cos(φ1) * Math.cos(φ2) *
-            Math.sin(Δλ/2) * Math.sin(Δλ/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-
-    return R * c;
 }
 
 /* update location */
@@ -1344,19 +984,29 @@ stopSharingBtn.addEventListener('click', () => {
         map.removeLayer(myMarker);
         myMarker = null;
     }
-    
     const myCard = document.getElementById('you-card');
     myCard.querySelector('.location-sharing').innerHTML = `
         <span class="dot"></span>
         <span><i class="fas fa-location-slash"></i> Location not shared</span>
     `;
-    
-    coordinatesDisplay.textContent = 'Coordinates: Not available';
-    
     locationControls.classList.add('hidden');
     locationShared = false;
-    
     showNotification('Stopped sharing your location');
+    
+    // Stop inactivity monitoring
+    if(positionCheckInterval) {
+        clearInterval(positionCheckInterval);
+        positionCheckInterval = null;
+    }
+    if(inactivityTimer) {
+        clearTimeout(inactivityTimer);
+        inactivityTimer = null;
+    }
+    if(inactivityCountdown) {
+        const countdownEl = document.getElementById('inactivity-countdown');
+        if(countdownEl) countdownEl.remove();
+        inactivityCountdown = null;
+    }
 });
 
 /* stop session */
@@ -1366,15 +1016,12 @@ function stopSession(){
     localStorage.removeItem('session_role');
     localStorage.removeItem('session_code');
     sessionRoleCached = null;
-
     setupCard.classList.remove('hidden');
     sessionCard.classList.add('hidden');
     displayCodeInput.value = '';
     updateStatus('Ready to connect', false);
-
     if(myMarker){ map.removeLayer(myMarker); myMarker=null; }
     if(peerMarker){ map.removeLayer(peerMarker); peerMarker=null; }
-
     userList.innerHTML = `<div class="user-card" id="you-card">
         <div class="user-avatar">Y</div>
         <div class="user-info">
@@ -1384,36 +1031,42 @@ function stopSession(){
                 <span><i class="fas fa-location-slash"></i> Location not shared</span>
             </div>
             <div style="margin-top:10px"><span class="status-dot"></span> Online</div>
+            <!-- Emergency buttons -->
+            <div class="emergency-btns">
+                <button id="sos-btn" class="btn sos-btn small-btn"><i class="fas fa-exclamation-triangle"></i> SOS</button>
+                <button id="cancel-sos-btn" class="btn cancel-sos-btn small-btn" disabled><i class="fas fa-times"></i> Cancel SOS</button>
+            </div>
         </div>
     </div>`;
-
     chatMessages.innerHTML = '<div class="message-system">Welcome to SecureHat! Start by creating or joining a session.</div>';
-    
     if(timerInterval) clearInterval(timerInterval);
     sessionTimer.textContent = '00:00:00';
-    
     locationControls.classList.add('hidden');
     locationShared = false;
-    sosButton.classList.add('hidden');
-    voiceContainer.classList.add('hidden');
-    
-    // Clear danger monitoring
-    if (dangerCheckInterval) clearInterval(dangerCheckInterval);
-    if (voiceAlertInterval) clearInterval(voiceAlertInterval);
-    dangerStatus = {};
-    lastPosition = null;
-    lastPositionTime = null;
-    
-    // Clear danger markers
-    dangerMarkers.forEach(markerInfo => {
-        clearInterval(markerInfo.marker.flashInterval);
-        map.removeLayer(markerInfo.marker);
-    });
-    dangerMarkers = [];
-    
     hostIndicator.classList.add('hidden');
     isHost = false;
-    dangerAlert.classList.add('hidden');
+    isSOSActive = false;
+    sosBtn.disabled = false;
+    cancelSosBtn.disabled = true;
+    
+    // Stop all emergency-related intervals
+    if(positionCheckInterval) {
+        clearInterval(positionCheckInterval);
+        positionCheckInterval = null;
+    }
+    if(inactivityTimer) {
+        clearTimeout(inactivityTimer);
+        inactivityTimer = null;
+    }
+    if(inactivityCountdown) {
+        const countdownEl = document.getElementById('inactivity-countdown');
+        if(countdownEl) countdownEl.remove();
+        inactivityCountdown = null;
+    }
+    if(emergencyBroadcastInterval) {
+        clearInterval(emergencyBroadcastInterval);
+        emergencyBroadcastInterval = null;
+    }
     
     showNotification('Session stopped');
 }
@@ -1429,6 +1082,7 @@ function showStopModal(){
     stopConfirmation.classList.add('show');
     confirmStopBtn.focus();
 }
+
 function hideStopModal(){ stopConfirmation.classList.remove('show'); }
 
 stopSessionBtn.addEventListener('click', (e) => { showStopModal(); });
@@ -1443,18 +1097,15 @@ window.addEventListener('keydown', (e) => { if(e.key === 'Escape' && stopConfirm
 window.addEventListener('DOMContentLoaded', () => {
     const showRealName = localStorage.getItem('show_real_name') === 'true';
     showRealNameToggle.checked = showRealName;
-    
     const sessionCode = localStorage.getItem('session_code');
     const sessionActive = localStorage.getItem('session_active') === 'true';
     const sessionRole = localStorage.getItem('session_role');
-
     if(sessionCode && sessionActive && sessionRole){
         displayCodeInput.value = sessionCode;
         setupCard.classList.remove('hidden');
         sessionCard.classList.remove('hidden');
         updateStatus('Session active. Type your name and press Reconnect.', false);
         sessionRoleCached = sessionRole;
-        
         if(sessionRole === 'host') {
             hostIndicator.classList.remove('hidden');
             isHost = true;
@@ -1464,12 +1115,6 @@ window.addEventListener('DOMContentLoaded', () => {
         sessionCard.classList.add('hidden');
         updateStatus('Ready to connect', false);
     }
-    
-    // Request notification permission
-    requestNotificationPermission();
-    
-    // Setup voice recording
-    setupVoiceRecording();
 });
 
 function updateYourNameDisplay() {
@@ -1498,15 +1143,12 @@ openJoinBtn.addEventListener('click', () => {
 resumeSessionBtn.addEventListener('click', () => {
     const persistedName = localStorage.getItem('local_real_name') || '';
     if (persistedName) realNameInput.value = persistedName;
-    
     if (!realNameInput.value.trim()) {
         showNotification('Type your real name to reconnect.', true);
         return;
     }
-    
     const persistedCode = localStorage.getItem('session_code') || displayCodeInput.value;
     if (persistedCode) sessionCodeInput.value = persistedCode;
-    
     const isHost = (localStorage.getItem('session_role') === 'host');
     startSession(isHost);
 });
@@ -1522,9 +1164,7 @@ shareLocationBtn.addEventListener('click', shareMyLocation);
 chatSend.addEventListener('click', () => {
     const txt = chatInput.value.trim();
     if(!txt) return;
-    
     appendMessage(`${myAlias}: ${txt}`, true);
-    
     if (conn && conn.open) {
         safeSend({ type:'chat', text: txt, clientAlias: myAlias });
     }
@@ -1545,6 +1185,356 @@ window.addEventListener('beforeunload', (e) => {
         e.returnValue = '';
     }
 });
+
+/* ========= Emergency System Implementation ========= */
+function triggerSOS() {
+    if(isSOSActive) return;
+    
+    isSOSActive = true;
+    sosBtn.disabled = true;
+    cancelSosBtn.disabled = false;
+    
+    // Update UI for SOS
+    const sosAlert = document.createElement('div');
+    sosAlert.className = 'danger-alert';
+    sosAlert.innerHTML = `<strong>EMERGENCY ALERT!</strong> You have triggered an SOS. Your location is being shared with all users.`;
+    document.querySelector('.container').insertBefore(sosAlert, document.querySelector('.container').firstChild);
+    
+    // Update marker to red if location is shared
+    if(myMarker && locationShared) {
+        const latitude = myMarker.getLatLng().lat;
+        const longitude = myMarker.getLatLng().lng;
+        
+        const icon = L.divIcon({
+            className: 'custom-marker',
+            html: `<div style="background:red;width:12px;height:12px;border-radius:50%;border:2px solid white;box-shadow:0 0 4px rgba(0,0,0,0.5);"></div>`,
+            iconSize: [16, 16],
+            iconAnchor: [8, 8]
+        });
+        
+        myMarker.setIcon(icon);
+        myMarker.setPopupContent(`<b>Your Location</b><br>Lat: ${latitude.toFixed(6)}<br>Lng: ${longitude.toFixed(6)}<br><span style="color:red;font-weight:bold;">EMERGENCY: You are in danger!</span>`);
+        
+        // Send SOS alert to peers
+        if(conn && conn.open) {
+            safeSend({ 
+                type: 'sos', 
+                clientAlias: myAlias, 
+                latitude: latitude, 
+                longitude: longitude 
+            });
+            
+            // Start broadcasting emergency message every 10 seconds
+            emergencyBroadcastInterval = setInterval(() => {
+                if(conn && conn.open) {
+                    safeSend({ 
+                        type: 'chat', 
+                        text: `EMERGENCY: ${myAlias} is in danger at Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(6)}`,
+                        clientAlias: 'SYSTEM'
+                    });
+                }
+            }, 10000);
+        }
+    }
+    
+    showNotification('SOS ALERT TRIGGERED! Your location is being shared with all users.', false, 5000);
+}
+
+function cancelSOS() {
+    if(!isSOSActive) return;
+    
+    isSOSActive = false;
+    sosBtn.disabled = false;
+    cancelSosBtn.disabled = true;
+    
+    // Remove SOS alert
+    const sosAlert = document.querySelector('.danger-alert');
+    if(sosAlert) sosAlert.remove();
+    
+    // Update marker back to blue if location is shared
+    if(myMarker && locationShared) {
+        const latitude = myMarker.getLatLng().lat;
+        const longitude = myMarker.getLatLng().lng;
+        
+        const icon = L.divIcon({
+            className: 'custom-marker',
+            html: `<div style="background:#3388ff;width:12px;height:12px;border-radius:50%;border:2px solid white;box-shadow:0 0 4px rgba(0,0,0,0.5);"></div>`,
+            iconSize: [16, 16],
+            iconAnchor: [8, 8]
+        });
+        
+        myMarker.setIcon(icon);
+        myMarker.setPopupContent(`<b>Your Location</b><br>Lat: ${latitude.toFixed(6)}<br>Lng: ${longitude.toFixed(6)}`);
+        
+        // Send cancel SOS to peers
+        if(conn && conn.open) {
+            safeSend({ 
+                type: 'cancel-sos', 
+                clientAlias: myAlias 
+            });
+            
+            // Stop broadcasting emergency messages
+            if(emergencyBroadcastInterval) {
+                clearInterval(emergencyBroadcastInterval);
+                emergencyBroadcastInterval = null;
+            }
+        }
+    }
+    
+    showNotification('SOS ALERT CANCELLED', false, 3000);
+}
+
+function handleSOS(data) {
+    // Update peer marker to red
+    if(peerMarker) {
+        const icon = L.divIcon({
+            className: 'custom-marker',
+            html: `<div style="background:red;width:12px;height:12px;border-radius:50%;border:2px solid white;box-shadow:0 0 4px rgba(0,0,0,0.5);"></div>`,
+            iconSize: [16, 16],
+            iconAnchor: [8, 8]
+        });
+        
+        peerMarker.setIcon(icon);
+        peerMarker.setPopupContent(`<b>${data.clientAlias}'s Location</b><br>Lat: ${data.latitude.toFixed(6)}<br>Lng: ${data.longitude.toFixed(6)}<br><span style="color:red;font-weight:bold;">EMERGENCY: User in danger!</span>`);
+    }
+    
+    // Show alert in chat
+    appendMessage(`EMERGENCY: ${data.clientAlias} is in danger at Lat: ${data.latitude.toFixed(6)}, Lng: ${data.longitude.toFixed(6)}`, false, true);
+    
+    // Show notification
+    showNotification(`${data.clientAlias} is in danger! Check the map for their location.`, true, 5000);
+    
+    // Enable cancel button for this peer
+    const peerCancelSOSBtn = document.querySelector('.peer-cancel-sos');
+    if(peerCancelSOSBtn) {
+        peerCancelSOSBtn.disabled = false;
+    }
+}
+
+function handleCancelSOS(data) {
+    // Update peer marker back to blue
+    if(peerMarker) {
+        const icon = L.divIcon({
+            className: 'custom-marker',
+            html: `<div style="background:#3388ff;width:12px;height:12px;border-radius:50%;border:2px solid white;box-shadow:0 0 4px rgba(0,0,0,0.5);"></div>`,
+            iconSize: [16, 16],
+            iconAnchor: [8, 8]
+        });
+        
+        peerMarker.setIcon(icon);
+        const lat = peerMarker.getLatLng().lat;
+        const lng = peerMarker.getLatLng().lng;
+        peerMarker.setPopupContent(`<b>${data.clientAlias}'s Location</b><br>Lat: ${lat.toFixed(6)}<br>Lng: ${lng.toFixed(6)}`);
+    }
+    
+    // Show alert in chat
+    appendMessage(`${data.clientAlias}'s emergency alert has been cancelled.`, false, true);
+    
+    // Show notification
+    showNotification(`${data.clientAlias}'s SOS alert has been cancelled.`, false, 3000);
+    
+    // Disable cancel button for this peer
+    const peerCancelSOSBtn = document.querySelector('.peer-cancel-sos');
+    if(peerCancelSOSBtn) {
+        peerCancelSOSBtn.disabled = true;
+    }
+}
+
+// Add event listeners for SOS buttons
+sosBtn.addEventListener('click', triggerSOS);
+cancelSosBtn.addEventListener('click', cancelSOS);
+
+/* ========= Automatic Danger Detection ========= */
+function checkInactivity(lat, lng) {
+    if(isHost || isSOSActive) return; // Host is never marked in danger, and don't check if already in SOS
+    
+    const currentPosition = { lat, lng, timestamp: Date.now() };
+    
+    if(lastPosition) {
+        // Calculate distance between current and last position (in meters)
+        const distance = calculateDistance(
+            lastPosition.lat, lastPosition.lng,
+            currentPosition.lat, currentPosition.lng
+        );
+        
+        // If user hasn't moved more than ~1 meter
+        if(distance < 1) {
+            // Start countdown if not already started
+            if(!inactivityTimer) {
+                startInactivityCountdown();
+            }
+        } else {
+            // Reset timer if user moved
+            resetInactivityTimer();
+        }
+    }
+    
+    lastPosition = currentPosition;
+}
+
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371e3; // Earth radius in meters
+    const φ1 = lat1 * Math.PI/180;
+    const φ2 = lat2 * Math.PI/180;
+    const Δφ = (lat2-lat1) * Math.PI/180;
+    const Δλ = (lon2-lon1) * Math.PI/180;
+
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+    return R * c;
+}
+
+function startInactivityCountdown() {
+    let countdown = 90; // 90 seconds
+    
+    // Create countdown element if it doesn't exist
+    if(!inactivityCountdown) {
+        inactivityCountdown = document.createElement('div');
+        inactivityCountdown.id = 'inactivity-countdown';
+        inactivityCountdown.className = 'countdown';
+        inactivityCountdown.textContent = `Warning: You haven't moved in a while. SOS will be triggered in ${countdown}s if you don't move.`;
+        document.querySelector('.container').insertBefore(inactivityCountdown, document.querySelector('.container').firstChild);
+    }
+    
+    // Update countdown every second
+    inactivityTimer = setInterval(() => {
+        countdown--;
+        if(inactivityCountdown) {
+            inactivityCountdown.textContent = `Warning: You haven't moved in a while. SOS will be triggered in ${countdown}s if you don't move.`;
+        }
+        
+        if(countdown <= 0) {
+            clearInterval(inactivityTimer);
+            inactivityTimer = null;
+            
+            // Trigger SOS automatically
+            triggerSOS();
+            
+            // Remove countdown element
+            if(inactivityCountdown) {
+                inactivityCountdown.remove();
+                inactivityCountdown = null;
+            }
+        }
+    }, 1000);
+}
+
+function resetInactivityTimer() {
+    if(inactivityTimer) {
+        clearInterval(inactivityTimer);
+        inactivityTimer = null;
+    }
+    if(inactivityCountdown) {
+        inactivityCountdown.remove();
+        inactivityCountdown = null;
+    }
+}
+
+function startInactivityMonitoring() {
+    if(positionCheckInterval) {
+        clearInterval(positionCheckInterval);
+    }
+    
+    // Check position every 5 seconds
+    positionCheckInterval = setInterval(() => {
+        if(locationShared && myMarker && !isHost && !isSOSActive) {
+            const currentPos = myMarker.getLatLng();
+            checkInactivity(currentPos.lat, currentPos.lng);
+        }
+    }, 5000);
+}
+
+/* ========= Voice Message Implementation ========= */
+async function startRecording() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+        
+        mediaRecorder.ondataavailable = event => {
+            audioChunks.push(event.data);
+        };
+        
+        mediaRecorder.onstop = () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+            const audioUrl = URL.createObjectURL(audioBlob);
+            
+            // Convert to base64 for sending over peer connection
+            const reader = new FileReader();
+            reader.onload = function() {
+                const base64Audio = reader.result;
+                
+                // Send voice message
+                if (conn && conn.open) {
+                    safeSend({ 
+                        type: 'voice', 
+                        audioData: base64Audio,
+                        clientAlias: myAlias 
+                    });
+                }
+                
+                // Display in chat
+                const duration = Math.floor((Date.now() - recordingStartTime) / 1000);
+                appendMessage(base64Audio, true, false, true);
+            };
+            reader.readAsDataURL(audioBlob);
+            
+            // Clean up
+            stream.getTracks().forEach(track => track.stop());
+        };
+        
+        mediaRecorder.start();
+        isRecording = true;
+        recordingStartTime = Date.now();
+        
+        // Update UI
+        voiceRecordBtn.innerHTML = '<i class="fas fa-stop"></i> Stop Recording';
+        recordingTimer.classList.remove('hidden');
+        
+        // Start timer
+        let seconds = 0;
+        recordingTimerInterval = setInterval(() => {
+            seconds++;
+            recordingTimer.textContent = `Recording: ${seconds}s`;
+        }, 1000);
+        
+        showNotification('Recording voice message...');
+    } catch (error) {
+        console.error('Error accessing microphone:', error);
+        showNotification('Could not access microphone. Please check permissions.', true);
+    }
+}
+
+function stopRecording() {
+    if (mediaRecorder && isRecording) {
+        mediaRecorder.stop();
+        isRecording = false;
+        
+        // Update UI
+        voiceRecordBtn.innerHTML = '<i class="fas fa-microphone"></i> Record Voice';
+        recordingTimer.classList.add('hidden');
+        
+        // Clear timer
+        if (recordingTimerInterval) {
+            clearInterval(recordingTimerInterval);
+            recordingTimerInterval = null;
+        }
+        
+        showNotification('Voice message recorded and sent');
+    }
+}
+
+voiceRecordBtn.addEventListener('click', () => {
+    if (isRecording) {
+        stopRecording();
+    } else {
+        startRecording();
+    }
+});
 </script>
 </body>
 </html>
+```
