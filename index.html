@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -132,38 +131,43 @@
         .tooltip:hover .tooltiptext { visibility: visible; opacity: 1 }
         .rejoin-notice { background: rgba(255,255,255,.05); padding: 10px; border-radius: 10px; border-left: 4px solid #4facfe; margin: 12px 0; display: flex; align-items: center; gap: 8px; font-size: 0.9rem }
         .duration-badge { background: rgba(79, 172, 254, 0.2); color: #4facfe; padding: 4px 8px; border-radius: 20px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 4px }
-        /* Danger status styling */
-        .status-dot.danger { background: #e74c3c; animation: pulse 2s infinite; }
-        .location-sharing.danger { color: #e74c3c; }
-        .location-sharing.danger .dot { background: #e74c3c; }
+        
+        /* New styles for voice chat and danger features */
+        .voice-chat-container { display: flex; gap: 10px; margin-top: 10px; align-items: center; }
+        .voice-btn { background: linear-gradient(45deg, #9c88ff, #8c7ae6); }
+        .voice-btn.recording { background: linear-gradient(45deg, #e84118, #c23616); animation: pulse 1s infinite; }
+        .voice-message { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 18px; background: rgba(79, 172, 254, 0.2); margin: 8px 0; }
+        .voice-message.me { background: rgba(255, 126, 95, 0.2); align-self: flex-end; }
+        .voice-player { flex: 1; }
+        .sos-btn { background: linear-gradient(45deg, #e84118, #c23616); margin-top: 10px; }
+        .danger-status { color: #e84118; font-weight: bold; }
+        .danger-animation { animation: danger-pulse 2s infinite; }
+        .coordinates-display { font-size: 0.85rem; margin-top: 8px; opacity: 0.8; }
+        .chat-message-time { font-size: 0.7rem; opacity: 0.7; margin-top: 4px; }
+        .chat-message-container { display: flex; flex-direction: column; max-width: 85%; }
+        .chat-message-container.me { align-self: flex-end; }
+        .chat-message-container.peer { align-self: flex-start; }
+        
         @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
-        .sos-btn { background: linear-gradient(45deg, #e74c3c, #c0392b); margin-top: 10px; }
-        .voice-record-btn { background: linear-gradient(45deg, #9b59b6, #8e44ad); margin-top: 10px; }
-        .message-voice { 
-            background: rgba(155, 89, 182, 0.2); 
-            padding: 10px;
-            border-radius: 8px;
-            margin: 5px 0;
+        
+        @keyframes danger-pulse {
+            0% { background-color: rgba(232, 65, 24, 0.1); }
+            50% { background-color: rgba(232, 65, 24, 0.3); }
+            100% { background-color: rgba(232, 65, 24, 0.1); }
         }
-        .coordinates { 
-            font-size: 0.8rem; 
-            color: rgba(255,255,255,0.7); 
-            margin-top: 4px;
-            font-family: monospace;
-        }
-        .danger-alert { 
-            background: rgba(231, 76, 60, 0.2); 
-            border: 1px solid #e74c3c; 
-            color: #e74c3c; 
-            padding: 8px; 
-            border-radius: 6px; 
-            margin: 8px 0;
-            animation: pulse 2s infinite;
-        }
+        
+        .user-card.danger { border: 2px solid #e84118; background: rgba(232, 65, 24, 0.1); }
+        .danger-icon { color: #e84118; margin-left: 5px; }
+        
+        /* Improved chat UI */
+        .chat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .chat-tabs { display: flex; gap: 5px; }
+        .chat-tab { padding: 5px 10px; border-radius: 15px; background: rgba(255,255,255,0.05); cursor: pointer; }
+        .chat-tab.active { background: rgba(79, 172, 254, 0.3); }
     </style>
 </head>
 <body>
@@ -174,7 +178,7 @@
             <div>
                 <div class="logo-text">SECUREHAT</div>
                 <div style="font-size:0.95rem;color:rgba(255,255,255,0.85);font-weight:600;margin-top:6px;">
-                    Private Location Sharing & Chat
+                    Private Location Sharing &amp; Chat
                 </div>
                 <div style="font-size:0.85rem;color:rgba(255,255,255,0.65);margin-top:8px;">
                     <em>Developed by Kurdistan Innovator Team</em>
@@ -184,22 +188,27 @@
         <h1>Private Location Sharing & Chat</h1>
         <div class="subtitle muted">Your real name stays local-only unless you choose to share it</div>
     </header>
+
     <div class="privacy-notice">
         <i class="fas fa-shield-alt" style="color:#4cd137"></i>
         <div><strong>Privacy Notice:</strong> Your real name is stored locally only. If you choose to share it, it will be visible to others in the session. All location data is peer-to-peer and never stored on any server.</div>
     </div>
+    
     <div class="rejoin-notice">
         <i class="fas fa-rotate-left" style="color:#4facfe"></i>
         <div><strong>Rejoin Anytime:</strong> You can leave and rejoin active sessions using the same session code at any time.</div>
     </div>
+
     <!-- Setup -->
     <div class="card fade-in" id="setup-card">
         <div class="card-title"><i class="fas fa-user"></i> User Setup</div>
+
         <div class="form-group">
             <label class="form-label">Your Real Name</label>
             <input id="real-name" class="form-control" type="text" placeholder="Type your real name (required)">
             <div class="form-note">This name is stored locally only. You must type it each time you start/resume.</div>
         </div>
+
         <div class="form-group">
             <label class="form-label">Session Code</label>
             <div class="code-row">
@@ -212,6 +221,7 @@
                 <button id="copy-session-code" class="btn btn-outline small-btn" disabled>Copy</button>
             </div>
         </div>
+        
         <!-- Show real name toggle -->
         <div class="toggle-container">
             <label class="switch">
@@ -221,14 +231,17 @@
             <span>Show my real name to others</span>
         </div>
         <div class="form-note" style="margin-top:8px">Enabling this will share your real name with other participants.</div>
+
         <div class="btn-container">
             <button id="create-session" class="btn"><i class="fas fa-plus-circle"></i> Create Session</button>
             <button id="open-join" class="btn btn-outline"><i class="fas fa-user-friends"></i> Join Session</button>
         </div>
     </div>
+
     <!-- Active session card -->
     <div class="card hidden fade-in" id="session-card">
         <div class="card-title"><i class="fas fa-satellite"></i> Active Session</div>
+        
         <div class="session-info">
             <div class="session-status">
                 <div class="status-indicator" id="connection-dot"></div>
@@ -240,33 +253,44 @@
             </div>
             <div class="session-role" id="host-indicator">HOST</div>
         </div>
+
         <div class="code-container">
             <input id="display-code" class="code-input" readonly placeholder="Session Code">
             <button id="copy-code" class="btn btn-outline" title="Copy code"><i class="fas fa-copy"></i></button>
         </div>
+
         <div class="btn-container" style="margin-top:16px;grid-template-columns:1fr 1fr 1fr">
             <button id="resume-session" class="btn btn-reconnect"><i class="fas fa-plug"></i> Reconnect</button>
             <button id="share-location" class="btn"><i class="fas fa-location-dot"></i> Share Location</button>
             <button id="stop-session" class="btn btn-stop"><i class="fas fa-power-off"></i> Stop</button>
         </div>
+        
+        <!-- SOS Button -->
+        <button id="sos-button" class="btn sos-btn hidden"><i class="fas fa-life-ring"></i> SOS Emergency</button>
+        
         <!-- Location management buttons -->
         <div class="btn-container hidden" id="location-controls" style="margin-top:16px;grid-template-columns:1fr 1fr">
             <button id="update-location" class="btn btn-update"><i class="fas fa-sync-alt"></i> Update Location</button>
             <button id="stop-sharing" class="btn btn-unshare"><i class="fas fa-location-slash"></i> Stop Sharing</button>
         </div>
+
         <div class="form-note" style="margin-top:14px">Note: You can reconnect anytime using the session code.</div>
     </div>
+
     <!-- Map -->
     <div class="card fade-in">
         <div class="card-title"><i class="fas fa-map-marked-alt"></i> Location Map</div>
         <div class="map-container"><div id="map"></div></div>
+        <div id="coordinates-display" class="coordinates-display">Coordinates: Not available</div>
     </div>
+
     <!-- Connected users + chat -->
     <div class="card fade-in">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
             <div class="card-title"><i class="fas fa-users"></i> Connected Users</div>
             <div class="muted">Chat & messages are anonymized unless you share your name</div>
         </div>
+
         <div class="user-list" id="user-list">
             <div class="user-card" id="you-card">
                 <div class="user-avatar">Y</div>
@@ -280,20 +304,32 @@
                 </div>
             </div>
         </div>
+
         <div style="margin-top:16px" class="chat-card">
+            <div class="chat-header">
+                <div class="chat-tabs">
+                    <div class="chat-tab active">Text</div>
+                    <div class="chat-tab">Voice</div>
+                </div>
+                <div id="danger-alert" class="danger-status hidden"><i class="fas fa-exclamation-triangle danger-icon"></i> Danger Detected</div>
+            </div>
+            
             <div class="chat-messages" id="chat-messages" aria-live="polite">
                 <div class="message-system">Welcome to SecureHat! Start by creating or joining a session.</div>
             </div>
+            
             <div class="chat-input-row" style="margin-top:10px">
                 <input id="chat-input" class="chat-input" placeholder="Type a message..." />
                 <button id="chat-send" class="chat-send"><i class="fas fa-paper-plane"></i> Send</button>
             </div>
-            <div class="btn-container" style="margin-top:10px;grid-template-columns:1fr 1fr">
-                <button id="sos-button" class="btn sos-btn"><i class="fas fa-exclamation-triangle"></i> Send SOS</button>
-                <button id="voice-record-btn" class="btn voice-record-btn"><i class="fas fa-microphone"></i> Record Voice</button>
+            
+            <div class="voice-chat-container hidden" id="voice-container">
+                <button id="record-voice" class="btn voice-btn"><i class="fas fa-microphone"></i> Record Voice</button>
+                <div id="recording-status">Press to record voice message</div>
             </div>
         </div>
     </div>
+
     <footer>
       <div>SecureHat © Privacy First | No Database | Session persists until stopped</div>
       <div style="margin-top:8px;font-size:0.85rem;opacity:0.85;">
@@ -301,8 +337,10 @@
       </div>
     </footer>
 </div>
+
 <!-- Notification -->
 <div id="notification" class="notification" role="status" aria-live="polite"><i class="fas fa-info-circle"></i> <span id="notification-message">Ready to start</span></div>
+
 <!-- Join modal -->
 <div id="join-modal" aria-hidden="true">
   <div class="join-box">
@@ -315,6 +353,7 @@
     </div>
   </div>
 </div>
+
 <!-- Stop confirmation modal -->
 <div id="stop-confirmation" role="dialog" aria-modal="true" aria-labelledby="stop-title">
     <div class="confirmation-box">
@@ -326,6 +365,7 @@
         </div>
     </div>
 </div>
+
 <script>
 /* ========= DOM refs ========= */
 const realNameInput = document.getElementById('real-name');
@@ -367,7 +407,11 @@ const codeHint = document.getElementById('code-hint');
 const sessionTimer = document.getElementById('session-timer');
 const yourDuration = document.getElementById('your-duration');
 const sosButton = document.getElementById('sos-button');
-const voiceRecordBtn = document.getElementById('voice-record-btn');
+const recordVoiceBtn = document.getElementById('record-voice');
+const voiceContainer = document.getElementById('voice-container');
+const recordingStatus = document.getElementById('recording-status');
+const dangerAlert = document.getElementById('danger-alert');
+const coordinatesDisplay = document.getElementById('coordinates-display');
 
 /* ========= State ========= */
 let peer = null;
@@ -386,14 +430,15 @@ let sessionStartTime = null;
 let timerInterval = null;
 let peerDurationInterval = null;
 let peerDuration = 0;
-
-// Safety monitoring state
-let lastLocation = null;
-let inactivityTimer = null;
-let dangerAlerts = {};
-let voiceRecordings = [];
 let mediaRecorder = null;
 let audioChunks = [];
+let isRecording = false;
+let dangerCheckInterval = null;
+let lastPosition = null;
+let lastPositionTime = null;
+let dangerMarkers = [];
+let voiceAlertInterval = null;
+let dangerStatus = {};
 
 /* ========= Map init ========= */
 const map = L.map('map', { 
@@ -404,6 +449,14 @@ const map = L.map('map', {
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
+
+// Add danger icon
+const dangerIcon = L.icon({
+    iconUrl: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiBmaWxsPSIjZTg0MTE4Ij48cGF0aCBkPSJNMjU2IDhDMTE5LjA0MyA4IDggMTE5LjA4MyA4IDI1NmMwIDEzNi45OTcgMTExLjA0MyAyNDggMjQ4IDI0OHMyNDgtMTExLjAwMyAyNDgtMjQ4QzUwNCAxMTkuMDgzIDM5Mi45NTcgOCAyNTYgOHptMCA0MjRjLTEzLjI1NSAwLTI0LTEwLjc0NS0yNC0yNHMxMC43NDUtMjQgMjQtMjQgMjQgMTAuNzQ1IDI0IDI0LTEwLjc0NSAyNC0yNCAyNHptMC0zNjhjLTE3LjY3MyAwLTMyIDE0LjMyNy0zMiAzMnYxNzZjMCAxNy42NzMgMTQuMzI3IDMyIDMyIDMyczMyLTE0LjMyNyAzMi0zMlY5NmMwLTE3LjY3My0xNC4zMjctMzItMzItMzJ6Ii8+PC9zdmc+',
+    iconSize: [25, 25],
+    iconAnchor: [12, 25],
+    popupAnchor: [0, -25]
+});
 
 /* ========= Helpers ========= */
 function generateAnonAlias(){ 
@@ -420,6 +473,21 @@ function showNotification(msg, isError=false, duration=3000){
     notification.classList.add('show');
     if(isError) notification.classList.add('error'); else notification.classList.remove('error');
     notificationTimeout = setTimeout(()=>{ notification.classList.remove('show'); notification.classList.remove('error'); }, duration);
+    
+    // Also show browser notification if allowed
+    if ("Notification" in window && Notification.permission === "granted") {
+        new Notification("SecureHat Alert", {
+            body: msg,
+            icon: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiBmaWxsPSIjZmY3ZTVmIj48cGF0aCBkPSJNMjU2IDhDMTE5LjA0MyA4IDggMTE5LjA4MyA4IDI1NmMwIDEzNi45OTcgMTExLjA0MyAyNDggMjQ4IDI0OHMyNDgtMTExLjAwMyAyNDgtMjQ4QzUwNCAxMTkuMDgzIDM5Mi45NTcgOCAyNTYgOHptMCA0MjRjLTEzLjI1NSAwLTI0LTEwLjc0NS0yNC0yNHMxMC43NDUtMjQgMjQtMjQgMjQgMTAuNzQ1IDI0IDI0LTEwLjc0NSAyNC0yNCAyNHptMC0zNjhjLTE3LjY3MyAwLTMyIDE0LjMyNy0zMiAzMnYxNzZjMCAxNy42NzMgMTQuMzI3IDMyIDMyIDMyczMyLTE0LjMyNyAzMi0zMlY5NmMwLTE3LjY3My0xNC4zMjctMzItMzItMzJ6Ii8+PC9zdmc+"
+        });
+    }
+}
+
+// Request notification permission
+function requestNotificationPermission() {
+    if ("Notification" in window) {
+        Notification.requestPermission();
+    }
 }
 
 function updateStatus(text, connected=false){
@@ -429,13 +497,17 @@ function updateStatus(text, connected=false){
 
 function updateSessionTimer() {
     if (!sessionStartTime) return;
+    
     const elapsed = Date.now() - sessionStartTime;
     const seconds = Math.floor((elapsed / 1000) % 60);
     const minutes = Math.floor((elapsed / (1000 * 60)) % 60);
     const hours = Math.floor(elapsed / (1000 * 60 * 60));
+    
     const formattedTime = 
         `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    
     sessionTimer.textContent = formattedTime;
+    
     // Update personal duration
     yourDuration.textContent = formatDuration(elapsed);
 }
@@ -444,6 +516,7 @@ function formatDuration(milliseconds) {
     const seconds = Math.floor((milliseconds / 1000) % 60);
     const minutes = Math.floor((milliseconds / (1000 * 60)) % 60);
     const hours = Math.floor(milliseconds / (1000 * 60 * 60));
+    
     if (hours > 0) {
         return `${hours}h ${minutes}m ${seconds}s`;
     } else if (minutes > 0) {
@@ -476,25 +549,44 @@ async function copyToClipboard(text){
     } catch(e){ console.error(e); showNotification('Copy failed', true); }
 }
 
-function appendMessage(text, fromMe=false, isSystem=false, isVoice=false, audioUrl=null){
+function appendMessage(text, fromMe=false, isSystem=false, timestamp=null, voiceData=null){
+    const messageContainer = document.createElement('div');
+    messageContainer.className = `chat-message-container ${fromMe ? 'me' : 'peer'}`;
+    
     const el = document.createElement('div');
     if(isSystem) {
         el.className = 'message-system';
         el.textContent = text;
-    } else if(isVoice) {
-        el.className = 'message-voice';
-        el.innerHTML = `<div><strong>${fromMe ? myAlias : peerAlias}:</strong> 🎤 Voice Message</div>`;
-        if(audioUrl) {
-            const audio = document.createElement('audio');
-            audio.controls = true;
-            audio.src = audioUrl;
-            el.appendChild(audio);
-        }
+        messageContainer.appendChild(el);
+    } else if (voiceData) {
+        // Voice message
+        el.className = fromMe ? 'voice-message me' : 'voice-message peer';
+        
+        const voiceIcon = document.createElement('i');
+        voiceIcon.className = fromMe ? 'fas fa-microphone-alt' : 'fas fa-microphone-alt';
+        
+        const audio = document.createElement('audio');
+        audio.className = 'voice-player';
+        audio.controls = true;
+        audio.src = voiceData;
+        
+        el.appendChild(voiceIcon);
+        el.appendChild(audio);
+        messageContainer.appendChild(el);
     } else {
+        // Text message
         el.className = fromMe ? 'message-me' : 'message-peer';
         el.textContent = text;
+        messageContainer.appendChild(el);
     }
-    chatMessages.appendChild(el);
+    
+    // Add timestamp
+    const timeEl = document.createElement('div');
+    timeEl.className = 'chat-message-time';
+    timeEl.textContent = timestamp || new Date().toLocaleTimeString();
+    messageContainer.appendChild(timeEl);
+    
+    chatMessages.appendChild(messageContainer);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
@@ -507,148 +599,6 @@ function generateSecureCode(length = 8) {
         s += alphabet[arr[i] % alphabet.length];
     }
     return s;
-}
-
-// Function to check if locations are significantly different (more than 1 meter)
-function isLocationChanged(newLocation, oldLocation) {
-    if (!oldLocation) return true;
-    
-    // Calculate approximate distance in meters using Haversine formula
-    const R = 6371e3; // Earth's radius in meters
-    const φ1 = oldLocation.lat * Math.PI/180;
-    const φ2 = newLocation.lat * Math.PI/180;
-    const Δφ = (newLocation.lat - oldLocation.lat) * Math.PI/180;
-    const Δλ = (newLocation.lng - oldLocation.lng) * Math.PI/180;
-
-    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ/2) * Math.sin(Δλ/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-
-    const distance = R * c;
-    return distance > 1; // More than 1 meter
-}
-
-// Function to trigger danger alert
-function triggerDangerAlert(userId, userName, location) {
-    dangerAlerts[userId] = {
-        active: true,
-        timestamp: Date.now(),
-        location: location
-    };
-    
-    // Update UI to show danger status
-    updateDangerStatus(userId, true);
-    
-    // Send alert to peers
-    if (conn && conn.open) {
-        safeSend({
-            type: 'danger-alert',
-            userId: userId,
-            userName: userName,
-            location: location,
-            timestamp: Date.now()
-        });
-    }
-    
-    // Show notification
-    showNotification(`🚨 DANGER: ${userName} is in danger!`, true, 5000);
-    
-    // Add system message to chat
-    appendMessage(`🚨 EMERGENCY: ${userName} is in danger and needs immediate assistance!`, false, true);
-    
-    // Start repeating alerts every 10 seconds
-    startRepeatingAlert(userId, userName, location);
-}
-
-// Function to clear danger alert
-function clearDangerAlert(userId, userName) {
-    if (dangerAlerts[userId]) {
-        dangerAlerts[userId].active = false;
-        
-        // Update UI to show safe status
-        updateDangerStatus(userId, false);
-        
-        // Send clear alert to peers
-        if (conn && conn.open) {
-            safeSend({
-                type: 'danger-clear',
-                userId: userId,
-                userName: userName,
-                timestamp: Date.now()
-            });
-        }
-        
-        // Show notification
-        showNotification(`✅ ${userName} is no longer in danger`, false, 3000);
-        
-        // Add system message to chat
-        appendMessage(`✅ ${userName} is now safe`, false, true);
-        
-        // Stop repeating alerts
-        if (dangerAlerts[userId].interval) {
-            clearInterval(dangerAlerts[userId].interval);
-            dangerAlerts[userId].interval = null;
-        }
-    }
-}
-
-// Function to start repeating danger alerts
-function startRepeatingAlert(userId, userName, location) {
-    // Clear any existing interval
-    if (dangerAlerts[userId] && dangerAlerts[userId].interval) {
-        clearInterval(dangerAlerts[userId].interval);
-    }
-    
-    // Set up new interval
-    dangerAlerts[userId].interval = setInterval(() => {
-        if (dangerAlerts[userId] && dangerAlerts[userId].active) {
-            showNotification(`🚨 DANGER ALERT: ${userName} is in danger! Location: ${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}`, true, 5000);
-        }
-    }, 10000); // Every 10 seconds
-}
-
-// Function to update danger status in UI
-function updateDangerStatus(userId, isDanger) {
-    // Update user card
-    const userCard = userId === 'you' ? document.getElementById('you-card') : document.querySelector('.peer-card');
-    if (userCard) {
-        const statusDot = userCard.querySelector('.status-dot');
-        const locationSharing = userCard.querySelector('.location-sharing');
-        
-        if (isDanger) {
-            statusDot.className = 'status-dot danger';
-            statusDot.title = 'In Danger - No movement detected';
-            locationSharing.className = 'location-sharing danger';
-            locationSharing.innerHTML = `
-                <span class="dot"></span>
-                <span><i class="fas fa-exclamation-triangle"></i> DANGER - Inactive</span>
-            `;
-        } else {
-            statusDot.className = 'status-dot';
-            statusDot.title = 'Safe';
-            if (locationShared || (userId !== 'you' && peerMarker)) {
-                locationSharing.className = 'location-sharing active';
-                locationSharing.innerHTML = `
-                    <span class="dot"></span>
-                    <span><i class="fas fa-location-dot"></i> Location shared</span>
-                `;
-            }
-        }
-    }
-    
-    // Update map marker
-    if (userId === 'you' && myMarker) {
-        myMarker.options.color = isDanger ? '#e74c3c' : '#2ecc71';
-        myMarker.options.fillColor = isDanger ? '#e74c3c' : '#2ecc71';
-        myMarker.setPopupContent(`<b>${myAlias}'s Location</b><br><span class="coordinates">Lat: ${myMarker.getLatLng().lat.toFixed(6)}, Lng: ${myMarker.getLatLng().lng.toFixed(6)}</span><br><span style="color: ${isDanger ? '#e74c3c' : '#2ecc71'}">${isDanger ? 'DANGER' : 'SAFE'}</span>`);
-        myMarker.update();
-    } else if (userId !== 'you' && peerMarker) {
-        peerMarker.options.color = isDanger ? '#e74c3c' : '#3498db';
-        peerMarker.options.fillColor = isDanger ? '#e74c3c' : '#3498db';
-        peerMarker.setPopupContent(`<b>${peerAlias}'s Location</b><br><span class="coordinates">Lat: ${peerMarker.getLatLng().lat.toFixed(6)}, Lng: ${peerMarker.getLatLng().lng.toFixed(6)}</span><br><span style="color: ${isDanger ? '#e74c3c' : '#3498db'}">${isDanger ? 'DANGER' : 'SAFE'}</span>`);
-        peerMarker.update();
-    }
 }
 
 genCodeBtn.addEventListener('click', () => {
@@ -698,7 +648,238 @@ copySessionCodeBtn.addEventListener('click', () => {
     copyToClipboard(sessionCodeInput.value);
 });
 
+/* ========= Voice Recording ========= */
+function setupVoiceRecording() {
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        recordVoiceBtn.addEventListener('click', toggleRecording);
+    } else {
+        voiceContainer.classList.add('hidden');
+        showNotification('Voice recording not supported on this device', true);
+    }
+}
+
+function toggleRecording() {
+    if (isRecording) {
+        stopRecording();
+    } else {
+        startRecording();
+    }
+}
+
+function startRecording() {
+    navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+            
+            mediaRecorder.addEventListener('dataavailable', event => {
+                audioChunks.push(event.data);
+            });
+            
+            mediaRecorder.addEventListener('stop', () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                sendVoiceMessage(audioBlob);
+                
+                // Stop all audio tracks
+                stream.getTracks().forEach(track => track.stop());
+            });
+            
+            mediaRecorder.start();
+            isRecording = true;
+            recordVoiceBtn.classList.add('recording');
+            recordingStatus.textContent = 'Recording... Click to stop';
+        })
+        .catch(error => {
+            console.error('Error accessing microphone:', error);
+            showNotification('Could not access microphone', true);
+        });
+}
+
+function stopRecording() {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+        isRecording = false;
+        recordVoiceBtn.classList.remove('recording');
+        recordingStatus.textContent = 'Press to record voice message';
+    }
+}
+
+function sendVoiceMessage(audioBlob) {
+    const reader = new FileReader();
+    reader.readAsDataURL(audioBlob);
+    reader.onloadend = function() {
+        const base64Audio = reader.result;
+        
+        // Display the voice message locally
+        appendMessage('Voice message', true, false, null, base64Audio);
+        
+        // Send to peer
+        if (conn && conn.open) {
+            safeSend({ 
+                type: 'voice', 
+                audio: base64Audio,
+                clientAlias: myAlias,
+                timestamp: new Date().toISOString()
+            });
+        }
+    };
+}
+
+/* ========= Danger Monitoring System ========= */
+function startDangerMonitoring() {
+    if (dangerCheckInterval) clearInterval(dangerCheckInterval);
+    
+    dangerCheckInterval = setInterval(() => {
+        checkForDanger();
+    }, 10000); // Check every 10 seconds
+}
+
+function checkForDanger() {
+    if (!lastPosition || !lastPositionTime) return;
+    
+    const currentTime = Date.now();
+    const timeDiff = (currentTime - lastPositionTime) / 1000; // in seconds
+    
+    // If user hasn't moved for 90 seconds, mark as in danger
+    if (timeDiff > 90) {
+        setDangerStatus(myAlias, true);
+        
+        // Send danger alert to peers
+        if (conn && conn.open) {
+            safeSend({
+                type: 'danger',
+                clientAlias: myAlias,
+                inDanger: true,
+                position: lastPosition,
+                timestamp: currentTime
+            });
+        }
+        
+        // Play voice alert every 10 seconds
+        if (!voiceAlertInterval) {
+            playDangerAlert();
+            voiceAlertInterval = setInterval(playDangerAlert, 10000);
+        }
+    }
+}
+
+function playDangerAlert() {
+    const alertMessage = `${myAlias} is in danger! Please check their location.`;
+    showNotification(alertMessage, true);
+    
+    // Use speech synthesis if available
+    if ('speechSynthesis' in window) {
+        const speech = new SpeechSynthesisUtterance(alertMessage);
+        window.speechSynthesis.speak(speech);
+    }
+}
+
+function setDangerStatus(alias, inDanger) {
+    dangerStatus[alias] = inDanger;
+    
+    // Update UI
+    const userCards = document.querySelectorAll('.user-card');
+    userCards.forEach(card => {
+        const nameElement = card.querySelector('.user-name');
+        if (nameElement && nameElement.textContent.includes(alias)) {
+            if (inDanger) {
+                card.classList.add('danger');
+                card.classList.add('danger-animation');
+                
+                // Add danger icon
+                if (!card.querySelector('.danger-icon')) {
+                    const dangerIcon = document.createElement('i');
+                    dangerIcon.className = 'fas fa-exclamation-triangle danger-icon';
+                    nameElement.appendChild(dangerIcon);
+                }
+                
+                // Show danger alert in chat
+                if (alias !== myAlias) {
+                    dangerAlert.classList.remove('hidden');
+                    appendMessage(`${alias} is in danger! Please check their location.`, false, true);
+                }
+            } else {
+                card.classList.remove('danger');
+                card.classList.remove('danger-animation');
+                
+                // Remove danger icon
+                const dangerIcon = card.querySelector('.danger-icon');
+                if (dangerIcon) dangerIcon.remove();
+                
+                if (alias !== myAlias && Object.values(dangerStatus).every(status => !status)) {
+                    dangerAlert.classList.add('hidden');
+                }
+            }
+        }
+    });
+    
+    // Clear danger markers if no longer in danger
+    if (!inDanger) {
+        clearDangerMarkers(alias);
+    }
+}
+
+function addDangerMarker(position, alias) {
+    // Remove existing danger marker for this user
+    clearDangerMarkers(alias);
+    
+    const marker = L.marker([position.latitude, position.longitude], { icon: dangerIcon })
+        .addTo(map)
+        .bindPopup(`<b>DANGER: ${alias}</b><br>User may be in danger`);
+    
+    dangerMarkers.push({ alias, marker });
+    
+    // Flash the marker
+    let visible = true;
+    const flashInterval = setInterval(() => {
+        if (visible) {
+            marker.setOpacity(0.3);
+        } else {
+            marker.setOpacity(1);
+        }
+        visible = !visible;
+    }, 1000);
+    
+    // Store the interval to clear it later
+    marker.flashInterval = flashInterval;
+}
+
+function clearDangerMarkers(alias) {
+    for (let i = dangerMarkers.length - 1; i >= 0; i--) {
+        if (dangerMarkers[i].alias === alias) {
+            clearInterval(dangerMarkers[i].marker.flashInterval);
+            map.removeLayer(dangerMarkers[i].marker);
+            dangerMarkers.splice(i, 1);
+        }
+    }
+}
+
+/* ========= SOS Functionality ========= */
+sosButton.addEventListener('click', () => {
+    if (!conn || !conn.open) {
+        showNotification('Not connected to any peers', true);
+        return;
+    }
+    
+    // Immediately mark as in danger
+    setDangerStatus(myAlias, true);
+    
+    // Send SOS alert to peers
+    safeSend({
+        type: 'sos',
+        clientAlias: myAlias,
+        position: lastPosition,
+        timestamp: Date.now()
+    });
+    
+    // Play immediate alert
+    playDangerAlert();
+    
+    showNotification('SOS alert sent to all team members', false);
+});
+
 /* ========= Join modal behavior ========= */
+
 openJoinBtn.addEventListener('click', () => {
     joinModal.classList.add('show');
     joinModal.setAttribute('aria-hidden', 'false');
@@ -738,23 +919,28 @@ joinModal.addEventListener('click', (e) => {
 });
 
 /* ========= Create / Join ========= */
+
 function startSession(host){
     isHost = host;
     const code = (sessionCodeInput.value || '').trim();
     const realName = (realNameInput.value || '').trim();
+
     if(!realName){
         showNotification('Type your real name to proceed', true); return;
     }
     if(code.length < 4){ showNotification('Enter a valid code (min 4 chars)', true); return; }
+
     if(localStorage.getItem('session_active') === 'true' && host){
         showNotification('A session is already active locally. Stop it first or Resume.', true);
         return;
     }
+
     localStorage.setItem('local_real_name', realName);
     localStorage.setItem('session_code', code);
     localStorage.setItem('session_active', 'true');
     localStorage.setItem('session_role', host ? 'host' : 'joiner');
     sessionRoleCached = host ? 'host' : 'joiner';
+    
     // Set alias based on user preference
     const showRealName = showRealNameToggle.checked;
     if(showRealName) {
@@ -762,17 +948,25 @@ function startSession(host){
     } else {
         myAlias = generateAnonAlias();
     }
+
     setupCard.classList.add('hidden');
     sessionCard.classList.remove('hidden');
     displayCodeInput.value = code;
     updateStatus('Connecting...', false);
+    
     locationControls.classList.add('hidden');
     locationShared = false;
+    sosButton.classList.remove('hidden');
+
     if(isHost) {
         hostIndicator.classList.remove('hidden');
     } else {
         hostIndicator.classList.add('hidden');
     }
+    
+    // Show voice chat UI
+    voiceContainer.classList.remove('hidden');
+    
     // Clear chat and add welcome message
     chatMessages.innerHTML = '';
     if(isHost) {
@@ -780,19 +974,28 @@ function startSession(host){
     } else {
         appendMessage("Joining session...", false, true);
     }
+
     // Start session timer
     sessionStartTime = Date.now();
     if (timerInterval) clearInterval(timerInterval);
     timerInterval = setInterval(updateSessionTimer, 1000);
     updateSessionTimer();
+
+    // Start danger monitoring
+    startDangerMonitoring();
+
     destroyExistingPeer();
+
     try {
         peer = host ? new Peer(code) : new Peer();
     } catch(e){ console.error('Peer create failed', e); showNotification('Peer init failed', true); updateStatus('Error', false); return; }
+
     setControlsDisabled(true);
+
     reconnectAttempts = 0;
     const MAX_JOIN_ATTEMPTS = 8;
     const JOIN_INTERVAL_MS = 1500;
+
     peer.on('open', (id) => {
         if(!host){
             function tryConnect(){
@@ -834,6 +1037,7 @@ function startSession(host){
             setControlsDisabled(false);
         }
     });
+
     peer.on('connection', (connection) => {
         conn = connection;
         setupDataChannel(conn);
@@ -842,15 +1046,18 @@ function startSession(host){
         safeSend({ type:'alias', alias: myAlias });
         appendMessage(`Peer ${myAlias} joined the session`, false, true);
     });
+
     peer.on('disconnected', () => { 
         updateStatus('Disconnected', false); 
         showNotification('Network disconnected', true); 
         setControlsDisabled(false); 
     });
+    
     peer.on('close', () => { 
         updateStatus('Closed', false); 
         setControlsDisabled(false); 
     });
+    
     peer.on('error', (err) => { 
         console.error('peer error', err); 
         showNotification('Peer error: ' + String(err), true); 
@@ -882,59 +1089,49 @@ function setupDataChannel(connection){
             appendMessage(`${data.alias} rejoined the session`, false, true);
             showNotification(`${data.alias} has rejoined the session`);
         }
-        else if(data.type === 'danger-alert') {
-            // Handle danger alert from peer
-            if (!dangerAlerts[data.userId]) {
-                dangerAlerts[data.userId] = {};
-            }
-            dangerAlerts[data.userId].active = true;
-            dangerAlerts[data.userId].timestamp = data.timestamp;
-            dangerAlerts[data.userId].location = data.location;
-            
-            // Update UI
-            updateDangerStatus(data.userId, true);
-            
-            // Show notification
-            showNotification(`🚨 DANGER: ${data.userName} is in danger!`, true, 5000);
-            
-            // Add system message to chat
-            appendMessage(`🚨 EMERGENCY: ${data.userName} is in danger and needs immediate assistance!`, false, true);
-            
-            // Start repeating alerts
-            startRepeatingAlert(data.userId, data.userName, data.location);
+        else if(data.type === 'voice') {
+            appendMessage('Voice message', false, false, data.timestamp, data.audio);
         }
-        else if(data.type === 'danger-clear') {
-            // Handle danger clear from peer
-            if (dangerAlerts[data.userId]) {
-                dangerAlerts[data.userId].active = false;
-                
-                // Update UI
-                updateDangerStatus(data.userId, false);
-                
-                // Show notification
-                showNotification(`✅ ${data.userName} is no longer in danger`, false, 3000);
-                
-                // Add system message to chat
-                appendMessage(`✅ ${data.userName} is now safe`, false, true);
-                
-                // Stop repeating alerts
-                if (dangerAlerts[data.userId].interval) {
-                    clearInterval(dangerAlerts[data.userId].interval);
-                    dangerAlerts[data.userId].interval = null;
-                }
+        else if(data.type === 'danger') {
+            setDangerStatus(data.clientAlias, data.inDanger);
+            if (data.inDanger && data.position) {
+                addDangerMarker(data.position, data.clientAlias);
+                appendMessage(`${data.clientAlias} is in danger!`, false, true);
+            } else {
+                clearDangerMarkers(data.clientAlias);
             }
         }
-        else if(data.type === 'voice-message') {
-            // Handle voice message
-            appendMessage('', false, false, true, data.audioUrl);
+        else if(data.type === 'sos') {
+            setDangerStatus(data.clientAlias, true);
+            if (data.position) {
+                addDangerMarker(data.position, data.clientAlias);
+            }
+            appendMessage(`EMERGENCY: ${data.clientAlias} sent an SOS!`, false, true);
+            
+            // Play immediate alert
+            const alertMessage = `EMERGENCY: ${data.clientAlias} needs help!`;
+            showNotification(alertMessage, true);
+            
+            if ('speechSynthesis' in window) {
+                const speech = new SpeechSynthesisUtterance(alertMessage);
+                window.speechSynthesis.speak(speech);
+            }
         }
     });
+
     connection.on('close', () => {
         updateStatus('Peer disconnected', false);
         if(peerMarker){ map.removeLayer(peerMarker); peerMarker=null; }
         appendMessage(`${peerAlias} left the session`, false, true);
         showNotification('Peer disconnected');
         removePeerCard();
+        
+        // Clear danger status for disconnected peer
+        if (peerAlias) {
+            setDangerStatus(peerAlias, false);
+            clearDangerMarkers(peerAlias);
+        }
+        
         // If we were not host and host disconnected, become new host
         if(!isHost) {
             isHost = true;
@@ -944,6 +1141,7 @@ function setupDataChannel(connection){
             showNotification('You are now the host');
         }
     });
+
     connection.on('error', (err) => { 
         console.error('data channel error', err); 
         showNotification('Data channel error: ' + err.message, true); 
@@ -966,6 +1164,7 @@ function updatePeerAlias(data){
         </div>`;
     const youCard = document.getElementById('you-card');
     userList.insertBefore(div, youCard.nextSibling);
+    
     // Start peer duration timer
     const peerStart = Date.now();
     if (peerDurationInterval) clearInterval(peerDurationInterval);
@@ -991,10 +1190,6 @@ function updatePeerLocation(d){
     const latitude = Number(d.latitude), longitude = Number(d.longitude);
     if(isNaN(latitude) || isNaN(longitude)) return;
     
-    // Check if location has changed significantly
-    const newLocation = { lat: latitude, lng: longitude };
-    const locationChanged = !lastLocation || isLocationChanged(newLocation, { lat: peerMarker ? peerMarker.getLatLng().lat : 0, lng: peerMarker ? peerMarker.getLatLng().lng : 0 });
-    
     // Update peer location indicator
     const peerCard = document.querySelector('.peer-card');
     if(peerCard) {
@@ -1005,10 +1200,7 @@ function updatePeerLocation(d){
     }
     
     if(peerMarker) map.removeLayer(peerMarker);
-    peerMarker = L.marker([latitude, longitude], {
-        color: dangerAlerts['peer'] && dangerAlerts['peer'].active ? '#e74c3c' : '#3498db',
-        fillColor: dangerAlerts['peer'] && dangerAlerts['peer'].active ? '#e74c3c' : '#3498db'
-    }).addTo(map).bindPopup(`<b>${peerAlias}'s Location</b><br><span class="coordinates">Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(6)}</span><br><span style="color: ${dangerAlerts['peer'] && dangerAlerts['peer'].active ? '#e74c3c' : '#3498db'}">${dangerAlerts['peer'] && dangerAlerts['peer'].active ? 'DANGER' : 'SAFE'}</span>`).openPopup();
+    peerMarker = L.marker([latitude, longitude]).addTo(map).bindPopup(`<b>${peerAlias}'s Location</b><br>Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(6)}`).openPopup();
     
     // Center map if both locations are available
     if(myMarker) {
@@ -1021,23 +1213,24 @@ function updatePeerLocation(d){
         map.setView([latitude, longitude], 13);
     }
     
-    // If location hasn't changed significantly and it's been more than 90 seconds, trigger danger alert
-    if (!locationChanged && Date.now() - (dangerAlerts['peer'] ? dangerAlerts['peer'].lastCheck || 0 : 0) > 90000) {
-        if (!dangerAlerts['peer'] || !dangerAlerts['peer'].active) {
-            triggerDangerAlert('peer', peerAlias, newLocation);
-        }
-    } else if (locationChanged) {
-        // If location changed, clear any existing danger alert
-        if (dangerAlerts['peer'] && dangerAlerts['peer'].active) {
-            clearDangerAlert('peer', peerAlias);
+    // Update danger status if user has moved
+    if (peerAlias && dangerStatus[peerAlias]) {
+        // Check if user has moved more than 1 meter
+        const movedDistance = calculateDistance(
+            lastPosition.latitude, lastPosition.longitude,
+            latitude, longitude
+        );
+        
+        if (movedDistance > 1) { // More than 1 meter
+            setDangerStatus(peerAlias, false);
+            safeSend({
+                type: 'danger',
+                clientAlias: peerAlias,
+                inDanger: false,
+                timestamp: Date.now()
+            });
         }
     }
-    
-    // Update last check time
-    if (!dangerAlerts['peer']) {
-        dangerAlerts['peer'] = {};
-    }
-    dangerAlerts['peer'].lastCheck = Date.now();
 }
 
 /* share location */
@@ -1046,9 +1239,12 @@ function shareMyLocation(){
         showNotification('No active session. Create or join a session first.', true);
         return;
     }
+    
     if(!navigator.geolocation){ showNotification('Geolocation not supported', true); return; }
+
     shareLocationBtn.disabled = true;
     shareLocationBtn.innerHTML = `<i class="fas fa-sync fa-spin"></i> Getting...`;
+
     navigator.geolocation.getCurrentPosition(pos => {
         const latitude = pos.coords.latitude, longitude = pos.coords.longitude;
         const myCard = document.getElementById('you-card');
@@ -1057,14 +1253,10 @@ function shareMyLocation(){
             <span><i class="fas fa-location-dot"></i> Location shared</span>
         `;
         if(myMarker) map.removeLayer(myMarker);
+        myMarker = L.marker([latitude, longitude]).addTo(map).bindPopup(`<b>Your Location</b><br>Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(6)}`).openPopup();
         
-        myMarker = L.marker([latitude, longitude], {
-            color: '#2ecc71',
-            fillColor: '#2ecc71'
-        }).addTo(map).bindPopup(`<b>Your Location</b><br><span class="coordinates">Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(6)}</span><br><span style="color: #2ecc71">SAFE</span>`).openPopup();
-        
-        // Store initial location
-        lastLocation = { lat: latitude, lng: longitude };
+        // Update coordinates display
+        coordinatesDisplay.textContent = `Coordinates: Lat ${latitude.toFixed(6)}, Lng ${longitude.toFixed(6)}`;
         
         // Center map if peer location is available
         if(peerMarker) {
@@ -1076,65 +1268,45 @@ function shareMyLocation(){
         } else {
             map.setView([latitude, longitude], 13);
         }
-        
+
         if(conn && conn.open) {
             safeSend({ type:'location', latitude: latitude, longitude: longitude, clientAlias: myAlias });
         }
-        
-        // Start inactivity monitoring
-        if (inactivityTimer) clearInterval(inactivityTimer);
-        inactivityTimer = setInterval(() => {
-            if (!locationShared) return;
-            
-            // Get current location to check for movement
-            navigator.geolocation.getCurrentPosition(pos => {
-                const currentLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                const locationChanged = isLocationChanged(currentLocation, lastLocation);
-                
-                if (!locationChanged) {
-                    // No movement detected
-                    if (!dangerAlerts['you'] || !dangerAlerts['you'].active) {
-                        // If not already in danger, check if 90 seconds have passed
-                        const lastCheck = dangerAlerts['you'] ? dangerAlerts['you'].lastCheck || 0 : 0;
-                        if (Date.now() - lastCheck > 90000) {
-                            triggerDangerAlert('you', myAlias, currentLocation);
-                        }
-                    }
-                } else {
-                    // Movement detected, update location and clear danger if active
-                    lastLocation = currentLocation;
-                    if (dangerAlerts['you'] && dangerAlerts['you'].active) {
-                        clearDangerAlert('you', myAlias);
-                    }
-                    
-                    // Update marker with new location
-                    if(myMarker) {
-                        myMarker.setLatLng([currentLocation.lat, currentLocation.lng]);
-                        myMarker.setPopupContent(`<b>Your Location</b><br><span class="coordinates">Lat: ${currentLocation.lat.toFixed(6)}, Lng: ${currentLocation.lng.toFixed(6)}</span><br><span style="color: #2ecc71">SAFE</span>`);
-                    }
-                    
-                    // Send updated location to peer
-                    if(conn && conn.open) {
-                        safeSend({ type:'location', latitude: currentLocation.lat, longitude: currentLocation.lng, clientAlias: myAlias });
-                    }
-                }
-                
-                // Update last check time
-                if (!dangerAlerts['you']) {
-                    dangerAlerts['you'] = {};
-                }
-                dangerAlerts['you'].lastCheck = Date.now();
-                
-            }, err => {
-                console.error('Error getting current position for inactivity check:', err);
-            }, { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 });
-        }, 30000); // Check every 30 seconds
-        
+
         shareLocationBtn.disabled = false;
         shareLocationBtn.innerHTML = `<i class="fas fa-location-dot"></i> Share Location`;
         showNotification('Location shared');
+        
         locationControls.classList.remove('hidden');
         locationShared = true;
+        
+        // Update last position for danger monitoring
+        lastPosition = { latitude, longitude };
+        lastPositionTime = Date.now();
+        
+        // Clear danger status if user has moved
+        if (dangerStatus[myAlias]) {
+            const movedDistance = calculateDistance(
+                lastPosition.latitude, lastPosition.longitude,
+                latitude, longitude
+            );
+            
+            if (movedDistance > 1) { // More than 1 meter
+                setDangerStatus(myAlias, false);
+                
+                if (voiceAlertInterval) {
+                    clearInterval(voiceAlertInterval);
+                    voiceAlertInterval = null;
+                }
+                
+                safeSend({
+                    type: 'danger',
+                    clientAlias: myAlias,
+                    inDanger: false,
+                    timestamp: Date.now()
+                });
+            }
+        }
     }, err => {
         console.error('Geolocation error', err);
         shareLocationBtn.disabled = false;
@@ -1143,55 +1315,27 @@ function shareMyLocation(){
     }, { enableHighAccuracy:true, maximumAge:30000, timeout:10000 });
 }
 
+// Calculate distance between two coordinates in meters
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371e3; // Earth radius in meters
+    const φ1 = lat1 * Math.PI/180;
+    const φ2 = lat2 * Math.PI/180;
+    const Δφ = (lat2-lat1) * Math.PI/180;
+    const Δλ = (lon2-lon1) * Math.PI/180;
+
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+            Math.cos(φ1) * Math.cos(φ2) *
+            Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+    return R * c;
+}
+
 /* update location */
 updateLocationBtn.addEventListener('click', () => {
-    if (!locationShared) {
-        shareMyLocation();
-        return;
-    }
-    
+    shareMyLocation();
     updateLocationBtn.innerHTML = `<i class="fas fa-sync fa-spin"></i> Updating...`;
     showNotification('Updating your location...');
-    
-    if(!navigator.geolocation){ showNotification('Geolocation not supported', true); return; }
-    
-    navigator.geolocation.getCurrentPosition(pos => {
-        const latitude = pos.coords.latitude, longitude = pos.coords.longitude;
-        const newLocation = { lat: latitude, lng: longitude };
-        
-        // Update marker
-        if(myMarker) {
-            myMarker.setLatLng([latitude, longitude]);
-            myMarker.setPopupContent(`<b>Your Location</b><br><span class="coordinates">Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(6)}</span><br><span style="color: #2ecc71">SAFE</span>`);
-        }
-        
-        // Update last known location
-        lastLocation = newLocation;
-        
-        // Send updated location to peer
-        if(conn && conn.open) {
-            safeSend({ type:'location', latitude: latitude, longitude: longitude, clientAlias: myAlias });
-        }
-        
-        // If was in danger, clear the alert
-        if (dangerAlerts['you'] && dangerAlerts['you'].active) {
-            clearDangerAlert('you', myAlias);
-        }
-        
-        updateLocationBtn.innerHTML = `<i class="fas fa-sync-alt"></i> Update Location`;
-        showNotification('Location updated successfully');
-        
-        // Update last check time
-        if (!dangerAlerts['you']) {
-            dangerAlerts['you'] = {};
-        }
-        dangerAlerts['you'].lastCheck = Date.now();
-        
-    }, err => {
-        console.error('Geolocation error', err);
-        updateLocationBtn.innerHTML = `<i class="fas fa-sync-alt"></i> Update Location`;
-        showNotification('Could not update location', true);
-    }, { enableHighAccuracy:true, maximumAge:0, timeout:10000 });
 });
 
 /* stop sharing location */
@@ -1200,155 +1344,37 @@ stopSharingBtn.addEventListener('click', () => {
         map.removeLayer(myMarker);
         myMarker = null;
     }
+    
     const myCard = document.getElementById('you-card');
     myCard.querySelector('.location-sharing').innerHTML = `
         <span class="dot"></span>
         <span><i class="fas fa-location-slash"></i> Location not shared</span>
     `;
+    
+    coordinatesDisplay.textContent = 'Coordinates: Not available';
+    
     locationControls.classList.add('hidden');
     locationShared = false;
-    
-    // Stop inactivity monitoring
-    if (inactivityTimer) {
-        clearInterval(inactivityTimer);
-        inactivityTimer = null;
-    }
-    
-    // Clear any danger alerts
-    if (dangerAlerts['you'] && dangerAlerts['you'].active) {
-        clearDangerAlert('you', myAlias);
-    }
     
     showNotification('Stopped sharing your location');
 });
 
-/* SOS Button */
-sosButton.addEventListener('click', () => {
-    if (!locationShared) {
-        showNotification('Share your location first to send SOS', true);
-        return;
-    }
-    
-    // Get current location for SOS
-    if (myMarker) {
-        const currentLocation = myMarker.getLatLng();
-        triggerDangerAlert('you', myAlias, { lat: currentLocation.lat, lng: currentLocation.lng });
-        
-        // Send SOS to peer
-        if (conn && conn.open) {
-            safeSend({
-                type: 'danger-alert',
-                userId: 'you',
-                userName: myAlias,
-                location: { lat: currentLocation.lat, lng: currentLocation.lng },
-                timestamp: Date.now()
-            });
-        }
-    }
-});
-
-/* Voice Recording */
-let isRecording = false;
-
-voiceRecordBtn.addEventListener('click', async () => {
-    if (isRecording) {
-        // Stop recording
-        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-            mediaRecorder.stop();
-        }
-        voiceRecordBtn.innerHTML = `<i class="fas fa-microphone"></i> Record Voice`;
-        voiceRecordBtn.classList.remove('btn-stop');
-        voiceRecordBtn.classList.add('voice-record-btn');
-        isRecording = false;
-        showNotification('Recording stopped');
-    } else {
-        // Start recording
-        try {
-            const stream = await navigator.mediaRecorder.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
-            audioChunks = [];
-            
-            mediaRecorder.ondataavailable = (event) => {
-                audioChunks.push(event.data);
-            };
-            
-            mediaRecorder.onstop = () => {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                const audioUrl = URL.createObjectURL(audioBlob);
-                
-                // Add to recordings
-                voiceRecordings.push({
-                    id: Date.now(),
-                    url: audioUrl,
-                    sender: myAlias,
-                    timestamp: new Date().toLocaleTimeString()
-                });
-                
-                // Send to peer
-                if (conn && conn.open) {
-                    // In a real app, we would send the actual audio data
-                    // For demo, we'll just send a message indicating a voice message
-                    safeSend({
-                        type: 'voice-message',
-                        audioUrl: audioUrl,
-                        timestamp: Date.now()
-                    });
-                }
-                
-                // Add to chat
-                appendMessage('', true, false, true, audioUrl);
-                showNotification('Voice message sent');
-            };
-            
-            mediaRecorder.start();
-            voiceRecordBtn.innerHTML = `<i class="fas fa-stop"></i> Stop Recording`;
-            voiceRecordBtn.classList.remove('voice-record-btn');
-            voiceRecordBtn.classList.add('btn-stop');
-            isRecording = true;
-            showNotification('Recording started...');
-        } catch (error) {
-            console.error('Error accessing microphone:', error);
-            showNotification('Could not access microphone. Please check permissions.', true);
-        }
-    }
-});
-
 /* stop session */
 function stopSession(){
-    // Stop any active recording
-    if (isRecording && mediaRecorder && mediaRecorder.state !== 'inactive') {
-        mediaRecorder.stop();
-    }
-    
-    // Stop inactivity monitoring
-    if (inactivityTimer) {
-        clearInterval(inactivityTimer);
-        inactivityTimer = null;
-    }
-    
-    // Clear all danger alerts
-    Object.keys(dangerAlerts).forEach(userId => {
-        if (dangerAlerts[userId].active) {
-            const userName = userId === 'you' ? myAlias : peerAlias;
-            clearDangerAlert(userId, userName);
-        }
-        if (dangerAlerts[userId].interval) {
-            clearInterval(dangerAlerts[userId].interval);
-            dangerAlerts[userId].interval = null;
-        }
-    });
-    
     destroyExistingPeer();
     localStorage.removeItem('session_active');
     localStorage.removeItem('session_role');
     localStorage.removeItem('session_code');
     sessionRoleCached = null;
+
     setupCard.classList.remove('hidden');
     sessionCard.classList.add('hidden');
     displayCodeInput.value = '';
     updateStatus('Ready to connect', false);
+
     if(myMarker){ map.removeLayer(myMarker); myMarker=null; }
     if(peerMarker){ map.removeLayer(peerMarker); peerMarker=null; }
+
     userList.innerHTML = `<div class="user-card" id="you-card">
         <div class="user-avatar">Y</div>
         <div class="user-info">
@@ -1360,13 +1386,35 @@ function stopSession(){
             <div style="margin-top:10px"><span class="status-dot"></span> Online</div>
         </div>
     </div>`;
+
     chatMessages.innerHTML = '<div class="message-system">Welcome to SecureHat! Start by creating or joining a session.</div>';
+    
     if(timerInterval) clearInterval(timerInterval);
     sessionTimer.textContent = '00:00:00';
+    
     locationControls.classList.add('hidden');
     locationShared = false;
+    sosButton.classList.add('hidden');
+    voiceContainer.classList.add('hidden');
+    
+    // Clear danger monitoring
+    if (dangerCheckInterval) clearInterval(dangerCheckInterval);
+    if (voiceAlertInterval) clearInterval(voiceAlertInterval);
+    dangerStatus = {};
+    lastPosition = null;
+    lastPositionTime = null;
+    
+    // Clear danger markers
+    dangerMarkers.forEach(markerInfo => {
+        clearInterval(markerInfo.marker.flashInterval);
+        map.removeLayer(markerInfo.marker);
+    });
+    dangerMarkers = [];
+    
     hostIndicator.classList.add('hidden');
     isHost = false;
+    dangerAlert.classList.add('hidden');
+    
     showNotification('Session stopped');
 }
 
@@ -1381,7 +1429,6 @@ function showStopModal(){
     stopConfirmation.classList.add('show');
     confirmStopBtn.focus();
 }
-
 function hideStopModal(){ stopConfirmation.classList.remove('show'); }
 
 stopSessionBtn.addEventListener('click', (e) => { showStopModal(); });
@@ -1396,15 +1443,18 @@ window.addEventListener('keydown', (e) => { if(e.key === 'Escape' && stopConfirm
 window.addEventListener('DOMContentLoaded', () => {
     const showRealName = localStorage.getItem('show_real_name') === 'true';
     showRealNameToggle.checked = showRealName;
+    
     const sessionCode = localStorage.getItem('session_code');
     const sessionActive = localStorage.getItem('session_active') === 'true';
     const sessionRole = localStorage.getItem('session_role');
+
     if(sessionCode && sessionActive && sessionRole){
         displayCodeInput.value = sessionCode;
         setupCard.classList.remove('hidden');
         sessionCard.classList.remove('hidden');
         updateStatus('Session active. Type your name and press Reconnect.', false);
         sessionRoleCached = sessionRole;
+        
         if(sessionRole === 'host') {
             hostIndicator.classList.remove('hidden');
             isHost = true;
@@ -1414,6 +1464,12 @@ window.addEventListener('DOMContentLoaded', () => {
         sessionCard.classList.add('hidden');
         updateStatus('Ready to connect', false);
     }
+    
+    // Request notification permission
+    requestNotificationPermission();
+    
+    // Setup voice recording
+    setupVoiceRecording();
 });
 
 function updateYourNameDisplay() {
@@ -1442,12 +1498,15 @@ openJoinBtn.addEventListener('click', () => {
 resumeSessionBtn.addEventListener('click', () => {
     const persistedName = localStorage.getItem('local_real_name') || '';
     if (persistedName) realNameInput.value = persistedName;
+    
     if (!realNameInput.value.trim()) {
         showNotification('Type your real name to reconnect.', true);
         return;
     }
+    
     const persistedCode = localStorage.getItem('session_code') || displayCodeInput.value;
     if (persistedCode) sessionCodeInput.value = persistedCode;
+    
     const isHost = (localStorage.getItem('session_role') === 'host');
     startSession(isHost);
 });
@@ -1463,7 +1522,9 @@ shareLocationBtn.addEventListener('click', shareMyLocation);
 chatSend.addEventListener('click', () => {
     const txt = chatInput.value.trim();
     if(!txt) return;
+    
     appendMessage(`${myAlias}: ${txt}`, true);
+    
     if (conn && conn.open) {
         safeSend({ type:'chat', text: txt, clientAlias: myAlias });
     }
@@ -1487,4 +1548,3 @@ window.addEventListener('beforeunload', (e) => {
 </script>
 </body>
 </html>
-```
