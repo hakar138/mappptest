@@ -1,4 +1,4 @@
-
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -173,6 +173,20 @@
         .audio-progress { flex: 1; height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; cursor: pointer; position: relative; }
         .audio-progress-filled { height: 100%; background: #4facfe; border-radius: 3px; width: 0%; transition: width 0.1s linear; }
         .audio-time { font-size: 0.85rem; color: rgba(255,255,255,0.7); min-width: 60px; text-align: center; }
+        /* Live location indicator */
+        .live-location-indicator { 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 6px; 
+            background: rgba(79, 172, 254, 0.2); 
+            color: #4facfe; 
+            padding: 4px 8px; 
+            border-radius: 20px; 
+            font-size: 0.8rem; 
+            margin-left: 8px;
+            animation: pulse 2s infinite;
+        }
+        .live-location-indicator i { font-size: 0.8rem; }
     </style>
 </head>
 <body>
@@ -440,6 +454,9 @@ let isRecording = false;
 let recordingStartTime = null;
 let recordingTimerInterval = null;
 let currentStream = null;
+// Live location tracking state
+let liveLocationInterval = null;
+let lastSentPosition = null;
 
 /* ========= Reusable Components & Functions ========= */
 // Unified Message System Component
@@ -638,18 +655,18 @@ const TimerSystem = {
 
 // Danger Detection System Component
 const DangerDetectionSystem = {
-    // Start continuous location monitoring
+    // Start continuous location monitoring with high precision
     startContinuousMonitoring: function() {
         if(positionCheckInterval) {
             clearInterval(positionCheckInterval);
         }
-        // Check position every 3 seconds for more responsive detection
+        // Check position every 2 seconds for more responsive detection
         positionCheckInterval = setInterval(() => {
             if(locationShared && myMarker && !isHost && !isSOSActive) {
                 const currentPos = myMarker.getLatLng();
                 this.checkInactivity(currentPos.lat, currentPos.lng);
             }
-        }, 3000);
+        }, 2000);
     },
     
     checkInactivity: function(lat, lng) {
@@ -658,14 +675,14 @@ const DangerDetectionSystem = {
         
         if(lastPosition) {
             // Calculate distance between current and last position (in meters)
-            // More sensitive - trigger on even small movements (50cm)
+            // More sensitive - trigger on even small movements (30cm)
             const distance = this.calculateDistance(
                 lastPosition.lat, lastPosition.lng,
                 currentPosition.lat, currentPosition.lng
             );
             
-            // If user hasn't moved more than 0.5 meters (50cm)
-            if(distance < 0.5) {
+            // If user hasn't moved more than 0.3 meters (30cm)
+            if(distance < 0.3) {
                 // Start countdown if not already started
                 if(!inactivityTimer) {
                     this.startInactivityCountdown();
@@ -673,7 +690,7 @@ const DangerDetectionSystem = {
             } else {
                 // Reset timer if user moved even slightly
                 this.resetInactivityTimer();
-                NotificationSystem.show(`You moved ${distance.toFixed(2)}m - inactivity timer reset`, false, 2000);
+                NotificationSystem.show(`✅ You moved ${distance.toFixed(2)}m - inactivity timer reset`, false, 2000);
             }
         }
         lastPosition = currentPosition;
@@ -985,7 +1002,7 @@ const VoiceRecordingSystem = {
     }
 };
 
-// Location System Component
+// Location System Component - Enhanced for automatic updates
 const LocationSystem = {
     shareLocation: function() {
         if(!peer) {
@@ -999,10 +1016,17 @@ const LocationSystem = {
         navigator.geolocation.getCurrentPosition(pos => {
             const latitude = pos.coords.latitude, longitude = pos.coords.longitude;
             const myCard = document.getElementById('you-card');
+            
+            // Add live location indicator
+            const liveIndicator = document.createElement('span');
+            liveIndicator.className = 'live-location-indicator';
+            liveIndicator.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Live';
+            
             myCard.querySelector('.location-sharing').innerHTML = `
                 <span class="dot"></span>
                 <span><i class="fas fa-location-dot"></i> Location shared</span>
             `;
+            myCard.querySelector('.location-sharing').appendChild(liveIndicator);
             
             if(myMarker) map.removeLayer(myMarker);
             
@@ -1047,34 +1071,105 @@ const LocationSystem = {
                 DangerDetectionSystem.startContinuousMonitoring();
             }
             
+            // Store last sent position
+            lastSentPosition = { lat: latitude, lng: longitude, timestamp: Date.now() };
+            
             shareLocationBtn.disabled = false;
             shareLocationBtn.innerHTML = `<i class="fas fa-location-dot"></i> Share Location`;
             NotificationSystem.show('✅ Location shared successfully', false, 3000);
             locationControls.classList.remove('hidden');
             locationShared = true;
             
-            // Start automatic location updates every 30 seconds
+            // Start automatic location updates every 5 seconds
             this.startAutoLocationUpdates();
         }, err => {
             console.error('Geolocation error', err);
             shareLocationBtn.disabled = false;
             shareLocationBtn.innerHTML = `<i class="fas fa-location-dot"></i> Share Location`;
             NotificationSystem.show('❌ Could not get location (enable location services)', true);
-        }, { enableHighAccuracy:true, maximumAge:30000, timeout:10000 });
+        }, { enableHighAccuracy:true, maximumAge:10000, timeout:10000 });
     },
     
     startAutoLocationUpdates: function() {
         // Clear any existing interval
-        if(window.autoLocationUpdateInterval) {
-            clearInterval(window.autoLocationUpdateInterval);
+        if(liveLocationInterval) {
+            clearInterval(liveLocationInterval);
         }
         
-        // Update location every 30 seconds
-        window.autoLocationUpdateInterval = setInterval(() => {
+        // Update location every 5 seconds for real-time tracking
+        liveLocationInterval = setInterval(() => {
             if(locationShared && !isHost) {
-                this.updateLocation(true); // true means it's an auto-update
+                this.updateLocationAutomatically();
             }
-        }, 30000);
+        }, 5000);
+    },
+    
+    updateLocationAutomatically: function() {
+        if(!locationShared || !navigator.geolocation) return;
+        
+        navigator.geolocation.getCurrentPosition(pos => {
+            const latitude = pos.coords.latitude, longitude = pos.coords.longitude;
+            
+            // Check if position has changed significantly
+            let positionChanged = true;
+            if(lastSentPosition) {
+                const distance = DangerDetectionSystem.calculateDistance(
+                    lastSentPosition.lat, lastSentPosition.lng,
+                    latitude, longitude
+                );
+                // Only consider it changed if moved more than 10cm
+                positionChanged = distance > 0.1;
+            }
+            
+            // Always update the marker for smooth movement
+            if(myMarker) {
+                const markerColor = isSOSActive ? 'red' : '#3388ff';
+                const icon = L.divIcon({
+                    className: 'custom-marker',
+                    html: `<div style="background:${markerColor};width:12px;height:12px;border-radius:50%;border:2px solid white;box-shadow:0 0 4px rgba(0,0,0,0.5);"></div>`,
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8]
+                });
+                myMarker.setIcon(icon);
+                myMarker.setLatLng([latitude, longitude]);
+                myMarker.setPopupContent(`<b>Your Location</b><br>Lat: ${latitude.toFixed(6)}<br>Lng: ${longitude.toFixed(6)}${isSOSActive ? '<br><span style="color:red;font-weight:bold;">🚨 EMERGENCY: You are in danger! 🚨</span>' : ''}`);
+                
+                // If peer exists, adjust map view
+                if(peerMarker) {
+                    const bounds = L.latLngBounds([
+                        [latitude, longitude],
+                        [peerMarker.getLatLng().lat, peerMarker.getLatLng().lng]
+                    ]);
+                    map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
+                }
+            }
+            
+            // Only send update if position changed significantly or every 30 seconds
+            const now = Date.now();
+            const timeSinceLastSend = now - (lastSentPosition?.timestamp || 0);
+            
+            if(positionChanged || timeSinceLastSend > 30000) {
+                if(conn && conn.open) {
+                    EmergencySystem.safeSend({ 
+                        type:'location', 
+                        latitude: latitude, 
+                        longitude: longitude, 
+                        clientAlias: myAlias,
+                        isSOS: isSOSActive
+                    });
+                }
+                
+                // Update last sent position
+                lastSentPosition = { lat: latitude, lng: longitude, timestamp: now };
+                
+                // Check for inactivity (this will start countdown if not moving)
+                if(!isHost && !isSOSActive) {
+                    DangerDetectionSystem.checkInactivity(latitude, longitude);
+                }
+            }
+        }, err => {
+            console.error('Geolocation error', err);
+        }, { enableHighAccuracy:true, maximumAge:5000, timeout:10000 });
     },
     
     updateLocation: function(isAutoUpdate = false) {
@@ -1149,6 +1244,9 @@ const LocationSystem = {
                 }
             }
             
+            // Update last sent position
+            lastSentPosition = { lat: latitude, lng: longitude, timestamp: Date.now() };
+            
             updateLocationBtn.innerHTML = btnText;
             updateLocationBtn.disabled = false;
             
@@ -1194,9 +1292,9 @@ const LocationSystem = {
         }
         
         // Stop auto location updates
-        if(window.autoLocationUpdateInterval) {
-            clearInterval(window.autoLocationUpdateInterval);
-            window.autoLocationUpdateInterval = null;
+        if(liveLocationInterval) {
+            clearInterval(liveLocationInterval);
+            liveLocationInterval = null;
         }
     }
 };
@@ -1349,10 +1447,16 @@ function updatePeerLocation(d){
     // Update peer location indicator
     const peerCard = document.querySelector('.peer-card');
     if(peerCard) {
+        // Add live location indicator for peer
+        const liveIndicator = document.createElement('span');
+        liveIndicator.className = 'live-location-indicator';
+        liveIndicator.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Live';
+        
         peerCard.querySelector('.location-sharing').innerHTML = `
             <span class="dot"></span>
             <span><i class="fas fa-location-dot"></i> Location shared</span>
         `;
+        peerCard.querySelector('.location-sharing').appendChild(liveIndicator);
     }
     
     if(peerMarker) map.removeLayer(peerMarker);
@@ -1443,9 +1547,9 @@ function stopSession(){
         clearInterval(emergencyBroadcastInterval);
         emergencyBroadcastInterval = null;
     }
-    if(window.autoLocationUpdateInterval) {
-        clearInterval(window.autoLocationUpdateInterval);
-        window.autoLocationUpdateInterval = null;
+    if(liveLocationInterval) {
+        clearInterval(liveLocationInterval);
+        liveLocationInterval = null;
     }
     if(currentStream) {
         currentStream.getTracks().forEach(track => track.stop());
@@ -1843,10 +1947,14 @@ window.addEventListener('unload', () => {
     if(currentStream) {
         currentStream.getTracks().forEach(track => track.stop());
     }
-    if(window.autoLocationUpdateInterval) {
-        clearInterval(window.autoLocationUpdateInterval);
+    if(liveLocationInterval) {
+        clearInterval(liveLocationInterval);
+    }
+    if(positionCheckInterval) {
+        clearInterval(positionCheckInterval);
     }
 });
 </script>
 </body>
 </html>
+```
