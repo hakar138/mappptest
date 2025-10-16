@@ -48,12 +48,45 @@
         .user-avatar { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: linear-gradient(45deg,#4facfe,#00f2fe); font-weight: 800; font-size: 1.4rem }
         .user-info .user-name { font-weight: 700; font-size: 1.05rem; margin-bottom: 4px }
         .status-dot { width: 12px; height: 12px; border-radius: 50%; background: #4cd137; display: inline-block; margin-right: 10px }
-        .chat-card { display: flex; flex-direction: column; height: 300px }
-        .chat-messages { flex: 1; overflow: auto; padding: 12px; border-radius: 10px; background: rgba(0,0,0,0.15); margin-bottom: 10px; font-size: 1rem; display: flex; flex-direction: column; gap: 8px }
-        .chat-input-row { display: flex; gap: 10px; margin-top: 10px }
-        .chat-input { flex: 1; padding: 12px; border-radius: 10px; border: none; font-size: 1rem; background: rgba(255,255,255,.05); color: #fff }
-        .chat-send { padding: 12px 16px; border-radius: 10px; border: none; background: linear-gradient(45deg,#4facfe,#00f2fe); color: #fff; cursor: pointer; font-size: 1rem; transition: all 0.2s ease; min-width: 100px }
-        .chat-send:hover { background: linear-gradient(45deg,#3a9cf7,#00d9f2) }
+        .chat-card { display: flex; flex-direction: column; height: 400px; /* Increased height */ }
+        .chat-messages { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 16px; 
+            border-radius: 16px; 
+            background: rgba(0,0,0,0.18); 
+            margin-bottom: 16px; 
+            font-size: 1.05rem; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 14px;
+            backdrop-filter: blur(4px);
+        }
+        .chat-input-row { display: flex; gap: 12px; margin-top: 12px }
+        .chat-input { 
+            flex: 1; 
+            padding: 14px; 
+            border-radius: 14px; 
+            border: none; 
+            font-size: 1.05rem; 
+            background: rgba(255,255,255,.07); 
+            color: #fff;
+            transition: background 0.2s;
+        }
+        .chat-input:focus { background: rgba(255,255,255,.1); }
+        .chat-send { 
+            padding: 14px 20px; 
+            border-radius: 14px; 
+            border: none; 
+            background: linear-gradient(45deg,#4facfe,#00f2fe); 
+            color: #fff; 
+            cursor: pointer; 
+            font-size: 1.05rem; 
+            transition: all 0.2s ease; 
+            min-width: 110px;
+            font-weight: 600;
+        }
+        .chat-send:hover { background: linear-gradient(45deg,#3a9cf7,#00d9f2); transform: translateY(-2px); }
         .notification { position: fixed; right: 16px; top: 16px; background: rgba(0,0,0,.5); padding: 12px 18px; border-radius: 12px; backdrop-filter: blur(6px); transform: translateX(120%); transition: transform .35s; z-index: 9000; color: #fff; border-left: 4px solid #4cd137; max-width: calc(100% - 32px); font-size: 0.95rem; display: flex; align-items: center; gap: 10px }
         .notification.show { transform: translateX(0) }
         .notification.error { border-left-color: #e84118 }
@@ -66,9 +99,68 @@
         .confirmation-box { width: 90%; max-width: 540px; background: linear-gradient(135deg,#11264a,#183054); border-radius: 16px; padding: 24px; border: 1px solid rgba(255,255,255,.08); box-shadow: 0 22px 50px rgba(0,0,0,.7); text-align: center; pointer-events: auto; animation: modalIn 0.4s ease }
         .confirmation-buttons { display: flex; gap: 14px; justify-content: center; margin-top: 20px }
         .hidden { display: none !important }
-        .message-me { align-self: flex-end; background: linear-gradient(45deg,#ff7e5f,#feb47b); color: #000; padding: 10px 14px; border-radius: 14px; max-width: 85%; font-size: 0.95rem; animation: fadeIn 0.3s ease }
-        .message-peer { align-self: flex-start; background: rgba(255,255,255,0.1); color: #fff; padding: 10px 14px; border-radius: 14px; max-width: 85%; font-size: 0.95rem; animation: fadeIn 0.3s ease }
-        .message-system { text-align: center; color: rgba(255,255,255,0.8); font-style: italic; font-size: 0.9rem; margin: 12px 0; padding: 8px; border-radius: 8px; background: rgba(255,255,255,0.05) }
+        .message-me { 
+            align-self: flex-end; 
+            background: linear-gradient(45deg,#ff7e5f,#feb47b); 
+            color: #000; 
+            padding: 14px 20px; 
+            border-radius: 20px 20px 4px 20px; 
+            max-width: 80%; 
+            font-size: 1.02rem; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            animation: fadeIn 0.3s ease;
+            word-break: break-word;
+        }
+        .message-peer { 
+            align-self: flex-start; 
+            background: rgba(255,255,255,0.12); 
+            color: #fff; 
+            padding: 14px 20px; 
+            border-radius: 20px 20px 20px 4px; 
+            max-width: 80%; 
+            font-size: 1.02rem; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            animation: fadeIn 0.3s ease;
+            word-break: break-word;
+        }
+        .message-system { 
+            text-align: center; 
+            color: rgba(255,255,255,0.8); 
+            font-style: italic; 
+            font-size: 0.95rem; 
+            margin: 14px 0; 
+            padding: 10px; 
+            border-radius: 10px; 
+            background: rgba(255,255,255,0.06);
+            max-width: 90%;
+            align-self: center;
+        }
+        .voice-message { 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 10px;
+        }
+        .voice-play-btn {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        .voice-play-btn:hover {
+            background: rgba(255,255,255,0.25);
+            transform: scale(1.05);
+        }
+        .voice-play-btn.loading {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
         .btn-reconnect { background: linear-gradient(45deg, #4facfe, #00f2fe); }
         .host-badge { background: #fbc531; color: #000; font-size: 0.8rem; padding: 4px 8px; border-radius: 10px; margin-left: 8px; font-weight: bold }
         @media (max-width: 600px) {
@@ -81,7 +173,7 @@
             .code-row button { width: 100%; }
             .confirmation-buttons { flex-direction: column; }
             .confirmation-buttons button { width: 100%; }
-            .chat-card { height: 260px; }
+            .chat-card { height: 340px; }
             .map-container { height: 260px; }
             .user-list { grid-template-columns: 1fr; }
             .privacy-notice { flex-direction: column; text-align: center; }
@@ -91,21 +183,6 @@
             .join-box { padding: 18px; }
             .confirmation-box { padding: 20px; }
         }
-        @media (max-width: 400px) {
-            .logo-text { font-size: 1.5rem; }
-            h1 { font-size: 1.4rem; }
-            .card-title { font-size: 1.1rem; }
-            .btn { padding: 12px; font-size: 0.95rem; }
-            .form-control { padding: 12px; }
-            .notification { padding: 10px 14px; font-size: 0.9rem; }
-        }
-        .toggle-container { display: flex; align-items: center; gap: 12px; margin-top: 14px; }
-        .switch { position: relative; display: inline-block; width: 54px; height: 28px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 28px; }
-        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background: linear-gradient(45deg,#ff7e5f,#feb47b); }
-        input:checked + .slider:before { transform: translateX(26px); }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -126,12 +203,8 @@
         .location-sharing.active .dot { background: #4cd137 }
         .location-sharing.active { color: #4cd137 }
         .user-card .location-sharing { margin-top: 4px }
-        .tooltip { position: relative; display: inline-block; }
-        .tooltip .tooltiptext { visibility: hidden; width: 180px; background-color: rgba(0,0,0,0.8); color: #fff; text-align: center; border-radius: 6px; padding: 8px; position: absolute; z-index: 1; bottom: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s; font-size: 0.85rem }
-        .tooltip:hover .tooltiptext { visibility: visible; opacity: 1 }
         .rejoin-notice { background: rgba(255,255,255,.05); padding: 10px; border-radius: 10px; border-left: 4px solid #4facfe; margin: 12px 0; display: flex; align-items: center; gap: 8px; font-size: 0.9rem }
         .duration-badge { background: rgba(79, 172, 254, 0.2); color: #4facfe; padding: 4px 8px; border-radius: 20px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 4px }
-        /* Emergency System Styles */
         .emergency-marker { background: #e84118 !important; }
         .danger-alert { background: rgba(232, 65, 24, 0.2); border-left: 4px solid #e84118; padding: 12px; border-radius: 8px; margin: 10px 0; animation: pulse 2s infinite; }
         @keyframes pulse {
@@ -139,33 +212,21 @@
             70% { box-shadow: 0 0 0 10px rgba(232, 65, 24, 0); }
             100% { box-shadow: 0 0 0 0 rgba(232, 65, 24, 0); }
         }
-        .countdown { color: #e84118; font-weight: bold; font-size: 1.2rem; margin: 10px 0; text-align: center; padding: 10px; background: rgba(232, 65, 24, 0.1); border-radius: 8px; border: 2px solid rgba(232, 65, 24, 0.3); animation: pulse 1s infinite; }
+        .countdown { 
+            color: #e84118; 
+            font-weight: bold; 
+            font-size: 1.2rem; 
+            margin: 12px 0; 
+            text-align: center; 
+            padding: 12px; 
+            background: rgba(232, 65, 24, 0.12); 
+            border-radius: 10px; 
+            border: 2px solid rgba(232, 65, 24, 0.35); 
+            animation: pulse 1s infinite; 
+        }
         .emergency-btns { display: flex; gap: 10px; margin-top: 10px; }
         .sos-btn { background: linear-gradient(45deg, #e84118, #c23616); }
         .cancel-sos-btn { background: linear-gradient(45deg, #4cd137, #3498db); }
-        /* Voice Message Styles */
-        .voice-message { background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; margin: 5px 0; }
-        .voice-controls { display: flex; align-items: center; gap: 10px; }
-        .voice-record-btn { background: #e84118; color: white; border: none; padding: 8px 12px; border-radius: 20px; cursor: pointer; }
-        .voice-play-btn { background: #4cd137; color: white; border: none; padding: 8px 12px; border-radius: 20px; cursor: pointer; }
-        .voice-timer { color: #feb47b; font-weight: bold; }
-        /* Mobile-friendly chat improvements */
-        @media (max-width: 768px) {
-            .chat-input { padding: 16px; font-size: 1.1rem; }
-            .chat-send { padding: 16px; font-size: 1.1rem; }
-            .voice-record-btn, .voice-play-btn { padding: 12px 16px; font-size: 1.1rem; }
-        }
-        /* Accuracy indicator */
-        .accuracy-badge {
-            font-size: 0.8rem;
-            background: rgba(255,255,255,0.1);
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin-left: 6px;
-        }
-        .accuracy-high { color: #4cd137; }
-        .accuracy-medium { color: #fbc531; }
-        .accuracy-low { color: #e84118; }
     </style>
 </head>
 <body>
@@ -214,7 +275,6 @@
                 <button id="copy-session-code" class="btn btn-outline small-btn" disabled>Copy</button>
             </div>
         </div>
-        <!-- Show real name toggle -->
         <div class="toggle-container">
             <label class="switch">
                 <input type="checkbox" id="show-real-name-toggle">
@@ -251,7 +311,6 @@
             <button id="share-location" class="btn"><i class="fas fa-location-dot"></i> Share Location</button>
             <button id="stop-session" class="btn btn-stop"><i class="fas fa-power-off"></i> Stop</button>
         </div>
-        <!-- Location management buttons -->
         <div class="btn-container hidden" id="location-controls" style="margin-top:16px;grid-template-columns:1fr 1fr">
             <button id="update-location" class="btn btn-update"><i class="fas fa-sync-alt"></i> Update Location</button>
             <button id="stop-sharing" class="btn btn-unshare"><i class="fas fa-location-slash"></i> Stop Sharing</button>
@@ -279,7 +338,6 @@
                         <span><i class="fas fa-location-slash"></i> Location not shared</span>
                     </div>
                     <div style="margin-top:10px"><span class="status-dot"></span> Online</div>
-                    <!-- Emergency buttons -->
                     <div class="emergency-btns">
                         <button id="sos-btn" class="btn sos-btn small-btn"><i class="fas fa-exclamation-triangle"></i> SOS</button>
                         <button id="cancel-sos-btn" class="btn cancel-sos-btn small-btn" disabled><i class="fas fa-times"></i> Cancel SOS</button>
@@ -291,14 +349,13 @@
             <div class="chat-messages" id="chat-messages" aria-live="polite">
                 <div class="message-system">Welcome to SecureHat! Start by creating or joining a session.</div>
             </div>
-            <div class="chat-input-row" style="margin-top:10px">
+            <div class="chat-input-row">
                 <input id="chat-input" class="chat-input" placeholder="Type a message..." />
                 <button id="chat-send" class="chat-send"><i class="fas fa-paper-plane"></i> Send</button>
             </div>
-            <!-- Voice message controls -->
-            <div class="chat-input-row" style="margin-top:10px">
-                <button id="voice-record-btn" class="voice-record-btn"><i class="fas fa-microphone"></i> Record Voice</button>
-                <div id="recording-timer" class="voice-timer hidden">Recording: 0s</div>
+            <div class="chat-input-row" style="margin-top:12px">
+                <button id="voice-record-btn" class="btn small-btn" style="background:linear-gradient(45deg,#e84118,#c23616);color:white"><i class="fas fa-microphone"></i> Record Voice</button>
+                <div id="recording-timer" class="voice-timer hidden" style="color:#feb47b;font-weight:bold;"></div>
             </div>
         </div>
     </div>
@@ -409,22 +466,17 @@ let isRecording = false;
 let recordingStartTime = null;
 let recordingTimerInterval = null;
 // Live location tracking state
-let watchId = null;
-let lastSentTimestamp = 0;
-let MIN_SEND_INTERVAL = 5000; // 5 seconds minimum between sends
-let MOVEMENT_THRESHOLD = 5; // meters
-let ACCURACY_THRESHOLD = 50; // meters
-
+let liveLocationInterval = null;
+let lastSentPosition = null;
 /* ========= Map init ========= */
 const map = L.map('map', { 
     attributionControl: false,
-    center: [34.5, 45.5], // Kurdistan approximate center
+    center: [34.5, 45.5],
     zoom: 7
 });
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
-
 /* ========= Helpers ========= */
 function generateAnonAlias(){ 
     const adjectives = ["Swift", "Clever", "Brave", "Wise", "Gentle", "Fierce", "Noble", "Silent", "Bright", "Calm"];
@@ -495,25 +547,29 @@ function appendMessage(text, fromMe=false, isSystem=false, isVoice=false){
     } else if(isVoice) {
         el.className = fromMe ? 'message-me' : 'message-peer';
         el.innerHTML = `<div class="voice-message">
-            <div class="voice-controls">
-                <button class="voice-play-btn"><i class="fas fa-play"></i> Play Voice Message</button>
-                <span class="voice-duration">${text}</span>
-            </div>
+            <button class="voice-play-btn"><i class="fas fa-play"></i> Play Voice</button>
         </div>`;
         el.querySelector('.voice-play-btn').addEventListener('click', function() {
-            const playBtn = this;
-            playBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+            const btn = this;
+            btn.classList.add('loading');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             const audio = new Audio(text);
-            audio.oncanplaythrough = function() {
-                playBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+            audio.oncanplaythrough = () => {
+                btn.classList.remove('loading');
+                btn.innerHTML = '<i class="fas fa-play"></i> Play Voice';
                 audio.play();
             };
-            audio.onended = function() {
-                playBtn.innerHTML = '<i class="fas fa-play"></i> Play Voice Message';
+            audio.onended = () => {
+                btn.classList.remove('loading');
+                btn.innerHTML = '<i class="fas fa-play"></i> Play Voice';
             };
-            audio.onerror = function() {
-                playBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
+            audio.onerror = () => {
+                btn.classList.remove('loading');
+                btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
                 showNotification('Failed to play voice message', true);
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="fas fa-play"></i> Play Voice';
+                }, 2000);
             };
         });
     } else {
@@ -575,7 +631,6 @@ copySessionCodeBtn.addEventListener('click', () => {
     if (!codeRevealed) { showNotification('Reveal the code first to enable copying', true); return; }
     copyToClipboard(sessionCodeInput.value);
 });
-
 /* ========= Join modal behavior ========= */
 openJoinBtn.addEventListener('click', () => {
     joinModal.classList.add('show');
@@ -611,7 +666,6 @@ joinModal.addEventListener('click', (e) => {
         joinModal.setAttribute('aria-hidden', 'true');
     }
 });
-
 /* ========= Create / Join ========= */
 function startSession(host){
     isHost = host;
@@ -839,7 +893,6 @@ function updatePeerLocation(d){
         peerCard.querySelector('.location-sharing').innerHTML = `
             <span class="dot"></span>
             <span><i class="fas fa-location-dot"></i> Location shared</span>
-            ${d.accuracy !== undefined ? `<span class="accuracy-badge ${getAccuracyClass(d.accuracy)}">±${Math.round(d.accuracy)}m</span>` : ''}
         `;
     }
     if(peerMarker) map.removeLayer(peerMarker);
@@ -852,7 +905,7 @@ function updatePeerLocation(d){
     });
     peerMarker = L.marker([latitude, longitude], {icon: icon})
         .addTo(map)
-        .bindPopup(`<b>${d.clientAlias}'s Location</b><br>Lat: ${latitude.toFixed(6)}<br>Lng: ${longitude.toFixed(6)}${d.accuracy !== undefined ? `<br>Accuracy: ±${Math.round(d.accuracy)}m` : ''}${d.isSOS ? '<br><span style="color:red;font-weight:bold;">EMERGENCY: User in danger!</span>' : ''}`)
+        .bindPopup(`<b>${d.clientAlias}'s Location</b><br>Lat: ${latitude.toFixed(6)}<br>Lng: ${longitude.toFixed(6)}${d.isSOS ? '<br><span style="color:red;font-weight:bold;">EMERGENCY: User in danger!</span>' : ''}`)
         .openPopup();
     if(myMarker) {
         const bounds = L.latLngBounds([
@@ -864,8 +917,7 @@ function updatePeerLocation(d){
         map.setView([latitude, longitude], 13);
     }
 }
-
-/* ========= Enhanced Location Sharing ========= */
+/* share location */
 function shareMyLocation(){
     if(!peer) {
         showNotification('No active session. Create or join a session first.', true);
@@ -874,20 +926,12 @@ function shareMyLocation(){
     if(!navigator.geolocation){ showNotification('Geolocation not supported', true); return; }
     shareLocationBtn.disabled = true;
     shareLocationBtn.innerHTML = `<i class="fas fa-sync fa-spin"></i> Getting...`;
-
-    const options = {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 5000
-    };
-
-    const success = (pos) => {
-        const { latitude, longitude, accuracy } = pos.coords;
+    navigator.geolocation.getCurrentPosition(pos => {
+        const latitude = pos.coords.latitude, longitude = pos.coords.longitude;
         const myCard = document.getElementById('you-card');
         myCard.querySelector('.location-sharing').innerHTML = `
             <span class="dot"></span>
             <span><i class="fas fa-location-dot"></i> Location shared</span>
-            <span class="accuracy-badge ${getAccuracyClass(accuracy)}">±${Math.round(accuracy)}m</span>
         `;
         if(myMarker) map.removeLayer(myMarker);
         const markerColor = isSOSActive ? 'red' : '#3388ff';
@@ -899,7 +943,7 @@ function shareMyLocation(){
         });
         myMarker = L.marker([latitude, longitude], {icon: icon})
             .addTo(map)
-            .bindPopup(`<b>Your Location</b><br>Lat: ${latitude.toFixed(6)}<br>Lng: ${longitude.toFixed(6)}<br>Accuracy: ±${Math.round(accuracy)}m${isSOSActive ? '<br><span style="color:red;font-weight:bold;">EMERGENCY: You are in danger!</span>' : ''}`)
+            .bindPopup(`<b>Your Location</b><br>Lat: ${latitude.toFixed(6)}<br>Lng: ${longitude.toFixed(6)}${isSOSActive ? '<br><span style="color:red;font-weight:bold;">EMERGENCY: You are in danger!</span>' : ''}`)
             .openPopup();
         if(peerMarker) {
             const bounds = L.latLngBounds([
@@ -910,132 +954,41 @@ function shareMyLocation(){
         } else {
             map.setView([latitude, longitude], 13);
         }
-        lastPosition = { lat: latitude, lng: longitude, accuracy, timestamp: Date.now() };
-        lastSentTimestamp = Date.now();
         if(conn && conn.open) {
             safeSend({ 
                 type:'location', 
-                latitude, 
-                longitude, 
-                accuracy,
+                latitude: latitude, 
+                longitude: longitude, 
                 clientAlias: myAlias,
                 isSOS: isSOSActive
             });
         }
-        // Start watching position
-        if(watchId === null) {
-            watchId = navigator.geolocation.watchPosition(
-                handlePositionUpdate,
-                (err) => {
-                    console.error('Watch position error:', err);
-                    showNotification('Location tracking error: ' + err.message, true);
-                },
-                options
-            );
+        if(!isHost) {
+            lastPosition = { lat: latitude, lng: longitude, timestamp: Date.now() };
+            startInactivityMonitoring();
         }
         shareLocationBtn.disabled = false;
         shareLocationBtn.innerHTML = `<i class="fas fa-location-dot"></i> Share Location`;
-        showNotification('Location sharing started');
+        showNotification('Location shared');
         locationControls.classList.remove('hidden');
         locationShared = true;
-        startInactivityMonitoring();
-    };
-
-    const error = (err) => {
+    }, err => {
         console.error('Geolocation error', err);
         shareLocationBtn.disabled = false;
         shareLocationBtn.innerHTML = `<i class="fas fa-location-dot"></i> Share Location`;
         showNotification('Could not get location (enable location services)', true);
-    };
-
-    navigator.geolocation.getCurrentPosition(success, error, options);
+    }, { enableHighAccuracy:true, maximumAge:30000, timeout:10000 });
 }
-
-function handlePositionUpdate(pos) {
-    const { latitude, longitude, accuracy } = pos.coords;
-    const now = Date.now();
-    const timeSinceLastSend = now - lastSentTimestamp;
-    let shouldSend = false;
-
-    if (lastPosition) {
-        const distance = calculateDistance(
-            lastPosition.lat, lastPosition.lng,
-            latitude, longitude
-        );
-        // Send if moved significantly OR if enough time passed
-        if (distance > MOVEMENT_THRESHOLD || timeSinceLastSend > MIN_SEND_INTERVAL) {
-            shouldSend = true;
-        }
-    } else {
-        shouldSend = true; // First position always sent
-    }
-
-    // Update marker visually even if not sending
-    if(myMarker) {
-        const markerColor = isSOSActive ? 'red' : '#3388ff';
-        const icon = L.divIcon({
-            className: 'custom-marker',
-            html: `<div style="background:${markerColor};width:12px;height:12px;border-radius:50%;border:2px solid white;box-shadow:0 0 4px rgba(0,0,0,0.5);"></div>`,
-            iconSize: [16, 16],
-            iconAnchor: [8, 8]
-        });
-        myMarker.setIcon(icon);
-        myMarker.setLatLng([latitude, longitude]);
-        myMarker.setPopupContent(`<b>Your Location</b><br>Lat: ${latitude.toFixed(6)}<br>Lng: ${longitude.toFixed(6)}<br>Accuracy: ±${Math.round(accuracy)}m${isSOSActive ? '<br><span style="color:red;font-weight:bold;">EMERGENCY: You are in danger!</span>' : ''}`);
-    }
-
-    if (shouldSend && conn && conn.open) {
-        safeSend({ 
-            type:'location', 
-            latitude, 
-            longitude, 
-            accuracy,
-            clientAlias: myAlias,
-            isSOS: isSOSActive
-        });
-        lastSentTimestamp = now;
-    }
-
-    // Update last known position for inactivity check
-    lastPosition = { lat: latitude, lng: longitude, accuracy, timestamp: now };
-
-    // Check inactivity if not host
-    if (!isHost && !isSOSActive) {
-        checkInactivity(latitude, longitude);
-    }
-}
-
-function getAccuracyClass(accuracy) {
-    if (accuracy <= 20) return 'accuracy-high';
-    if (accuracy <= 50) return 'accuracy-medium';
-    return 'accuracy-low';
-}
-
 /* update location */
 updateLocationBtn.addEventListener('click', () => {
-    if (!locationShared) {
-        shareMyLocation();
-    } else {
-        // Force immediate update
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(pos => {
-                const { latitude, longitude, accuracy } = pos.coords;
-                lastSentTimestamp = 0; // Force send
-                handlePositionUpdate(pos);
-                showNotification('Location updated');
-            }, err => {
-                showNotification('Failed to update location: ' + err.message, true);
-            }, { enableHighAccuracy: true, timeout: 10000 });
-        }
-    }
+    shareMyLocation();
+    updateLocationBtn.innerHTML = `<i class="fas fa-sync fa-spin"></i> Updating...`;
+    setTimeout(() => {
+        updateLocationBtn.innerHTML = `<i class="fas fa-sync-alt"></i> Update Location`;
+    }, 1500);
 });
-
 /* stop sharing location */
 stopSharingBtn.addEventListener('click', () => {
-    if(watchId !== null) {
-        navigator.geolocation.clearWatch(watchId);
-        watchId = null;
-    }
     if(myMarker) {
         map.removeLayer(myMarker);
         myMarker = null;
@@ -1048,15 +1001,18 @@ stopSharingBtn.addEventListener('click', () => {
     locationControls.classList.add('hidden');
     locationShared = false;
     showNotification('Stopped sharing your location');
-    resetInactivityTimer();
+    if(inactivityTimer) {
+        clearTimeout(inactivityTimer);
+        inactivityTimer = null;
+    }
+    if(inactivityCountdown) {
+        const countdownEl = document.getElementById('inactivity-countdown');
+        if(countdownEl) countdownEl.remove();
+        inactivityCountdown = null;
+    }
 });
-
 /* stop session */
 function stopSession(){
-    if(watchId !== null) {
-        navigator.geolocation.clearWatch(watchId);
-        watchId = null;
-    }
     destroyExistingPeer();
     localStorage.removeItem('session_active');
     localStorage.removeItem('session_role');
@@ -1093,18 +1049,24 @@ function stopSession(){
     isSOSActive = false;
     sosBtn.disabled = false;
     cancelSosBtn.disabled = true;
-    resetInactivityTimer();
+    if(inactivityTimer) {
+        clearTimeout(inactivityTimer);
+        inactivityTimer = null;
+    }
+    if(inactivityCountdown) {
+        const countdownEl = document.getElementById('inactivity-countdown');
+        if(countdownEl) countdownEl.remove();
+        inactivityCountdown = null;
+    }
     if(emergencyBroadcastInterval) {
         clearInterval(emergencyBroadcastInterval);
         emergencyBroadcastInterval = null;
     }
     showNotification('Session stopped');
 }
-
 function setControlsDisabled(state){
     [createSessionBtn, openJoinBtn, resumeSessionBtn, copyCodeBtn].forEach(b => { if(b) b.disabled = state; });
 }
-
 /* ========= Modal fixed behavior (stop modal) ========= */
 function showStopModal(){
     const sessionActive = localStorage.getItem('session_active') === 'true';
@@ -1120,7 +1082,6 @@ stopConfirmation.addEventListener('click', (e) => { if(e.target === stopConfirma
 const confirmationBox = stopConfirmation.querySelector('.confirmation-box');
 if(confirmationBox) confirmationBox.addEventListener('click', (e)=> e.stopPropagation());
 window.addEventListener('keydown', (e) => { if(e.key === 'Escape' && stopConfirmation.classList.contains('show')) hideStopModal(); });
-
 /* ========= Resume & load handling ========= */
 window.addEventListener('DOMContentLoaded', () => {
     const showRealName = localStorage.getItem('show_real_name') === 'true';
@@ -1144,14 +1105,9 @@ window.addEventListener('DOMContentLoaded', () => {
         updateStatus('Ready to connect', false);
     }
 });
-function updateYourNameDisplay() {
-    const realName = localStorage.getItem('local_real_name') || 'You';
-    yourNameDisplay.textContent = realName;
-}
 showRealNameToggle.addEventListener('change', () => {
     localStorage.setItem('show_real_name', showRealNameToggle.checked);
 });
-
 /* ========= Event listeners ========= */
 createSessionBtn.addEventListener('click', () => {
     if(!sessionCodeInput.value.trim()){
@@ -1181,7 +1137,6 @@ copyCodeBtn.addEventListener('click', () => {
     if(txt) copyToClipboard(txt); else showNotification('No code available to copy', true);
 });
 shareLocationBtn.addEventListener('click', shareMyLocation);
-
 /* Chat send */
 chatSend.addEventListener('click', () => {
     const txt = chatInput.value.trim();
@@ -1205,7 +1160,6 @@ window.addEventListener('beforeunload', (e) => {
         e.returnValue = '';
     }
 });
-
 /* ========= Emergency System Implementation ========= */
 function triggerSOS() {
     if(isSOSActive) return;
@@ -1219,7 +1173,6 @@ function triggerSOS() {
     if(myMarker && locationShared) {
         const latitude = myMarker.getLatLng().lat;
         const longitude = myMarker.getLatLng().lng;
-        const accuracy = lastPosition?.accuracy || 0;
         const icon = L.divIcon({
             className: 'custom-marker',
             html: `<div style="background:red;width:12px;height:12px;border-radius:50%;border:2px solid white;box-shadow:0 0 4px rgba(0,0,0,0.5);"></div>`,
@@ -1227,20 +1180,19 @@ function triggerSOS() {
             iconAnchor: [8, 8]
         });
         myMarker.setIcon(icon);
-        myMarker.setPopupContent(`<b>Your Location</b><br>Lat: ${latitude.toFixed(6)}<br>Lng: ${longitude.toFixed(6)}<br>Accuracy: ±${Math.round(accuracy)}m<br><span style="color:red;font-weight:bold;">EMERGENCY: You are in danger!</span>`);
+        myMarker.setPopupContent(`<b>Your Location</b><br>Lat: ${latitude.toFixed(6)}<br>Lng: ${longitude.toFixed(6)}<br><span style="color:red;font-weight:bold;">EMERGENCY: You are in danger!</span>`);
         if(conn && conn.open) {
             safeSend({ 
                 type: 'sos', 
                 clientAlias: myAlias, 
-                latitude, 
-                longitude,
-                accuracy
+                latitude: latitude, 
+                longitude: longitude 
             });
             emergencyBroadcastInterval = setInterval(() => {
                 if(conn && conn.open) {
                     safeSend({ 
                         type: 'chat', 
-                        text: `EMERGENCY: ${myAlias} is in danger at Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(6)} (±${Math.round(accuracy)}m)`,
+                        text: `EMERGENCY: ${myAlias} is in danger at Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(6)}`,
                         clientAlias: 'SYSTEM'
                     });
                 }
@@ -1259,7 +1211,6 @@ function cancelSOS() {
     if(myMarker && locationShared) {
         const latitude = myMarker.getLatLng().lat;
         const longitude = myMarker.getLatLng().lng;
-        const accuracy = lastPosition?.accuracy || 0;
         const icon = L.divIcon({
             className: 'custom-marker',
             html: `<div style="background:#3388ff;width:12px;height:12px;border-radius:50%;border:2px solid white;box-shadow:0 0 4px rgba(0,0,0,0.5);"></div>`,
@@ -1267,7 +1218,7 @@ function cancelSOS() {
             iconAnchor: [8, 8]
         });
         myMarker.setIcon(icon);
-        myMarker.setPopupContent(`<b>Your Location</b><br>Lat: ${latitude.toFixed(6)}<br>Lng: ${longitude.toFixed(6)}<br>Accuracy: ±${Math.round(accuracy)}m`);
+        myMarker.setPopupContent(`<b>Your Location</b><br>Lat: ${latitude.toFixed(6)}<br>Lng: ${longitude.toFixed(6)}`);
         if(conn && conn.open) {
             safeSend({ 
                 type: 'cancel-sos', 
@@ -1290,9 +1241,9 @@ function handleSOS(data) {
             iconAnchor: [8, 8]
         });
         peerMarker.setIcon(icon);
-        peerMarker.setPopupContent(`<b>${data.clientAlias}'s Location</b><br>Lat: ${data.latitude.toFixed(6)}<br>Lng: ${data.longitude.toFixed(6)}<br>Accuracy: ±${Math.round(data.accuracy)}m<br><span style="color:red;font-weight:bold;">EMERGENCY: User in danger!</span>`);
+        peerMarker.setPopupContent(`<b>${data.clientAlias}'s Location</b><br>Lat: ${data.latitude.toFixed(6)}<br>Lng: ${data.longitude.toFixed(6)}<br><span style="color:red;font-weight:bold;">EMERGENCY: User in danger!</span>`);
     }
-    appendMessage(`EMERGENCY: ${data.clientAlias} is in danger at Lat: ${data.latitude.toFixed(6)}, Lng: ${data.longitude.toFixed(6)} (±${Math.round(data.accuracy)}m)`, false, true);
+    appendMessage(`EMERGENCY: ${data.clientAlias} is in danger at Lat: ${data.latitude.toFixed(6)}, Lng: ${data.longitude.toFixed(6)}`, false, true);
     showNotification(`${data.clientAlias} is in danger! Check the map for their location.`, true, 5000);
     const peerCancelSOSBtn = document.querySelector('.peer-cancel-sos');
     if(peerCancelSOSBtn) {
@@ -1321,7 +1272,6 @@ function handleCancelSOS(data) {
 }
 sosBtn.addEventListener('click', triggerSOS);
 cancelSosBtn.addEventListener('click', cancelSOS);
-
 /* ========= Automatic Danger Detection ========= */
 function checkInactivity(lat, lng) {
     if(isHost || isSOSActive) return;
@@ -1339,7 +1289,7 @@ function checkInactivity(lat, lng) {
             resetInactivityTimer();
         }
     }
-    lastPosition = { ...currentPosition, ...lastPosition };
+    lastPosition = currentPosition;
 }
 function calculateDistance(lat1, lon1, lat2, lon2) {
     const R = 6371e3;
@@ -1354,12 +1304,12 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
     return R * c;
 }
 function startInactivityCountdown() {
-    let countdown = 25;
+    let countdown = 60; // ⬅️ CHANGED TO 60 SECONDS
     if(!inactivityCountdown) {
         inactivityCountdown = document.createElement('div');
         inactivityCountdown.id = 'inactivity-countdown';
         inactivityCountdown.className = 'countdown';
-        inactivityCountdown.textContent = `⚠️ WARNING: You haven't moved 1 meter in 25 seconds. SOS will be triggered if you don't move.`;
+        inactivityCountdown.textContent = `⚠️ WARNING: You haven't moved 1 meter in 60 seconds. SOS will be triggered if you don't move.`;
         document.querySelector('.container').insertBefore(inactivityCountdown, document.querySelector('.container').firstChild);
     }
     inactivityTimer = setInterval(() => {
@@ -1387,12 +1337,11 @@ function resetInactivityTimer() {
         inactivityCountdown.remove();
         inactivityCountdown = null;
     }
-    showNotification('✅ Movement detected - inactivity timer reset', false, 2000);
+    showNotification('✅ Movement detected – inactivity timer reset', false, 2000);
 }
 function startInactivityMonitoring() {
-    // Already handled by watchPosition updates
+    // No separate interval needed — inactivity is checked on every location update
 }
-
 /* ========= Voice Message Implementation ========= */
 async function startRecording() {
     try {
@@ -1404,7 +1353,6 @@ async function startRecording() {
         };
         mediaRecorder.onstop = () => {
             const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-            const audioUrl = URL.createObjectURL(audioBlob);
             const reader = new FileReader();
             reader.onload = function() {
                 const base64Audio = reader.result;
@@ -1415,7 +1363,6 @@ async function startRecording() {
                         clientAlias: myAlias 
                     });
                 }
-                const duration = Math.floor((Date.now() - recordingStartTime) / 1000);
                 appendMessage(base64Audio, true, false, true);
             };
             reader.readAsDataURL(audioBlob);
