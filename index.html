@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -156,6 +155,17 @@
             .chat-send { padding: 16px; font-size: 1.1rem; }
             .voice-record-btn, .voice-play-btn { padding: 12px 16px; font-size: 1.1rem; }
         }
+        /* Accuracy indicator */
+        .accuracy-badge {
+            font-size: 0.8rem;
+            background: rgba(255,255,255,0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 6px;
+        }
+        .accuracy-high { color: #4cd137; }
+        .accuracy-medium { color: #fbc531; }
+        .accuracy-low { color: #e84118; }
     </style>
 </head>
 <body>
@@ -399,8 +409,11 @@ let isRecording = false;
 let recordingStartTime = null;
 let recordingTimerInterval = null;
 // Live location tracking state
-let liveLocationInterval = null;
-let lastSentPosition = null;
+let watchId = null;
+let lastSentTimestamp = 0;
+let MIN_SEND_INTERVAL = 5000; // 5 seconds minimum between sends
+let MOVEMENT_THRESHOLD = 5; // meters
+let ACCURACY_THRESHOLD = 50; // meters
 
 /* ========= Map init ========= */
 const map = L.map('map', { 
@@ -420,7 +433,6 @@ function generateAnonAlias(){
     const noun = nouns[Math.floor(Math.random() * nouns.length)];
     return `${adj} ${noun}`;
 }
-
 function showNotification(msg, isError=false, duration=3000){
     if(notificationTimeout){ clearTimeout(notificationTimeout); notificationTimeout=null; }
     notificationMessage.textContent = msg;
@@ -428,12 +440,10 @@ function showNotification(msg, isError=false, duration=3000){
     if(isError) notification.classList.add('error'); else notification.classList.remove('error');
     notificationTimeout = setTimeout(()=>{ notification.classList.remove('show'); notification.classList.remove('error'); }, duration);
 }
-
 function updateStatus(text, connected=false){
     statusText.textContent = text;
     connectionDot.className = connected ? 'status-indicator connected' : 'status-indicator';
 }
-
 function updateSessionTimer() {
     if (!sessionStartTime) return;
     const elapsed = Date.now() - sessionStartTime;
@@ -443,10 +453,8 @@ function updateSessionTimer() {
     const formattedTime = 
         `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     sessionTimer.textContent = formattedTime;
-    // Update personal duration
     yourDuration.textContent = formatDuration(elapsed);
 }
-
 function formatDuration(milliseconds) {
     const seconds = Math.floor((milliseconds / 1000) % 60);
     const minutes = Math.floor((milliseconds / (1000 * 60)) % 60);
@@ -459,17 +467,14 @@ function formatDuration(milliseconds) {
         return `${seconds}s`;
     }
 }
-
 function safeSend(payload){
     if(!conn || conn.open === false) return;
     try { conn.send(payload); } catch(e){ console.error('send failed', e); showNotification('Send failed', true); }
 }
-
 function destroyExistingPeer(){
     if(conn){ try{ conn.close(); }catch(e){} conn=null; }
     if(peer){ try{ peer.destroy(); }catch(e){} peer=null; }
 }
-
 async function copyToClipboard(text){
     try {
         if(navigator.clipboard && window.isSecureContext){
@@ -482,7 +487,6 @@ async function copyToClipboard(text){
         showNotification('Code copied to clipboard');
     } catch(e){ console.error(e); showNotification('Copy failed', true); }
 }
-
 function appendMessage(text, fromMe=false, isSystem=false, isVoice=false){
     const el = document.createElement('div');
     if(isSystem) {
@@ -496,11 +500,9 @@ function appendMessage(text, fromMe=false, isSystem=false, isVoice=false){
                 <span class="voice-duration">${text}</span>
             </div>
         </div>`;
-        // Add event listener for play button
         el.querySelector('.voice-play-btn').addEventListener('click', function() {
             const playBtn = this;
             playBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
-            // Create audio element from the base64 string
             const audio = new Audio(text);
             audio.oncanplaythrough = function() {
                 playBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
@@ -521,7 +523,6 @@ function appendMessage(text, fromMe=false, isSystem=false, isVoice=false){
     chatMessages.appendChild(el);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
-
 function generateSecureCode(length = 8) {
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     const arr = new Uint8Array(length);
@@ -532,14 +533,12 @@ function generateSecureCode(length = 8) {
     }
     return s;
 }
-
 genCodeBtn.addEventListener('click', () => {
     const code = generateSecureCode(8);
     sessionCodeInput.value = code;
     maskCodeDisplay();
     showNotification('Secure code generated. Click Reveal to view and copy.');
 });
-
 function maskCodeDisplay() {
     codeRevealed = false;
     sessionCodeInput.type = 'password';
@@ -548,7 +547,6 @@ function maskCodeDisplay() {
     copySessionCodeBtn.disabled = true;
     if (autoHideTimeout) { clearTimeout(autoHideTimeout); autoHideTimeout = null; }
 }
-
 function revealCodeTemporarily() {
     if (!sessionCodeInput.value) {
         showNotification('No code to reveal', true);
@@ -565,7 +563,6 @@ function revealCodeTemporarily() {
         showNotification('Code auto-hidden for security');
     }, 20000);
 }
-
 revealCodeBtn.addEventListener('click', () => {
     if (codeRevealed) {
         maskCodeDisplay();
@@ -573,7 +570,6 @@ revealCodeBtn.addEventListener('click', () => {
         revealCodeTemporarily();
     }
 });
-
 copySessionCodeBtn.addEventListener('click', () => {
     if (!sessionCodeInput.value) { showNotification('No code to copy', true); return; }
     if (!codeRevealed) { showNotification('Reveal the code first to enable copying', true); return; }
@@ -587,12 +583,10 @@ openJoinBtn.addEventListener('click', () => {
     joinCodeInput.value = '';
     setTimeout(()=> joinCodeInput.focus(), 60);
 });
-
 joinCancelBtn.addEventListener('click', () => {
     joinModal.classList.remove('show');
     joinModal.setAttribute('aria-hidden', 'true');
 });
-
 joinNowBtn.addEventListener('click', () => {
     const code = (joinCodeInput.value || '').trim();
     if (!code || code.length < 4) {
@@ -611,7 +605,6 @@ joinNowBtn.addEventListener('click', () => {
     }
     startSession(false);
 });
-
 joinModal.addEventListener('click', (e) => {
     if (e.target === joinModal) {
         joinModal.classList.remove('show');
@@ -637,7 +630,6 @@ function startSession(host){
     localStorage.setItem('session_active', 'true');
     localStorage.setItem('session_role', host ? 'host' : 'joiner');
     sessionRoleCached = host ? 'host' : 'joiner';
-    // Set alias based on user preference
     const showRealName = showRealNameToggle.checked;
     if(showRealName) {
         myAlias = realName;
@@ -655,14 +647,12 @@ function startSession(host){
     } else {
         hostIndicator.classList.add('hidden');
     }
-    // Clear chat and add welcome message
     chatMessages.innerHTML = '';
     if(isHost) {
         appendMessage("You created a session. Share the code with others to join.", false, true);
     } else {
         appendMessage("Joining session...", false, true);
     }
-    // Start session timer
     sessionStartTime = Date.now();
     if (timerInterval) clearInterval(timerInterval);
     timerInterval = setInterval(updateSessionTimer, 1000);
@@ -740,7 +730,6 @@ function startSession(host){
         setControlsDisabled(false); 
     });
 }
-
 function setupDataChannel(connection){
     if(!connection) return;
     connection.on('data', (data) => {
@@ -780,7 +769,6 @@ function setupDataChannel(connection){
         appendMessage(`${peerAlias} left the session`, false, true);
         showNotification('Peer disconnected');
         removePeerCard();
-        // If we were not host and host disconnected, become new host
         if(!isHost) {
             isHost = true;
             hostIndicator.classList.remove('hidden');
@@ -794,7 +782,6 @@ function setupDataChannel(connection){
         showNotification('Data channel error: ' + err.message, true); 
     });
 }
-
 function updatePeerAlias(data){
     removePeerCard();
     const alias = (data && data.alias) ? String(data.alias) : generateAnonAlias();
@@ -808,7 +795,6 @@ function updatePeerAlias(data){
                 <span><i class="fas fa-location-slash"></i> Location not shared</span>
             </div>
             <div style="margin-top:10px"><span class="status-dot"></span> Online</div>
-            <!-- Emergency buttons for peer -->
             <div class="emergency-btns">
                 <button class="btn sos-btn small-btn peer-sos" data-alias="${alias}"><i class="fas fa-exclamation-triangle"></i> SOS</button>
                 <button class="btn cancel-sos-btn small-btn peer-cancel-sos" data-alias="${alias}" disabled><i class="fas fa-times"></i> Cancel SOS</button>
@@ -816,7 +802,6 @@ function updatePeerAlias(data){
         </div>`;
     const youCard = document.getElementById('you-card');
     userList.insertBefore(div, youCard.nextSibling);
-    // Add event listeners to peer SOS buttons
     const peerSOSBtn = div.querySelector('.peer-sos');
     const peerCancelSOSBtn = div.querySelector('.peer-cancel-sos');
     peerSOSBtn.addEventListener('click', () => {
@@ -825,7 +810,6 @@ function updatePeerAlias(data){
     peerCancelSOSBtn.addEventListener('click', () => {
         cancelSOS();
     });
-    // Start peer duration timer
     const peerStart = Date.now();
     if (peerDurationInterval) clearInterval(peerDurationInterval);
     peerDurationInterval = setInterval(() => {
@@ -836,7 +820,6 @@ function updatePeerAlias(data){
         }
     }, 1000);
 }
-
 function removePeerCard() {
     const peerCards = userList.querySelectorAll('.peer-card');
     peerCards.forEach(card => card.remove());
@@ -845,24 +828,21 @@ function removePeerCard() {
         peerDurationInterval = null;
     }
 }
-
 function updatePeerLocation(d){
     const latitude = Number(d.latitude), longitude = Number(d.longitude);
     if(isNaN(latitude) || isNaN(longitude)) return;
-    // Check if this is a host or not for inactivity detection
     if(!isHost && !isSOSActive) {
         checkInactivity(latitude, longitude);
     }
-    // Update peer location indicator
     const peerCard = document.querySelector('.peer-card');
     if(peerCard) {
         peerCard.querySelector('.location-sharing').innerHTML = `
             <span class="dot"></span>
             <span><i class="fas fa-location-dot"></i> Location shared</span>
+            ${d.accuracy !== undefined ? `<span class="accuracy-badge ${getAccuracyClass(d.accuracy)}">±${Math.round(d.accuracy)}m</span>` : ''}
         `;
     }
     if(peerMarker) map.removeLayer(peerMarker);
-    // Create marker with appropriate color based on SOS status
     const markerColor = d.isSOS ? 'red' : '#3388ff';
     const icon = L.divIcon({
         className: 'custom-marker',
@@ -872,9 +852,8 @@ function updatePeerLocation(d){
     });
     peerMarker = L.marker([latitude, longitude], {icon: icon})
         .addTo(map)
-        .bindPopup(`<b>${d.clientAlias}'s Location</b><br>Lat: ${latitude.toFixed(6)}<br>Lng: ${longitude.toFixed(6)}${d.isSOS ? '<br><span style="color:red;font-weight:bold;">EMERGENCY: User in danger!</span>' : ''}`)
+        .bindPopup(`<b>${d.clientAlias}'s Location</b><br>Lat: ${latitude.toFixed(6)}<br>Lng: ${longitude.toFixed(6)}${d.accuracy !== undefined ? `<br>Accuracy: ±${Math.round(d.accuracy)}m` : ''}${d.isSOS ? '<br><span style="color:red;font-weight:bold;">EMERGENCY: User in danger!</span>' : ''}`)
         .openPopup();
-    // Center map if both locations are available
     if(myMarker) {
         const bounds = L.latLngBounds([
             [myMarker.getLatLng().lat, myMarker.getLatLng().lng],
@@ -886,7 +865,7 @@ function updatePeerLocation(d){
     }
 }
 
-/* share location */
+/* ========= Enhanced Location Sharing ========= */
 function shareMyLocation(){
     if(!peer) {
         showNotification('No active session. Create or join a session first.', true);
@@ -895,15 +874,22 @@ function shareMyLocation(){
     if(!navigator.geolocation){ showNotification('Geolocation not supported', true); return; }
     shareLocationBtn.disabled = true;
     shareLocationBtn.innerHTML = `<i class="fas fa-sync fa-spin"></i> Getting...`;
-    navigator.geolocation.getCurrentPosition(pos => {
-        const latitude = pos.coords.latitude, longitude = pos.coords.longitude;
+
+    const options = {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 5000
+    };
+
+    const success = (pos) => {
+        const { latitude, longitude, accuracy } = pos.coords;
         const myCard = document.getElementById('you-card');
         myCard.querySelector('.location-sharing').innerHTML = `
             <span class="dot"></span>
             <span><i class="fas fa-location-dot"></i> Location shared</span>
+            <span class="accuracy-badge ${getAccuracyClass(accuracy)}">±${Math.round(accuracy)}m</span>
         `;
         if(myMarker) map.removeLayer(myMarker);
-        // Create marker with appropriate color based on SOS status
         const markerColor = isSOSActive ? 'red' : '#3388ff';
         const icon = L.divIcon({
             className: 'custom-marker',
@@ -913,9 +899,8 @@ function shareMyLocation(){
         });
         myMarker = L.marker([latitude, longitude], {icon: icon})
             .addTo(map)
-            .bindPopup(`<b>Your Location</b><br>Lat: ${latitude.toFixed(6)}<br>Lng: ${longitude.toFixed(6)}${isSOSActive ? '<br><span style="color:red;font-weight:bold;">EMERGENCY: You are in danger!</span>' : ''}`)
+            .bindPopup(`<b>Your Location</b><br>Lat: ${latitude.toFixed(6)}<br>Lng: ${longitude.toFixed(6)}<br>Accuracy: ±${Math.round(accuracy)}m${isSOSActive ? '<br><span style="color:red;font-weight:bold;">EMERGENCY: You are in danger!</span>' : ''}`)
             .openPopup();
-        // Center map if peer location is available
         if(peerMarker) {
             const bounds = L.latLngBounds([
                 [latitude, longitude],
@@ -925,43 +910,132 @@ function shareMyLocation(){
         } else {
             map.setView([latitude, longitude], 13);
         }
+        lastPosition = { lat: latitude, lng: longitude, accuracy, timestamp: Date.now() };
+        lastSentTimestamp = Date.now();
         if(conn && conn.open) {
             safeSend({ 
                 type:'location', 
-                latitude: latitude, 
-                longitude: longitude, 
+                latitude, 
+                longitude, 
+                accuracy,
                 clientAlias: myAlias,
                 isSOS: isSOSActive
             });
         }
-        // Store position for inactivity detection (if not host)
-        if(!isHost) {
-            lastPosition = { lat: latitude, lng: longitude, timestamp: Date.now() };
-            startInactivityMonitoring();
-            startLiveLocationUpdates();
+        // Start watching position
+        if(watchId === null) {
+            watchId = navigator.geolocation.watchPosition(
+                handlePositionUpdate,
+                (err) => {
+                    console.error('Watch position error:', err);
+                    showNotification('Location tracking error: ' + err.message, true);
+                },
+                options
+            );
         }
         shareLocationBtn.disabled = false;
         shareLocationBtn.innerHTML = `<i class="fas fa-location-dot"></i> Share Location`;
-        showNotification('Location shared');
+        showNotification('Location sharing started');
         locationControls.classList.remove('hidden');
         locationShared = true;
-    }, err => {
+        startInactivityMonitoring();
+    };
+
+    const error = (err) => {
         console.error('Geolocation error', err);
         shareLocationBtn.disabled = false;
         shareLocationBtn.innerHTML = `<i class="fas fa-location-dot"></i> Share Location`;
         showNotification('Could not get location (enable location services)', true);
-    }, { enableHighAccuracy:true, maximumAge:30000, timeout:10000 });
+    };
+
+    navigator.geolocation.getCurrentPosition(success, error, options);
+}
+
+function handlePositionUpdate(pos) {
+    const { latitude, longitude, accuracy } = pos.coords;
+    const now = Date.now();
+    const timeSinceLastSend = now - lastSentTimestamp;
+    let shouldSend = false;
+
+    if (lastPosition) {
+        const distance = calculateDistance(
+            lastPosition.lat, lastPosition.lng,
+            latitude, longitude
+        );
+        // Send if moved significantly OR if enough time passed
+        if (distance > MOVEMENT_THRESHOLD || timeSinceLastSend > MIN_SEND_INTERVAL) {
+            shouldSend = true;
+        }
+    } else {
+        shouldSend = true; // First position always sent
+    }
+
+    // Update marker visually even if not sending
+    if(myMarker) {
+        const markerColor = isSOSActive ? 'red' : '#3388ff';
+        const icon = L.divIcon({
+            className: 'custom-marker',
+            html: `<div style="background:${markerColor};width:12px;height:12px;border-radius:50%;border:2px solid white;box-shadow:0 0 4px rgba(0,0,0,0.5);"></div>`,
+            iconSize: [16, 16],
+            iconAnchor: [8, 8]
+        });
+        myMarker.setIcon(icon);
+        myMarker.setLatLng([latitude, longitude]);
+        myMarker.setPopupContent(`<b>Your Location</b><br>Lat: ${latitude.toFixed(6)}<br>Lng: ${longitude.toFixed(6)}<br>Accuracy: ±${Math.round(accuracy)}m${isSOSActive ? '<br><span style="color:red;font-weight:bold;">EMERGENCY: You are in danger!</span>' : ''}`);
+    }
+
+    if (shouldSend && conn && conn.open) {
+        safeSend({ 
+            type:'location', 
+            latitude, 
+            longitude, 
+            accuracy,
+            clientAlias: myAlias,
+            isSOS: isSOSActive
+        });
+        lastSentTimestamp = now;
+    }
+
+    // Update last known position for inactivity check
+    lastPosition = { lat: latitude, lng: longitude, accuracy, timestamp: now };
+
+    // Check inactivity if not host
+    if (!isHost && !isSOSActive) {
+        checkInactivity(latitude, longitude);
+    }
+}
+
+function getAccuracyClass(accuracy) {
+    if (accuracy <= 20) return 'accuracy-high';
+    if (accuracy <= 50) return 'accuracy-medium';
+    return 'accuracy-low';
 }
 
 /* update location */
 updateLocationBtn.addEventListener('click', () => {
-    shareMyLocation();
-    updateLocationBtn.innerHTML = `<i class="fas fa-sync fa-spin"></i> Updating...`;
-    showNotification('Updating your location...');
+    if (!locationShared) {
+        shareMyLocation();
+    } else {
+        // Force immediate update
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(pos => {
+                const { latitude, longitude, accuracy } = pos.coords;
+                lastSentTimestamp = 0; // Force send
+                handlePositionUpdate(pos);
+                showNotification('Location updated');
+            }, err => {
+                showNotification('Failed to update location: ' + err.message, true);
+            }, { enableHighAccuracy: true, timeout: 10000 });
+        }
+    }
 });
 
 /* stop sharing location */
 stopSharingBtn.addEventListener('click', () => {
+    if(watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+    }
     if(myMarker) {
         map.removeLayer(myMarker);
         myMarker = null;
@@ -974,29 +1048,15 @@ stopSharingBtn.addEventListener('click', () => {
     locationControls.classList.add('hidden');
     locationShared = false;
     showNotification('Stopped sharing your location');
-    // Stop inactivity monitoring
-    if(positionCheckInterval) {
-        clearInterval(positionCheckInterval);
-        positionCheckInterval = null;
-    }
-    if(inactivityTimer) {
-        clearTimeout(inactivityTimer);
-        inactivityTimer = null;
-    }
-    if(inactivityCountdown) {
-        const countdownEl = document.getElementById('inactivity-countdown');
-        if(countdownEl) countdownEl.remove();
-        inactivityCountdown = null;
-    }
-    // Stop live location updates
-    if(liveLocationInterval) {
-        clearInterval(liveLocationInterval);
-        liveLocationInterval = null;
-    }
+    resetInactivityTimer();
 });
 
 /* stop session */
 function stopSession(){
+    if(watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+    }
     destroyExistingPeer();
     localStorage.removeItem('session_active');
     localStorage.removeItem('session_role');
@@ -1017,7 +1077,6 @@ function stopSession(){
                 <span><i class="fas fa-location-slash"></i> Location not shared</span>
             </div>
             <div style="margin-top:10px"><span class="status-dot"></span> Online</div>
-            <!-- Emergency buttons -->
             <div class="emergency-btns">
                 <button id="sos-btn" class="btn sos-btn small-btn"><i class="fas fa-exclamation-triangle"></i> SOS</button>
                 <button id="cancel-sos-btn" class="btn cancel-sos-btn small-btn" disabled><i class="fas fa-times"></i> Cancel SOS</button>
@@ -1034,27 +1093,10 @@ function stopSession(){
     isSOSActive = false;
     sosBtn.disabled = false;
     cancelSosBtn.disabled = true;
-    // Stop all intervals
-    if(positionCheckInterval) {
-        clearInterval(positionCheckInterval);
-        positionCheckInterval = null;
-    }
-    if(inactivityTimer) {
-        clearTimeout(inactivityTimer);
-        inactivityTimer = null;
-    }
-    if(inactivityCountdown) {
-        const countdownEl = document.getElementById('inactivity-countdown');
-        if(countdownEl) countdownEl.remove();
-        inactivityCountdown = null;
-    }
+    resetInactivityTimer();
     if(emergencyBroadcastInterval) {
         clearInterval(emergencyBroadcastInterval);
         emergencyBroadcastInterval = null;
-    }
-    if(liveLocationInterval) {
-        clearInterval(liveLocationInterval);
-        liveLocationInterval = null;
     }
     showNotification('Session stopped');
 }
@@ -1102,12 +1144,10 @@ window.addEventListener('DOMContentLoaded', () => {
         updateStatus('Ready to connect', false);
     }
 });
-
 function updateYourNameDisplay() {
     const realName = localStorage.getItem('local_real_name') || 'You';
     yourNameDisplay.textContent = realName;
 }
-
 showRealNameToggle.addEventListener('change', () => {
     localStorage.setItem('show_real_name', showRealNameToggle.checked);
 });
@@ -1120,12 +1160,10 @@ createSessionBtn.addEventListener('click', () => {
     }
     startSession(true);
 });
-
 openJoinBtn.addEventListener('click', () => {
     joinModal.classList.add('show');
     joinModal.setAttribute('aria-hidden', 'false');
 });
-
 resumeSessionBtn.addEventListener('click', () => {
     const persistedName = localStorage.getItem('local_real_name') || '';
     if (persistedName) realNameInput.value = persistedName;
@@ -1138,12 +1176,10 @@ resumeSessionBtn.addEventListener('click', () => {
     const isHost = (localStorage.getItem('session_role') === 'host');
     startSession(isHost);
 });
-
 copyCodeBtn.addEventListener('click', () => {
     const txt = displayCodeInput.value || sessionCodeInput.value || '';
     if(txt) copyToClipboard(txt); else showNotification('No code available to copy', true);
 });
-
 shareLocationBtn.addEventListener('click', shareMyLocation);
 
 /* Chat send */
@@ -1156,14 +1192,12 @@ chatSend.addEventListener('click', () => {
     }
     chatInput.value = '';
 });
-
 chatInput.addEventListener('keydown', (e) => {
     if(e.key === 'Enter' && !e.shiftKey){
         e.preventDefault();
         chatSend.click();
     }
 });
-
 window.addEventListener('beforeunload', (e) => {
     const sessionActive = localStorage.getItem('session_active') === 'true';
     if(sessionActive){
@@ -1178,15 +1212,14 @@ function triggerSOS() {
     isSOSActive = true;
     sosBtn.disabled = true;
     cancelSosBtn.disabled = false;
-    // Update UI for SOS
     const sosAlert = document.createElement('div');
     sosAlert.className = 'danger-alert';
     sosAlert.innerHTML = `<strong>EMERGENCY ALERT!</strong> You have triggered an SOS. Your location is being shared with all users.`;
     document.querySelector('.container').insertBefore(sosAlert, document.querySelector('.container').firstChild);
-    // Update marker to red if location is shared
     if(myMarker && locationShared) {
         const latitude = myMarker.getLatLng().lat;
         const longitude = myMarker.getLatLng().lng;
+        const accuracy = lastPosition?.accuracy || 0;
         const icon = L.divIcon({
             className: 'custom-marker',
             html: `<div style="background:red;width:12px;height:12px;border-radius:50%;border:2px solid white;box-shadow:0 0 4px rgba(0,0,0,0.5);"></div>`,
@@ -1194,21 +1227,20 @@ function triggerSOS() {
             iconAnchor: [8, 8]
         });
         myMarker.setIcon(icon);
-        myMarker.setPopupContent(`<b>Your Location</b><br>Lat: ${latitude.toFixed(6)}<br>Lng: ${longitude.toFixed(6)}<br><span style="color:red;font-weight:bold;">EMERGENCY: You are in danger!</span>`);
-        // Send SOS alert to peers
+        myMarker.setPopupContent(`<b>Your Location</b><br>Lat: ${latitude.toFixed(6)}<br>Lng: ${longitude.toFixed(6)}<br>Accuracy: ±${Math.round(accuracy)}m<br><span style="color:red;font-weight:bold;">EMERGENCY: You are in danger!</span>`);
         if(conn && conn.open) {
             safeSend({ 
                 type: 'sos', 
                 clientAlias: myAlias, 
-                latitude: latitude, 
-                longitude: longitude 
+                latitude, 
+                longitude,
+                accuracy
             });
-            // Start broadcasting emergency message every 5 seconds
             emergencyBroadcastInterval = setInterval(() => {
                 if(conn && conn.open) {
                     safeSend({ 
                         type: 'chat', 
-                        text: `EMERGENCY: ${myAlias} is in danger at Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(6)}`,
+                        text: `EMERGENCY: ${myAlias} is in danger at Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(6)} (±${Math.round(accuracy)}m)`,
                         clientAlias: 'SYSTEM'
                     });
                 }
@@ -1217,19 +1249,17 @@ function triggerSOS() {
     }
     showNotification('SOS ALERT TRIGGERED! Your location is being shared with all users.', false, 5000);
 }
-
 function cancelSOS() {
     if(!isSOSActive) return;
     isSOSActive = false;
     sosBtn.disabled = false;
     cancelSosBtn.disabled = true;
-    // Remove SOS alert
     const sosAlert = document.querySelector('.danger-alert');
     if(sosAlert) sosAlert.remove();
-    // Update marker back to blue if location is shared
     if(myMarker && locationShared) {
         const latitude = myMarker.getLatLng().lat;
         const longitude = myMarker.getLatLng().lng;
+        const accuracy = lastPosition?.accuracy || 0;
         const icon = L.divIcon({
             className: 'custom-marker',
             html: `<div style="background:#3388ff;width:12px;height:12px;border-radius:50%;border:2px solid white;box-shadow:0 0 4px rgba(0,0,0,0.5);"></div>`,
@@ -1237,14 +1267,12 @@ function cancelSOS() {
             iconAnchor: [8, 8]
         });
         myMarker.setIcon(icon);
-        myMarker.setPopupContent(`<b>Your Location</b><br>Lat: ${latitude.toFixed(6)}<br>Lng: ${longitude.toFixed(6)}`);
-        // Send cancel SOS to peers
+        myMarker.setPopupContent(`<b>Your Location</b><br>Lat: ${latitude.toFixed(6)}<br>Lng: ${longitude.toFixed(6)}<br>Accuracy: ±${Math.round(accuracy)}m`);
         if(conn && conn.open) {
             safeSend({ 
                 type: 'cancel-sos', 
                 clientAlias: myAlias 
             });
-            // Stop broadcasting emergency messages
             if(emergencyBroadcastInterval) {
                 clearInterval(emergencyBroadcastInterval);
                 emergencyBroadcastInterval = null;
@@ -1253,9 +1281,7 @@ function cancelSOS() {
     }
     showNotification('SOS ALERT CANCELLED', false, 3000);
 }
-
 function handleSOS(data) {
-    // Update peer marker to red
     if(peerMarker) {
         const icon = L.divIcon({
             className: 'custom-marker',
@@ -1264,21 +1290,16 @@ function handleSOS(data) {
             iconAnchor: [8, 8]
         });
         peerMarker.setIcon(icon);
-        peerMarker.setPopupContent(`<b>${data.clientAlias}'s Location</b><br>Lat: ${data.latitude.toFixed(6)}<br>Lng: ${data.longitude.toFixed(6)}<br><span style="color:red;font-weight:bold;">EMERGENCY: User in danger!</span>`);
+        peerMarker.setPopupContent(`<b>${data.clientAlias}'s Location</b><br>Lat: ${data.latitude.toFixed(6)}<br>Lng: ${data.longitude.toFixed(6)}<br>Accuracy: ±${Math.round(data.accuracy)}m<br><span style="color:red;font-weight:bold;">EMERGENCY: User in danger!</span>`);
     }
-    // Show alert in chat
-    appendMessage(`EMERGENCY: ${data.clientAlias} is in danger at Lat: ${data.latitude.toFixed(6)}, Lng: ${data.longitude.toFixed(6)}`, false, true);
-    // Show notification
+    appendMessage(`EMERGENCY: ${data.clientAlias} is in danger at Lat: ${data.latitude.toFixed(6)}, Lng: ${data.longitude.toFixed(6)} (±${Math.round(data.accuracy)}m)`, false, true);
     showNotification(`${data.clientAlias} is in danger! Check the map for their location.`, true, 5000);
-    // Enable cancel button for this peer
     const peerCancelSOSBtn = document.querySelector('.peer-cancel-sos');
     if(peerCancelSOSBtn) {
         peerCancelSOSBtn.disabled = false;
     }
 }
-
 function handleCancelSOS(data) {
-    // Update peer marker back to blue
     if(peerMarker) {
         const icon = L.divIcon({
             className: 'custom-marker',
@@ -1291,50 +1312,37 @@ function handleCancelSOS(data) {
         const lng = peerMarker.getLatLng().lng;
         peerMarker.setPopupContent(`<b>${data.clientAlias}'s Location</b><br>Lat: ${lat.toFixed(6)}<br>Lng: ${lng.toFixed(6)}`);
     }
-    // Show alert in chat
     appendMessage(`${data.clientAlias}'s emergency alert has been cancelled.`, false, true);
-    // Show notification
     showNotification(`${data.clientAlias}'s SOS alert has been cancelled.`, false, 3000);
-    // Disable cancel button for this peer
     const peerCancelSOSBtn = document.querySelector('.peer-cancel-sos');
     if(peerCancelSOSBtn) {
         peerCancelSOSBtn.disabled = true;
     }
 }
-
-// Add event listeners for SOS buttons
 sosBtn.addEventListener('click', triggerSOS);
 cancelSosBtn.addEventListener('click', cancelSOS);
 
 /* ========= Automatic Danger Detection ========= */
 function checkInactivity(lat, lng) {
-    if(isHost || isSOSActive) return; // Host is never marked in danger, and don't check if already in SOS
+    if(isHost || isSOSActive) return;
     const currentPosition = { lat, lng, timestamp: Date.now() };
-    
     if(lastPosition) {
-        // Calculate distance between current and last position (in meters)
         const distance = calculateDistance(
             lastPosition.lat, lastPosition.lng,
             currentPosition.lat, currentPosition.lng
         );
-        
-        // If user hasn't moved more than 1 meter
         if(distance < 1) {
-            // Start countdown if not already started
             if(!inactivityTimer) {
                 startInactivityCountdown();
             }
         } else {
-            // Reset timer if user moved
             resetInactivityTimer();
         }
     }
-    
-    lastPosition = currentPosition;
+    lastPosition = { ...currentPosition, ...lastPosition };
 }
-
 function calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371e3; // Earth radius in meters
+    const R = 6371e3;
     const φ1 = lat1 * Math.PI/180;
     const φ2 = lat2 * Math.PI/180;
     const Δφ = (lat2-lat1) * Math.PI/180;
@@ -1345,11 +1353,8 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     return R * c;
 }
-
 function startInactivityCountdown() {
-    let countdown = 25; // 25 seconds countdown
-    
-    // Create countdown element if it doesn't exist
+    let countdown = 25;
     if(!inactivityCountdown) {
         inactivityCountdown = document.createElement('div');
         inactivityCountdown.id = 'inactivity-countdown';
@@ -1357,8 +1362,6 @@ function startInactivityCountdown() {
         inactivityCountdown.textContent = `⚠️ WARNING: You haven't moved 1 meter in 25 seconds. SOS will be triggered if you don't move.`;
         document.querySelector('.container').insertBefore(inactivityCountdown, document.querySelector('.container').firstChild);
     }
-    
-    // Update countdown every second
     inactivityTimer = setInterval(() => {
         countdown--;
         if(inactivityCountdown) {
@@ -1367,9 +1370,7 @@ function startInactivityCountdown() {
         if(countdown <= 0) {
             clearInterval(inactivityTimer);
             inactivityTimer = null;
-            // Trigger SOS automatically
             triggerSOS();
-            // Remove countdown element
             if(inactivityCountdown) {
                 inactivityCountdown.remove();
                 inactivityCountdown = null;
@@ -1377,7 +1378,6 @@ function startInactivityCountdown() {
         }
     }, 1000);
 }
-
 function resetInactivityTimer() {
     if(inactivityTimer) {
         clearInterval(inactivityTimer);
@@ -1389,75 +1389,8 @@ function resetInactivityTimer() {
     }
     showNotification('✅ Movement detected - inactivity timer reset', false, 2000);
 }
-
 function startInactivityMonitoring() {
-    if(positionCheckInterval) {
-        clearInterval(positionCheckInterval);
-    }
-    // Check position every 3 seconds
-    positionCheckInterval = setInterval(() => {
-        if(locationShared && myMarker && !isHost && !isSOSActive) {
-            const currentPos = myMarker.getLatLng();
-            checkInactivity(currentPos.lat, currentPos.lng);
-        }
-    }, 3000);
-}
-
-/* ========= Live Location Updates ========= */
-function startLiveLocationUpdates() {
-    if(liveLocationInterval) {
-        clearInterval(liveLocationInterval);
-    }
-    
-    // Update location every 5 seconds for real-time tracking
-    liveLocationInterval = setInterval(() => {
-        if(locationShared && !isHost && navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(pos => {
-                const latitude = pos.coords.latitude, longitude = pos.coords.longitude;
-                
-                // Update marker for smooth movement
-                if(myMarker) {
-                    const markerColor = isSOSActive ? 'red' : '#3388ff';
-                    const icon = L.divIcon({
-                        className: 'custom-marker',
-                        html: `<div style="background:${markerColor};width:12px;height:12px;border-radius:50%;border:2px solid white;box-shadow:0 0 4px rgba(0,0,0,0.5);"></div>`,
-                        iconSize: [16, 16],
-                        iconAnchor: [8, 8]
-                    });
-                    myMarker.setIcon(icon);
-                    myMarker.setLatLng([latitude, longitude]);
-                    myMarker.setPopupContent(`<b>Your Location</b><br>Lat: ${latitude.toFixed(6)}<br>Lng: ${longitude.toFixed(6)}${isSOSActive ? '<br><span style="color:red;font-weight:bold;">EMERGENCY: You are in danger!</span>' : ''}`);
-                    
-                    // If peer exists, adjust map view
-                    if(peerMarker) {
-                        const bounds = L.latLngBounds([
-                            [latitude, longitude],
-                            [peerMarker.getLatLng().lat, peerMarker.getLatLng().lng]
-                        ]);
-                        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
-                    }
-                }
-                
-                // Check for inactivity (this will start countdown if not moving)
-                if(!isHost && !isSOSActive) {
-                    checkInactivity(latitude, longitude);
-                }
-                
-                // Send location update if position changed significantly or every 30 seconds
-                if(conn && conn.open) {
-                    safeSend({ 
-                        type:'location', 
-                        latitude: latitude, 
-                        longitude: longitude, 
-                        clientAlias: myAlias,
-                        isSOS: isSOSActive
-                    });
-                }
-            }, err => {
-                console.error('Geolocation error in live updates', err);
-            }, { enableHighAccuracy:true, maximumAge:5000, timeout:10000 });
-        }
-    }, 5000);
+    // Already handled by watchPosition updates
 }
 
 /* ========= Voice Message Implementation ========= */
@@ -1472,11 +1405,9 @@ async function startRecording() {
         mediaRecorder.onstop = () => {
             const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
             const audioUrl = URL.createObjectURL(audioBlob);
-            // Convert to base64 for sending over peer connection
             const reader = new FileReader();
             reader.onload = function() {
                 const base64Audio = reader.result;
-                // Send voice message
                 if (conn && conn.open) {
                     safeSend({ 
                         type: 'voice', 
@@ -1484,21 +1415,17 @@ async function startRecording() {
                         clientAlias: myAlias 
                     });
                 }
-                // Display in chat
                 const duration = Math.floor((Date.now() - recordingStartTime) / 1000);
                 appendMessage(base64Audio, true, false, true);
             };
             reader.readAsDataURL(audioBlob);
-            // Clean up
             stream.getTracks().forEach(track => track.stop());
         };
         mediaRecorder.start();
         isRecording = true;
         recordingStartTime = Date.now();
-        // Update UI
         voiceRecordBtn.innerHTML = '<i class="fas fa-stop"></i> Stop Recording';
         recordingTimer.classList.remove('hidden');
-        // Start timer
         let seconds = 0;
         recordingTimerInterval = setInterval(() => {
             seconds++;
@@ -1510,15 +1437,12 @@ async function startRecording() {
         showNotification('Could not access microphone. Please check permissions.', true);
     }
 }
-
 function stopRecording() {
     if (mediaRecorder && isRecording) {
         mediaRecorder.stop();
         isRecording = false;
-        // Update UI
         voiceRecordBtn.innerHTML = '<i class="fas fa-microphone"></i> Record Voice';
         recordingTimer.classList.add('hidden');
-        // Clear timer
         if (recordingTimerInterval) {
             clearInterval(recordingTimerInterval);
             recordingTimerInterval = null;
@@ -1526,7 +1450,6 @@ function stopRecording() {
         showNotification('Voice message recorded and sent');
     }
 }
-
 voiceRecordBtn.addEventListener('click', () => {
     if (isRecording) {
         stopRecording();
@@ -1537,4 +1460,3 @@ voiceRecordBtn.addEventListener('click', () => {
 </script>
 </body>
 </html>
-```
