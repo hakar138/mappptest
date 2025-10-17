@@ -384,15 +384,13 @@ const recordingTimer = document.getElementById('recording-timer');
 // Updated inactivity warning elements
 const inactivityWarning = document.getElementById('inactivity-warning');
 const inactivityText = document.getElementById('inactivity-text');
-/* ========= ENHANCED MOTION DETECTION CONFIGURATION ========= */
-// Dynamic thresholds based on GPS accuracy
-const BASE_MOVEMENT_THRESHOLD = 3.0; // Base threshold in meters
-const MIN_MOVEMENT_THRESHOLD = 1.5; // Absolute minimum threshold
-const MAX_MOVEMENT_THRESHOLD = 10.0; // Maximum threshold for very poor accuracy
-const ACCURACY_MULTIPLIER = 0.8; // How much to scale threshold based on accuracy
-const MIN_CONSECUTIVE_MOVEMENTS = 2; // Require multiple consistent movements
-const POSITION_HISTORY_SIZE = 5; // Number of recent positions to track for noise filtering
-const MAX_TIME_BETWEEN_POSITIONS = 30000; // 30 seconds max between valid positions
+/* ========= UPDATED CONFIGURABLE THRESHOLDS ========= */
+// Higher threshold = less sensitive
+const MOVEMENT_THRESHOLD = 5.0; // meters (was 1.0)
+const ACCURACY_THRESHOLD = 20; // meters (was 10) — ignore very noisy readings
+const MIN_CONSECUTIVE_MOVEMENTS = 2; // Require 2+ consistent moves
+const MAX_GPS_JITTER = 3.0; // Ignore tiny jumps (<3m) even if accuracy is good
+
 /* ========= State ========= */
 let peer = null;
 let conn = null;
@@ -414,9 +412,9 @@ let peerDuration = 0;
 let isSOSActive = false;
 let inactivityTimer = null;
 let inactivityCountdown = 60; // 60 seconds countdown
-let lastValidPosition = null;
-let positionHistory = []; // Array to store recent positions for noise filtering
-let consecutiveMovements = 0; // Track consecutive valid movements
+let lastPosition = null;
+let movementCounter = 0; // Track consecutive valid movements
+let isTimerRunning = false; // Explicit state for countdown
 let positionCheckInterval = null;
 let emergencyBroadcastInterval = null;
 // Voice recording state
@@ -438,76 +436,7 @@ const map = L.map('map', {
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
-/* ========= Enhanced Motion Detection Helpers ========= */
-function addToPositionHistory(position) {
-    positionHistory.push(position);
-    if (positionHistory.length > POSITION_HISTORY_SIZE) {
-        positionHistory.shift(); // Remove oldest position
-    }
-}
-function calculateAveragePosition() {
-    if (positionHistory.length === 0) return null;
-    
-    let latSum = 0, lngSum = 0, weightSum = 0;
-    
-    // Weight positions by accuracy (better accuracy = higher weight)
-    for (let pos of positionHistory) {
-        const weight = pos.accuracy ? 1 / pos.accuracy : 1;
-        latSum += pos.latitude * weight;
-        lngSum += pos.longitude * weight;
-        weightSum += weight;
-    }
-    
-    return {
-        latitude: latSum / weightSum,
-        longitude: lngSum / weightSum,
-        timestamp: positionHistory[positionHistory.length - 1].timestamp
-    };
-}
-function calculateDynamicThreshold(accuracy) {
-    if (accuracy === null || accuracy === undefined) {
-        return BASE_MOVEMENT_THRESHOLD;
-    }
-    
-    // Scale threshold based on accuracy, but keep within bounds
-    let threshold = BASE_MOVEMENT_THRESHOLD + (accuracy * ACCURACY_MULTIPLIER);
-    threshold = Math.max(MIN_MOVEMENT_THRESHOLD, Math.min(MAX_MOVEMENT_THRESHOLD, threshold));
-    return threshold;
-}
-function isSignificantMovement(currentPos, referencePos) {
-    if (!referencePos || !currentPos) return false;
-    
-    // Check if positions are too far apart in time
-    const timeDiff = currentPos.timestamp - referencePos.timestamp;
-    if (timeDiff > MAX_TIME_BETWEEN_POSITIONS) {
-        return true; // Consider large time gaps as significant movement
-    }
-    
-    const distance = calculateDistance(
-        referencePos.latitude, referencePos.longitude,
-        currentPos.latitude, currentPos.longitude
-    );
-    
-    const dynamicThreshold = calculateDynamicThreshold(currentPos.accuracy);
-    const isSignificant = distance >= dynamicThreshold;
-    
-    console.log(`Motion Detection - Distance: ${distance.toFixed(2)}m, Threshold: ${dynamicThreshold.toFixed(2)}m, Significant: ${isSignificant}, Accuracy: ${currentPos.accuracy || 'unknown'}m`);
-    
-    return isSignificant;
-}
-function calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371e3; // Earth's radius in meters
-    const φ1 = lat1 * Math.PI/180;
-    const φ2 = lat2 * Math.PI/180;
-    const Δφ = (lat2-lat1) * Math.PI/180;
-    const Δλ = (lon2-lon1) * Math.PI/180;
-    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ/2) * Math.sin(Δλ/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c; // Returns distance in meters
-}
-/* ========= Rest of the original code remains the same until the motion detection section ========= */
+/* ========= Helpers ========= */
 function generateAnonAlias(){ 
     const adjectives = ["Swift", "Clever", "Brave", "Wise", "Gentle", "Fierce", "Noble", "Silent", "Bright", "Calm"];
     const nouns = ["Fox", "Eagle", "Lion", "Wolf", "Hawk", "Bear", "Deer", "Owl", "Horse", "Falcon"];
@@ -995,11 +924,7 @@ function shareMyLocation(){
         } else {
             map.setView([latitude, longitude], 13);
         }
-        // Initialize position history with first position
-        const initialPosition = normalizePosition({ lat: latitude, lng: longitude, accuracy, timestamp: Date.now() });
-        lastValidPosition = initialPosition;
-        positionHistory = [initialPosition];
-        consecutiveMovements = 0;
+        lastPosition = normalizePosition({ lat: latitude, lng: longitude, accuracy, timestamp: Date.now() });
         lastSentTimestamp = Date.now();
         if(conn && conn.open) {
             safeSend({ 
@@ -1087,8 +1012,8 @@ function handlePositionUpdate(pos) {
     if (!isHost && !isSOSActive) {
         checkInactivity(currentPosition.latitude, currentPosition.longitude, currentPosition.accuracy);
     }
-    // Update position history for noise filtering
-    addToPositionHistory(currentPosition);
+    // Update lastPosition AFTER all decisions
+    lastPosition = currentPosition;
 }
 function getAccuracyClass(accuracy) {
     if (accuracy <= 20) return 'accuracy-high';
@@ -1294,7 +1219,7 @@ function triggerSOS() {
     if(myMarker && locationShared) {
         const latitude = myMarker.getLatLng().lat;
         const longitude = myMarker.getLatLng().lng;
-        const accuracy = lastValidPosition?.accuracy || 0;
+        const accuracy = lastPosition?.accuracy || 0;
         const icon = L.divIcon({
             className: 'custom-marker',
             html: `<div style="background:red;width:12px;height:12px;border-radius:50%;border:2px solid white;box-shadow:0 0 4px rgba(0,0,0,0.5);"></div>`,
@@ -1334,7 +1259,7 @@ function cancelSOS() {
     if(myMarker && locationShared) {
         const latitude = myMarker.getLatLng().lat;
         const longitude = myMarker.getLatLng().lng;
-        const accuracy = lastValidPosition?.accuracy || 0;
+        const accuracy = lastPosition?.accuracy || 0;
         const icon = L.divIcon({
             className: 'custom-marker',
             html: `<div style="background:#3388ff;width:12px;height:12px;border-radius:50%;border:2px solid white;box-shadow:0 0 4px rgba(0,0,0,0.5);"></div>`,
@@ -1396,7 +1321,7 @@ function handleCancelSOS(data) {
 }
 sosBtn.addEventListener('click', triggerSOS);
 cancelSosBtn.addEventListener('click', cancelSOS);
-/* ========= ENHANCED Automatic Danger Detection ========= */
+/* ========= UPDATED Automatic Danger Detection ========= */
 // Centralized, idempotent timer reset
 function resetInactivityTimer() {
     if(inactivityTimer) {
@@ -1405,69 +1330,88 @@ function resetInactivityTimer() {
     }
     inactivityWarning.style.display = 'none';
     inactivityCountdown = 60;
-    consecutiveMovements = 0;
-    showNotification('✅ Movement detected - inactivity timer reset', false, 2000);
+    movementCounter = 0;
+    isTimerRunning = false;
+    showNotification('✅ Movement confirmed — timer reset', false, 1500);
 }
-function checkInactivity(latitude, longitude, accuracy) {
-    if(isHost || isSOSActive || !lastValidPosition) return;
-    
-    const currentPosition = {
-        latitude: latitude,
-        longitude: longitude,
-        accuracy: accuracy,
-        timestamp: Date.now()
-    };
-    
-    // Use averaged position to reduce GPS noise
-    const averagedPosition = calculateAveragePosition() || currentPosition;
-    
-    if (isSignificantMovement(averagedPosition, lastValidPosition)) {
-        consecutiveMovements++;
-        if (consecutiveMovements >= MIN_CONSECUTIVE_MOVEMENTS) {
-            resetInactivityTimer();
-            lastValidPosition = averagedPosition;
-            consecutiveMovements = 0;
-        }
-    } else {
-        consecutiveMovements = 0;
-        if (!inactivityTimer) {
-            // Start timer only if not already running
-            startInactivityCountdown();
-        }
-    }
-}
+
 function startInactivityCountdown() {
+    if (isTimerRunning) return; // Avoid duplicate timers
+    isTimerRunning = true;
     inactivityCountdown = 60;
     inactivityWarning.style.display = 'flex';
     inactivityText.textContent = `Move in ${inactivityCountdown}s`;
+
     inactivityTimer = setInterval(() => {
         inactivityCountdown--;
-        if(inactivityCountdown >= 0) {
-            inactivityText.textContent = `Move in ${inactivityCountdown}s`;
-        }
-        if(inactivityCountdown <= 0) {
+        inactivityText.textContent = `Move in ${inactivityCountdown}s`;
+        
+        if (inactivityCountdown <= 0) {
             clearInterval(inactivityTimer);
             inactivityTimer = null;
+            isTimerRunning = false;
             triggerSOS();
-            // Broadcast inactivity trigger to all users
-            if(conn && conn.open) {
-                safeSend({
-                    type: 'inactivity-trigger',
-                    clientAlias: myAlias
-                });
-            }
             inactivityWarning.style.display = 'none';
         }
     }, 1000);
 }
+
+function checkInactivity(latitude, longitude, accuracy) {
+    if (isHost || isSOSActive || !lastPosition) return;
+
+    const distance = calculateDistance(
+        lastPosition.latitude,
+        lastPosition.longitude,
+        latitude,
+        longitude
+    );
+
+    // Rule 1: Ignore if accuracy is too poor
+    if (accuracy !== null && accuracy > ACCURACY_THRESHOLD) {
+        return;
+    }
+
+    // Rule 2: Ignore tiny GPS jitter (<3m)
+    if (distance < MAX_GPS_JITTER) {
+        if (isTimerRunning) return; // Keep countdown if already running
+        return;
+    }
+
+    // Rule 3: Only consider significant movement
+    if (distance >= MOVEMENT_THRESHOLD) {
+        movementCounter++;
+        if (movementCounter >= MIN_CONSECUTIVE_MOVEMENTS) {
+            resetInactivityTimer();
+            lastPosition = { latitude, longitude, accuracy, timestamp: Date.now() };
+        }
+    } else {
+        // Not enough movement → reset counter
+        movementCounter = 0;
+        if (!isTimerRunning) {
+            startInactivityCountdown();
+        }
+    }
+}
+
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371e3;
+    const φ1 = lat1 * Math.PI/180;
+    const φ2 = lat2 * Math.PI/180;
+    const Δφ = (lat2 - lat1) * Math.PI/180;
+    const Δλ = (lon2 - lon1) * Math.PI/180;
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
+
 // Handle remote inactivity trigger
 function handleRemoteInactivity(data) {
     const username = data.clientAlias || 'User';
-    // Show system message to all users
     appendMessage(`⚠️ ${username} is in danger!`, false, true);
     showNotification(`${username} is in danger!`, true, 5000);
     
-    // If we have their marker, update it to red
     if(peerMarker && peerAlias === username) {
         const icon = L.divIcon({
             className: 'custom-marker',
@@ -1481,6 +1425,7 @@ function handleRemoteInactivity(data) {
         peerMarker.setPopupContent(`<b>${username}'s Location</b><br>Lat: ${lat.toFixed(6)}<br>Lng: ${lng.toFixed(6)}<br><span style="color:red;font-weight:bold;">EMERGENCY: User in danger!</span>`);
     }
 }
+
 /* ========= Voice Message Implementation ========= */
 async function startRecording() {
     try {
