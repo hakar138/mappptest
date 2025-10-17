@@ -9,451 +9,70 @@
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            min-height: 100vh;
-            background: linear-gradient(135deg, #0d1c33, #10294f);
-            color: #fff;
-            padding: 16px 12px;
-            overflow-x: hidden;
-        }
-
-        .container {
-            max-width: 980px;
-            margin: 0 auto;
-            position: relative;
-        }
-
-        /* Header Styles */
-        header {
-            text-align: center;
-            margin-bottom: 24px;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            justify-content: center;
-            margin-bottom: 10px;
-        }
-
-        .logo-icon {
-            width: 54px;
-            height: 54px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(45deg, #ff7e5f, #feb47b);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, .25);
-        }
-
-        .logo-text {
-            font-weight: 800;
-            font-size: 1.8rem;
-            background: linear-gradient(90deg, #ff7e5f, #feb47b);
-            -webkit-background-clip: text;
-            color: transparent;
-            letter-spacing: 1px;
-        }
-
-        h1 {
-            font-size: 1.6rem;
-            margin-bottom: 8px;
-        }
-
-        .subtitle {
-            opacity: .9;
-            font-size: 1.05rem;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        /* Notice & Alert Styles */
-        .privacy-notice,
-        .rejoin-notice,
-        .danger-alert {
-            padding: 14px;
-            border-radius: 10px;
-            margin: 16px 0;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 0.95rem;
-        }
-
-        .privacy-notice {
-            background: rgba(255, 255, 255, .05);
-            border-left: 4px solid #4cd137;
-        }
-
-        .rejoin-notice {
-            background: rgba(255, 255, 255, .05);
-            border-left: 4px solid #4facfe;
-        }
-
-        .danger-alert {
-            background: rgba(232, 65, 24, 0.2);
-            border-left: 4px solid #e84118;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(232, 65, 24, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(232, 65, 24, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(232, 65, 24, 0); }
-        }
-
-        /* Card & Layout Styles */
-        .card {
-            background: rgba(255, 255, 255, .04);
-            padding: 20px;
-            border-radius: 14px;
-            margin: 14px 0;
-            border: 1px solid rgba(255, 255, 255, .08);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, .2);
-            transition: transform 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, .25);
-        }
-
-        .card-title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #feb47b;
-            font-weight: 700;
-            margin-bottom: 14px;
-            font-size: 1.25rem;
-        }
-
-        /* Form & Input Styles */
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        .form-label {
-            display: block;
-            font-weight: 700;
-            margin-bottom: 8px;
-            font-size: 1rem;
-        }
-
-        .form-note {
-            font-size: .9rem;
-            opacity: .85;
-            margin-top: 8px;
-            line-height: 1.5;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 14px;
-            border-radius: 12px;
-            border: none;
-            background: rgba(255, 255, 255, .05);
-            color: #fff;
-            font-size: 1.05rem;
-            transition: all 0.3s ease;
-        }
-
-        .form-control:focus {
-            outline: 2px solid rgba(255, 126, 95, .4);
-            background: rgba(255, 255, 255, .08);
-            box-shadow: 0 0 0 4px rgba(255, 126, 95, .25);
-        }
-
-        /* Button Styles */
-        .btn-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 8px;
-        }
-
-        @media (max-width: 720px) {
-            .btn-container {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .btn {
-            padding: 14px;
-            border-radius: 12px;
-            border: none;
-            cursor: pointer;
-            font-weight: 700;
-            background: linear-gradient(45deg, #ff7e5f, #feb47b);
-            color: #fff;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            justify-content: center;
-            font-size: 1rem;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, .15);
-        }
-
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, .2);
-        }
-
-        .btn:active {
-            transform: translateY(1px);
-        }
-
-        .btn-outline {
-            background: transparent;
-            border: 2px solid #ff7e5f;
-            color: #ff7e5f;
-        }
-
-        .btn-stop {
-            background: linear-gradient(45deg, #e84118, #c23616);
-        }
-
-        .btn-update {
-            background: linear-gradient(45deg, #4facfe, #00f2fe);
-        }
-
-        .btn-unshare {
-            background: linear-gradient(45deg, #9c88ff, #8c7ae6);
-        }
-
-        .btn-reconnect {
-            background: linear-gradient(45deg, #4facfe, #00f2fe);
-        }
-
-        .sos-btn {
-            background: linear-gradient(45deg, #e84118, #c23616);
-        }
-
-        .cancel-sos-btn {
-            background: linear-gradient(45deg, #4cd137, #3498db);
-        }
-
-        .small-btn {
-            padding: 10px 14px;
-            font-size: .95rem;
-            border-radius: 10px;
-        }
-
-        /* Session Code & Input Row */
-        .code-row {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            margin-top: 12px;
-        }
-
-        .code-input {
-            flex: 1;
-            padding: 14px;
-            border-radius: 12px;
-            border: none;
-            background: rgba(255, 255, 255, .04);
-            text-align: center;
-            letter-spacing: 3px;
-            font-weight: 700;
-            color: #fff;
-            font-size: 1.05rem;
-        }
-
-        .code-meta {
-            font-size: .9rem;
-            color: rgba(255, 255, 255, .85);
-            margin-top: 8px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
-        }
-
-        /* Map & User List */
-        .map-container {
-            height: 320px;
-            border-radius: 14px;
-            overflow: hidden;
-            margin-top: 16px;
-            border: 2px solid rgba(255, 255, 255, .08);
-        }
-
-        #map {
-            width: 100%;
-            height: 100%;
-        }
-
-        .user-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 14px;
-            margin-top: 16px;
-        }
-
-        .user-card {
-            display: flex;
-            gap: 14px;
-            align-items: center;
-            padding: 14px;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, .03);
-            border: 1px solid rgba(255, 255, 255, .05);
-            transition: all 0.3s ease;
-        }
-
-        .user-card:hover {
-            background: rgba(255, 255, 255, .07);
-            transform: translateY(-3px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, .2);
-        }
-
-        .user-avatar {
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(45deg, #4facfe, #00f2fe);
-            font-weight: 800;
-            font-size: 1.4rem;
-        }
-
-        .user-info .user-name {
-            font-weight: 700;
-            font-size: 1.05rem;
-            margin-bottom: 4px;
-        }
-
-        .status-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #4cd137;
-            display: inline-block;
-            margin-right: 10px;
-        }
-
-        /* Chat Styles */
-        .chat-card {
-            display: flex;
-            flex-direction: column;
-            height: 400px;
-        }
-
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 16px;
-            border-radius: 16px;
-            background: rgba(0, 0, 0, 0.18);
-            margin-bottom: 16px;
-            font-size: 1.05rem;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-            backdrop-filter: blur(4px);
-        }
-
-        .chat-input-row {
-            display: flex;
-            gap: 12px;
-            margin-top: 12px;
-        }
-
-        .chat-input {
-            flex: 1;
-            padding: 14px;
-            border-radius: 14px;
-            border: none;
-            font-size: 1.05rem;
-            background: rgba(255, 255, 255, .07);
-            color: #fff;
-            transition: background 0.2s;
-        }
-
-        .chat-input:focus {
-            background: rgba(255, 255, 255, .1);
-        }
-
-        .chat-send {
-            padding: 14px 20px;
-            border-radius: 14px;
-            border: none;
-            background: linear-gradient(45deg, #4facfe, #00f2fe);
-            color: #fff;
-            cursor: pointer;
-            font-size: 1.05rem;
-            transition: all 0.2s ease;
-            min-width: 110px;
-            font-weight: 600;
-        }
-
-        .chat-send:hover {
-            background: linear-gradient(45deg, #3a9cf7, #00d9f2);
-            transform: translateY(-2px);
-        }
-
-        /* Message Styles */
-        .message-me {
-            align-self: flex-end;
-            background: linear-gradient(45deg, #ff7e5f, #feb47b);
-            color: #000;
-            padding: 14px 20px;
-            border-radius: 20px 20px 4px 20px;
-            max-width: 80%;
-            font-size: 1.02rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            animation: fadeIn 0.3s ease;
-            word-break: break-word;
-        }
-
-        .message-peer {
-            align-self: flex-start;
-            background: rgba(255, 255, 255, 0.12);
-            color: #fff;
-            padding: 14px 20px;
-            border-radius: 20px 20px 20px 4px;
-            max-width: 80%;
-            font-size: 1.02rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            animation: fadeIn 0.3s ease;
-            word-break: break-word;
-        }
-
-        .message-system {
-            text-align: center;
-            color: rgba(255, 255, 255, 0.8);
-            font-style: italic;
-            font-size: 0.95rem;
-            margin: 14px 0;
-            padding: 10px;
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.06);
-            max-width: 90%;
-            align-self: center;
-        }
-
-        /* Voice Message Styles */
-        .voice-message {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif }
+        body { min-height: 100vh; background: linear-gradient(135deg, #0d1c33, #10294f); color: #fff; padding: 16px 12px; overflow-x: hidden }
+        .container { max-width: 980px; margin: 0 auto; position: relative; }
+        header { text-align: center; margin-bottom: 24px }
+        .logo { display: flex; align-items: center; gap: 12px; justify-content: center; margin-bottom: 10px }
+        .logo-icon { width: 54px; height: 54px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: linear-gradient(45deg, #ff7e5f, #feb47b); box-shadow: 0 6px 20px rgba(0,0,0,.25) }
+        .logo-text { font-weight: 800; font-size: 1.8rem; background: linear-gradient(90deg, #ff7e5f, #feb47b); -webkit-background-clip: text; color: transparent; letter-spacing: 1px }
+        h1 { font-size: 1.6rem; margin-bottom: 8px }
+        .subtitle { opacity: .9; font-size: 1.05rem; max-width: 600px; margin: 0 auto }
+        .privacy-notice { background: rgba(255,255,255,.05); padding: 14px; border-radius: 10px; border-left: 4px solid #4cd137; margin: 16px 0; display: flex; align-items: center; gap: 12px; font-size: 0.95rem }
+        .card { background: rgba(255,255,255,.04); padding: 20px; border-radius: 14px; margin: 14px 0; border: 1px solid rgba(255,255,255,.08); box-shadow: 0 6px 20px rgba(0,0,0,.2); transition: transform 0.3s ease }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,0,0,.25) }
+        .card-title { display: flex; align-items: center; gap: 10px; color: #feb47b; font-weight: 700; margin-bottom: 14px; font-size: 1.25rem }
+        .form-group { margin-bottom: 16px }
+        .form-label { display: block; font-weight: 700; margin-bottom: 8px; font-size: 1rem }
+        .form-note { font-size: .9rem; opacity: .85; margin-top: 8px; line-height: 1.5 }
+        .form-control { width: 100%; padding: 14px; border-radius: 12px; border: none; background: rgba(255,255,255,.05); color: #fff; font-size: 1.05rem; transition: all 0.3s ease }
+        .form-control:focus { outline: 2px solid rgba(255,126,95,.4); background: rgba(255,255,255,.08); box-shadow: 0 0 0 4px rgba(255,126,95,.25) }
+        .btn-container { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px }
+        @media (max-width:720px) { .btn-container { grid-template-columns:1fr } }
+        .btn { padding: 14px; border-radius: 12px; border: none; cursor: pointer; font-weight: 700; background: linear-gradient(45deg,#ff7e5f,#feb47b); color: #fff; display: inline-flex; align-items: center; gap: 10px; justify-content: center; font-size: 1rem; transition: all 0.2s ease; box-shadow: 0 4px 8px rgba(0,0,0,.15) }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,.2) }
+        .btn:active { transform: translateY(1px) }
+        .btn-outline { background: transparent; border: 2px solid #ff7e5f; color: #ff7e5f }
+        .btn-stop { background: linear-gradient(45deg,#e84118,#c23616); color: #fff }
+        .btn-update { background: linear-gradient(45deg, #4facfe, #00f2fe); }
+        .btn-unshare { background: linear-gradient(45deg, #9c88ff, #8c7ae6); }
+        .small-btn { padding: 10px 14px; font-size: .95rem; border-radius: 10px }
+        .code-row { display: flex; gap: 12px; align-items: center; margin-top: 12px }
+        .code-input { flex: 1; padding: 14px; border-radius: 12px; border: none; background: rgba(255,255,255,.04); text-align: center; letter-spacing: 3px; font-weight: 700; color: #fff; font-size: 1.05rem }
+        .code-meta { font-size: .9rem; color: rgba(255,255,255,.85); margin-top: 8px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center }
+        .map-container { height: 320px; border-radius: 14px; overflow: hidden; margin-top: 16px; border: 2px solid rgba(255,255,255,.08) }
+        #map { width: 100%; height: 100% }
+        .user-list { display: grid; grid-template-columns: repeat(auto-fill,minmax(280px,1fr)); gap: 14px; margin-top: 16px }
+        .user-card { display: flex; gap: 14px; align-items: center; padding: 14px; border-radius: 12px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.05); transition: all 0.3s ease }
+        .user-card:hover { background: rgba(255,255,255,.07); transform: translateY(-3px); box-shadow: 0 6px 12px rgba(0,0,0,.2) }
+        .user-avatar { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: linear-gradient(45deg,#4facfe,#00f2fe); font-weight: 800; font-size: 1.4rem }
+        .user-info .user-name { font-weight: 700; font-size: 1.05rem; margin-bottom: 4px }
+        .status-dot { width: 12px; height: 12px; border-radius: 50%; background: #4cd137; display: inline-block; margin-right: 10px }
+        .chat-card { display: flex; flex-direction: column; height: 400px }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 16px; border-radius: 16px; background: rgba(0,0,0,0.18); margin-bottom: 16px; font-size: 1.05rem; display: flex; flex-direction: column; gap: 14px; backdrop-filter: blur(4px); }
+        .chat-input-row { display: flex; gap: 12px; margin-top: 12px }
+        .chat-input { flex: 1; padding: 14px; border-radius: 14px; border: none; font-size: 1.05rem; background: rgba(255,255,255,.07); color: #fff; transition: background 0.2s; }
+        .chat-input:focus { background: rgba(255,255,255,.1); }
+        .chat-send { padding: 14px 20px; border-radius: 14px; border: none; background: linear-gradient(45deg,#4facfe,#00f2fe); color: #fff; cursor: pointer; font-size: 1.05rem; transition: all 0.2s ease; min-width: 110px; font-weight: 600; }
+        .chat-send:hover { background: linear-gradient(45deg,#3a9cf7,#00d9f2); transform: translateY(-2px); }
+        .notification { position: fixed; right: 16px; top: 16px; background: rgba(0,0,0,.5); padding: 12px 18px; border-radius: 12px; backdrop-filter: blur(6px); transform: translateX(120%); transition: transform .35s; z-index: 9000; color: #fff; border-left: 4px solid #4cd137; max-width: calc(100% - 32px); font-size: 0.95rem; display: flex; align-items: center; gap: 10px }
+        .notification.show { transform: translateX(0) }
+        .notification.error { border-left-color: #e84118 }
+        footer { text-align: center; margin-top: 24px; font-size: 0.9rem; opacity: .8; padding: 16px 0 }
+        #join-modal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,.7); z-index: 10000; pointer-events: none }
+        #join-modal.show { display: flex; pointer-events: auto }
+        .join-box { width: 90%; max-width: 500px; background: linear-gradient(135deg,#0e2340,#102e4a); padding: 24px; border-radius: 16px; border: 1px solid rgba(255,255,255,.08); box-shadow: 0 25px 60px rgba(0,0,0,.6); animation: modalIn 0.4s ease }
+        #stop-confirmation { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,.75); z-index: 9999; pointer-events: none }
+        #stop-confirmation.show { display: flex; pointer-events: auto }
+        .confirmation-box { width: 90%; max-width: 540px; background: linear-gradient(135deg,#11264a,#183054); border-radius: 16px; padding: 24px; border: 1px solid rgba(255,255,255,.08); box-shadow: 0 22px 50px rgba(0,0,0,.7); text-align: center; pointer-events: auto; animation: modalIn 0.4s ease }
+        .confirmation-buttons { display: flex; gap: 14px; justify-content: center; margin-top: 20px }
+        .hidden { display: none !important }
+        .message-me { align-self: flex-end; background: linear-gradient(45deg,#ff7e5f,#feb47b); color: #000; padding: 14px 20px; border-radius: 20px 20px 4px 20px; max-width: 80%; font-size: 1.02rem; box-shadow: 0 4px 12px rgba(0,0,0,0.2); animation: fadeIn 0.3s ease; word-break: break-word; }
+        .message-peer { align-self: flex-start; background: rgba(255,255,255,0.12); color: #fff; padding: 14px 20px; border-radius: 20px 20px 20px 4px; max-width: 80%; font-size: 1.02rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: fadeIn 0.3s ease; word-break: break-word; }
+        .message-system { text-align: center; color: rgba(255,255,255,0.8); font-style: italic; font-size: 0.95rem; margin: 14px 0; padding: 10px; border-radius: 10px; background: rgba(255,255,255,0.06); max-width: 90%; align-self: center; }
+        .voice-message { display: inline-flex; align-items: center; gap: 10px; }
         .voice-play-btn {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255,255,255,0.15);
             color: white;
             border: none;
             padding: 8px 16px;
@@ -465,175 +84,60 @@
             gap: 6px;
             transition: all 0.2s ease;
         }
-
-        .voice-play-btn:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: scale(1.05);
+        .voice-play-btn:hover { background: rgba(255,255,255,0.25); transform: scale(1.05); }
+        .voice-play-btn.loading { opacity: 0.7; cursor: not-allowed; }
+        .btn-reconnect { background: linear-gradient(45deg, #4facfe, #00f2fe); }
+        .host-badge { background: #fbc531; color: #000; font-size: 0.8rem; padding: 4px 8px; border-radius: 10px; margin-left: 8px; font-weight: bold }
+        @media (max-width: 600px) {
+            body { padding: 14px 10px; }
+            .logo { flex-direction: column; text-align: center; }
+            .logo-icon { margin-bottom: 8px; }
+            .card { padding: 16px; }
+            .btn-container { grid-template-columns: 1fr; }
+            .code-row { flex-direction: column; }
+            .code-row button { width: 100%; }
+            .confirmation-buttons { flex-direction: column; }
+            .confirmation-buttons button { width: 100%; }
+            .chat-card { height: 340px; }
+            .map-container { height: 260px; }
+            .user-list { grid-template-columns: 1fr; }
+            .privacy-notice { flex-direction: column; text-align: center; }
+            .code-meta { flex-direction: column; align-items: flex-start; gap: 6px; }
+            .chat-input-row { flex-direction: column; }
+            .chat-send { width: 100%; }
+            .join-box { padding: 18px; }
+            .confirmation-box { padding: 20px; }
         }
-
-        .voice-play-btn.loading {
-            opacity: 0.7;
-            cursor: not-allowed;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-
-        /* Notification & Modal */
-        .notification {
-            position: fixed;
-            right: 16px;
-            top: 16px;
-            background: rgba(0, 0, 0, .5);
-            padding: 12px 18px;
-            border-radius: 12px;
-            backdrop-filter: blur(6px);
-            transform: translateX(120%);
-            transition: transform .35s;
-            z-index: 9000;
-            color: #fff;
-            border-left: 4px solid #4cd137;
-            max-width: calc(100% - 32px);
-            font-size: 0.95rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        @keyframes modalIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-
-        .notification.show {
-            transform: translateX(0);
+        .fade-in { animation: fadeIn 0.3s ease forwards; }
+        .session-info { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; background: rgba(255,255,255,.04); padding: 12px; border-radius: 10px; margin-bottom: 16px }
+        .session-timer { display: flex; align-items: center; gap: 8px; font-weight: 600; color: #feb47b }
+        .session-status { display: flex; align-items: center; gap: 10px; }
+        .status-indicator { width: 14px; height: 14px; border-radius: 50%; background: #fbc531 }
+        .status-indicator.connected { background: #4cd137 }
+        .session-role { background: rgba(251, 197, 49, 0.15); color: #fbc531; padding: 4px 10px; border-radius: 6px; font-size: 0.85rem }
+        .location-sharing { display: flex; align-items: center; gap: 8px; margin-top: 8px }
+        .location-sharing .dot { width: 10px; height: 10px; border-radius: 50%; background: #e84118 }
+        .location-sharing.active .dot { background: #4cd137 }
+        .location-sharing.active { color: #4cd137 }
+        .user-card .location-sharing { margin-top: 4px }
+        .rejoin-notice { background: rgba(255,255,255,.05); padding: 10px; border-radius: 10px; border-left: 4px solid #4facfe; margin: 12px 0; display: flex; align-items: center; gap: 8px; font-size: 0.9rem }
+        .duration-badge { background: rgba(79, 172, 254, 0.2); color: #4facfe; padding: 4px 8px; border-radius: 20px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 4px }
+        .emergency-marker { background: #e84118 !important; }
+        .danger-alert { background: rgba(232, 65, 24, 0.2); border-left: 4px solid #e84118; padding: 12px; border-radius: 8px; margin: 10px 0; animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(232, 65, 24, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(232, 65, 24, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(232, 65, 24, 0); }
         }
-
-        .notification.error {
-            border-left-color: #e84118;
-        }
-
-        footer {
-            text-align: center;
-            margin-top: 24px;
-            font-size: 0.9rem;
-            opacity: .8;
-            padding: 16px 0;
-        }
-
-        #join-modal,
-        #stop-confirmation {
-            position: fixed;
-            inset: 0;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            background: rgba(0, 0, 0, .7);
-            z-index: 10000;
-            pointer-events: none;
-        }
-
-        #join-modal.show,
-        #stop-confirmation.show {
-            display: flex;
-            pointer-events: auto;
-        }
-
-        .join-box,
-        .confirmation-box {
-            width: 90%;
-            max-width: 500px;
-            background: linear-gradient(135deg, #0e2340, #102e4a);
-            padding: 24px;
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, .08);
-            box-shadow: 0 25px 60px rgba(0, 0, 0, .6);
-            animation: modalIn 0.4s ease;
-        }
-
-        .confirmation-box {
-            max-width: 540px;
-            background: linear-gradient(135deg, #11264a, #183054);
-            text-align: center;
-        }
-
-        .confirmation-buttons {
-            display: flex;
-            gap: 14px;
-            justify-content: center;
-            margin-top: 20px;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        /* Session Info & Status */
-        .session-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-            background: rgba(255, 255, 255, .04);
-            padding: 12px;
-            border-radius: 10px;
-            margin-bottom: 16px;
-        }
-
-        .session-timer {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 600;
-            color: #feb47b;
-        }
-
-        .session-status {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .status-indicator {
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: #fbc531;
-        }
-
-        .status-indicator.connected {
-            background: #4cd137;
-        }
-
-        .session-role {
-            background: rgba(251, 197, 49, 0.15);
-            color: #fbc531;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-        }
-
-        /* Location Sharing Status */
-        .location-sharing {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 8px;
-        }
-
-        .location-sharing .dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #e84118;
-        }
-
-        .location-sharing.active .dot {
-            background: #4cd137;
-        }
-
-        .location-sharing.active {
-            color: #4cd137;
-        }
-
-        .user-card .location-sharing {
-            margin-top: 4px;
-        }
-
-        /* Inactivity Warning */
+        /* ⬇️ COMPACT INACTIVITY WARNING - next to session timer */
         #inactivity-warning {
             background: rgba(232, 65, 24, 0.2);
             color: #e84118;
@@ -646,152 +150,20 @@
             align-items: center;
             gap: 6px;
         }
-
-        /* Emergency Buttons */
-        .emergency-btns {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        /* Accuracy Indicator */
+        .emergency-btns { display: flex; gap: 10px; margin-top: 10px; }
+        .sos-btn { background: linear-gradient(45deg, #e84118, #c23616); }
+        .cancel-sos-btn { background: linear-gradient(45deg, #4cd137, #3498db); }
+        /* Accuracy indicator */
         .accuracy-badge {
             font-size: 0.8rem;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255,255,255,0.1);
             padding: 2px 6px;
             border-radius: 4px;
             margin-left: 6px;
         }
-
-        .accuracy-high {
-            color: #4cd137;
-        }
-
-        .accuracy-medium {
-            color: #fbc531;
-        }
-
-        .accuracy-low {
-            color: #e84118;
-        }
-
-        /* Host Badge */
-        .host-badge {
-            background: #fbc531;
-            color: #000;
-            font-size: 0.8rem;
-            padding: 4px 8px;
-            border-radius: 10px;
-            margin-left: 8px;
-            font-weight: bold;
-        }
-
-        /* Animations */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes modalIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .fade-in {
-            animation: fadeIn 0.3s ease forwards;
-        }
-
-        /* Responsive Adjustments */
-        @media (max-width: 600px) {
-            body {
-                padding: 14px 10px;
-            }
-
-            .logo {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .logo-icon {
-                margin-bottom: 8px;
-            }
-
-            .card {
-                padding: 16px;
-            }
-
-            .btn-container {
-                grid-template-columns: 1fr;
-            }
-
-            .code-row {
-                flex-direction: column;
-            }
-
-            .code-row button {
-                width: 100%;
-            }
-
-            .confirmation-buttons {
-                flex-direction: column;
-            }
-
-            .confirmation-buttons button {
-                width: 100%;
-            }
-
-            .chat-card {
-                height: 340px;
-            }
-
-            .map-container {
-                height: 260px;
-            }
-
-            .user-list {
-                grid-template-columns: 1fr;
-            }
-
-            .privacy-notice,
-            .rejoin-notice {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .code-meta {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 6px;
-            }
-
-            .chat-input-row {
-                flex-direction: column;
-            }
-
-            .chat-send {
-                width: 100%;
-            }
-
-            .join-box {
-                padding: 18px;
-            }
-
-            .confirmation-box {
-                padding: 20px;
-            }
-        }
+        .accuracy-high { color: #4cd137; }
+        .accuracy-medium { color: #fbc531; }
+        .accuracy-low { color: #e84118; }
     </style>
 </head>
 <body>
@@ -1012,11 +384,15 @@ const recordingTimer = document.getElementById('recording-timer');
 // Updated inactivity warning elements
 const inactivityWarning = document.getElementById('inactivity-warning');
 const inactivityText = document.getElementById('inactivity-text');
-/* ========= CONFIGURABLE THRESHOLDS ========= */
-// Movement threshold: minimum distance (in meters) to consider as real movement
-const MOVEMENT_THRESHOLD = 1.0; // meters
-// Accuracy threshold: maximum acceptable accuracy (in meters) to trust the reading
-const ACCURACY_THRESHOLD = 10; // meters
+/* ========= ENHANCED MOTION DETECTION CONFIGURATION ========= */
+// Dynamic thresholds based on GPS accuracy
+const BASE_MOVEMENT_THRESHOLD = 3.0; // Base threshold in meters
+const MIN_MOVEMENT_THRESHOLD = 1.5; // Absolute minimum threshold
+const MAX_MOVEMENT_THRESHOLD = 10.0; // Maximum threshold for very poor accuracy
+const ACCURACY_MULTIPLIER = 0.8; // How much to scale threshold based on accuracy
+const MIN_CONSECUTIVE_MOVEMENTS = 2; // Require multiple consistent movements
+const POSITION_HISTORY_SIZE = 5; // Number of recent positions to track for noise filtering
+const MAX_TIME_BETWEEN_POSITIONS = 30000; // 30 seconds max between valid positions
 /* ========= State ========= */
 let peer = null;
 let conn = null;
@@ -1038,7 +414,9 @@ let peerDuration = 0;
 let isSOSActive = false;
 let inactivityTimer = null;
 let inactivityCountdown = 60; // 60 seconds countdown
-let lastPosition = null;
+let lastValidPosition = null;
+let positionHistory = []; // Array to store recent positions for noise filtering
+let consecutiveMovements = 0; // Track consecutive valid movements
 let positionCheckInterval = null;
 let emergencyBroadcastInterval = null;
 // Voice recording state
@@ -1060,7 +438,76 @@ const map = L.map('map', {
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
-/* ========= Helpers ========= */
+/* ========= Enhanced Motion Detection Helpers ========= */
+function addToPositionHistory(position) {
+    positionHistory.push(position);
+    if (positionHistory.length > POSITION_HISTORY_SIZE) {
+        positionHistory.shift(); // Remove oldest position
+    }
+}
+function calculateAveragePosition() {
+    if (positionHistory.length === 0) return null;
+    
+    let latSum = 0, lngSum = 0, weightSum = 0;
+    
+    // Weight positions by accuracy (better accuracy = higher weight)
+    for (let pos of positionHistory) {
+        const weight = pos.accuracy ? 1 / pos.accuracy : 1;
+        latSum += pos.latitude * weight;
+        lngSum += pos.longitude * weight;
+        weightSum += weight;
+    }
+    
+    return {
+        latitude: latSum / weightSum,
+        longitude: lngSum / weightSum,
+        timestamp: positionHistory[positionHistory.length - 1].timestamp
+    };
+}
+function calculateDynamicThreshold(accuracy) {
+    if (accuracy === null || accuracy === undefined) {
+        return BASE_MOVEMENT_THRESHOLD;
+    }
+    
+    // Scale threshold based on accuracy, but keep within bounds
+    let threshold = BASE_MOVEMENT_THRESHOLD + (accuracy * ACCURACY_MULTIPLIER);
+    threshold = Math.max(MIN_MOVEMENT_THRESHOLD, Math.min(MAX_MOVEMENT_THRESHOLD, threshold));
+    return threshold;
+}
+function isSignificantMovement(currentPos, referencePos) {
+    if (!referencePos || !currentPos) return false;
+    
+    // Check if positions are too far apart in time
+    const timeDiff = currentPos.timestamp - referencePos.timestamp;
+    if (timeDiff > MAX_TIME_BETWEEN_POSITIONS) {
+        return true; // Consider large time gaps as significant movement
+    }
+    
+    const distance = calculateDistance(
+        referencePos.latitude, referencePos.longitude,
+        currentPos.latitude, currentPos.longitude
+    );
+    
+    const dynamicThreshold = calculateDynamicThreshold(currentPos.accuracy);
+    const isSignificant = distance >= dynamicThreshold;
+    
+    console.log(`Motion Detection - Distance: ${distance.toFixed(2)}m, Threshold: ${dynamicThreshold.toFixed(2)}m, Significant: ${isSignificant}, Accuracy: ${currentPos.accuracy || 'unknown'}m`);
+    
+    return isSignificant;
+}
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371e3; // Earth's radius in meters
+    const φ1 = lat1 * Math.PI/180;
+    const φ2 = lat2 * Math.PI/180;
+    const Δφ = (lat2-lat1) * Math.PI/180;
+    const Δλ = (lon2-lon1) * Math.PI/180;
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c; // Returns distance in meters
+}
+/* ========= Rest of the original code remains the same until the motion detection section ========= */
 function generateAnonAlias(){ 
     const adjectives = ["Swift", "Clever", "Brave", "Wise", "Gentle", "Fierce", "Noble", "Silent", "Bright", "Calm"];
     const nouns = ["Fox", "Eagle", "Lion", "Wolf", "Hawk", "Bear", "Deer", "Owl", "Horse", "Falcon"];
@@ -1473,7 +920,7 @@ function updatePeerLocation(d){
     const latitude = Number(d.latitude), longitude = Number(d.longitude);
     if(isNaN(latitude) || isNaN(longitude)) return;
     if(!isHost && !isSOSActive) {
-        checkInactivity(latitude, longitude);
+        checkInactivity(latitude, longitude, d.accuracy);
     }
     const peerCard = document.querySelector('.peer-card');
     if(peerCard) {
@@ -1548,7 +995,11 @@ function shareMyLocation(){
         } else {
             map.setView([latitude, longitude], 13);
         }
-        lastPosition = normalizePosition({ lat: latitude, lng: longitude, accuracy, timestamp: Date.now() });
+        // Initialize position history with first position
+        const initialPosition = normalizePosition({ lat: latitude, lng: longitude, accuracy, timestamp: Date.now() });
+        lastValidPosition = initialPosition;
+        positionHistory = [initialPosition];
+        consecutiveMovements = 0;
         lastSentTimestamp = Date.now();
         if(conn && conn.open) {
             safeSend({ 
@@ -1578,7 +1029,7 @@ function shareMyLocation(){
         locationShared = true;
         // Start inactivity monitoring for non-hosts
         if(!isHost) {
-            startInactivityMonitoring();
+            resetInactivityTimer(); // Start fresh when location sharing begins
         }
     };
     const error = (err) => {
@@ -1634,10 +1085,10 @@ function handlePositionUpdate(pos) {
     }
     // Check inactivity if not host and not in SOS
     if (!isHost && !isSOSActive) {
-        checkInactivity(currentPosition);
+        checkInactivity(currentPosition.latitude, currentPosition.longitude, currentPosition.accuracy);
     }
-    // Update lastPosition AFTER all decisions
-    lastPosition = currentPosition;
+    // Update position history for noise filtering
+    addToPositionHistory(currentPosition);
 }
 function getAccuracyClass(accuracy) {
     if (accuracy <= 20) return 'accuracy-high';
@@ -1843,7 +1294,7 @@ function triggerSOS() {
     if(myMarker && locationShared) {
         const latitude = myMarker.getLatLng().lat;
         const longitude = myMarker.getLatLng().lng;
-        const accuracy = lastPosition?.accuracy || 0;
+        const accuracy = lastValidPosition?.accuracy || 0;
         const icon = L.divIcon({
             className: 'custom-marker',
             html: `<div style="background:red;width:12px;height:12px;border-radius:50%;border:2px solid white;box-shadow:0 0 4px rgba(0,0,0,0.5);"></div>`,
@@ -1883,7 +1334,7 @@ function cancelSOS() {
     if(myMarker && locationShared) {
         const latitude = myMarker.getLatLng().lat;
         const longitude = myMarker.getLatLng().lng;
-        const accuracy = lastPosition?.accuracy || 0;
+        const accuracy = lastValidPosition?.accuracy || 0;
         const icon = L.divIcon({
             className: 'custom-marker',
             html: `<div style="background:#3388ff;width:12px;height:12px;border-radius:50%;border:2px solid white;box-shadow:0 0 4px rgba(0,0,0,0.5);"></div>`,
@@ -1945,7 +1396,7 @@ function handleCancelSOS(data) {
 }
 sosBtn.addEventListener('click', triggerSOS);
 cancelSosBtn.addEventListener('click', cancelSOS);
-/* ========= Automatic Danger Detection ========= */
+/* ========= ENHANCED Automatic Danger Detection ========= */
 // Centralized, idempotent timer reset
 function resetInactivityTimer() {
     if(inactivityTimer) {
@@ -1954,54 +1405,36 @@ function resetInactivityTimer() {
     }
     inactivityWarning.style.display = 'none';
     inactivityCountdown = 60;
+    consecutiveMovements = 0;
     showNotification('✅ Movement detected - inactivity timer reset', false, 2000);
 }
-function checkInactivity(currentPosition) {
-    if(isHost || isSOSActive || !lastPosition) return;
-    // Calculate real distance in meters
-    const distance = calculateDistance(
-        lastPosition.latitude, lastPosition.longitude,
-        currentPosition.latitude, currentPosition.longitude
-    );
-    // Get accuracy info
-    const accuracy = currentPosition.accuracy;
-    // Debug logging (temporary for testing)
-    console.log(`movement-check: distance=${distance.toFixed(2)}m, accuracy=${accuracy !== null ? accuracy.toFixed(1) : 'null'}m, threshold=${MOVEMENT_THRESHOLD}m`);
-    // Determine if movement is valid
-    let shouldReset = false;
-    if (accuracy !== null) {
-        // Device reports accuracy
-        if (accuracy <= ACCURACY_THRESHOLD && distance >= MOVEMENT_THRESHOLD) {
-            shouldReset = true;
-        } else if (distance >= MOVEMENT_THRESHOLD && distance > accuracy) {
-            shouldReset = true;
+function checkInactivity(latitude, longitude, accuracy) {
+    if(isHost || isSOSActive || !lastValidPosition) return;
+    
+    const currentPosition = {
+        latitude: latitude,
+        longitude: longitude,
+        accuracy: accuracy,
+        timestamp: Date.now()
+    };
+    
+    // Use averaged position to reduce GPS noise
+    const averagedPosition = calculateAveragePosition() || currentPosition;
+    
+    if (isSignificantMovement(averagedPosition, lastValidPosition)) {
+        consecutiveMovements++;
+        if (consecutiveMovements >= MIN_CONSECUTIVE_MOVEMENTS) {
+            resetInactivityTimer();
+            lastValidPosition = averagedPosition;
+            consecutiveMovements = 0;
         }
     } else {
-        // No accuracy reported - be conservative
-        if (distance >= 1.5) { // Require larger movement
-            shouldReset = true;
+        consecutiveMovements = 0;
+        if (!inactivityTimer) {
+            // Start timer only if not already running
+            startInactivityCountdown();
         }
     }
-    // Log decision
-    console.log(`movement-decision: ${shouldReset ? 'RESET' : 'IGNORE'}`);
-    if (shouldReset) {
-        resetInactivityTimer();
-    } else if (!inactivityTimer) {
-        // Start timer only if not already running
-        startInactivityCountdown();
-    }
-}
-function calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371e3; // Earth's radius in meters
-    const φ1 = lat1 * Math.PI/180;
-    const φ2 = lat2 * Math.PI/180;
-    const Δφ = (lat2-lat1) * Math.PI/180;
-    const Δλ = (lon2-lon1) * Math.PI/180;
-    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ/2) * Math.sin(Δλ/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c; // Returns distance in meters
 }
 function startInactivityCountdown() {
     inactivityCountdown = 60;
@@ -2016,7 +1449,7 @@ function startInactivityCountdown() {
             clearInterval(inactivityTimer);
             inactivityTimer = null;
             triggerSOS();
-            // NEW: Broadcast inactivity trigger to all users
+            // Broadcast inactivity trigger to all users
             if(conn && conn.open) {
                 safeSend({
                     type: 'inactivity-trigger',
@@ -2027,10 +1460,7 @@ function startInactivityCountdown() {
         }
     }, 1000);
 }
-function startInactivityMonitoring() {
-    // Already handled by watchPosition updates
-}
-// NEW: Handle remote inactivity trigger
+// Handle remote inactivity trigger
 function handleRemoteInactivity(data) {
     const username = data.clientAlias || 'User';
     // Show system message to all users
