@@ -418,7 +418,7 @@ let recordingTimerInterval = null;
 let watchId = null;
 let lastSentTimestamp = 0;
 let MIN_SEND_INTERVAL = 5000;
-let MOVEMENT_THRESHOLD = 0.5; // ⬅️ 0.5 meters
+let MOVEMENT_THRESHOLD = 1.0; // ⬅️ 1.0 meters (noticeable movement)
 let ACCURACY_THRESHOLD = 50;
 /* ========= Map init ========= */
 const map = L.map('map', { 
@@ -1316,20 +1316,19 @@ function checkInactivity(lat, lng) {
             lastPosition.lat, lastPosition.lng,
             currentPosition.lat, currentPosition.lng
         );
-        if(distance < MOVEMENT_THRESHOLD) {
-            if(!inactivityTimer) {
-                startInactivityCountdown();
-            }
-        } else {
+        if(distance >= MOVEMENT_THRESHOLD) {
+            // Real movement detected - reset timer
             resetInactivityTimer();
-            // Show notification for movement detection
-            showNotification('✅ Movement detected - inactivity timer reset', false, 2000);
+            showNotification(`✅ Movement detected (${distance.toFixed(1)}m) - timer reset`, false, 2000);
+        } else if(!inactivityTimer) {
+            // No significant movement and timer not running - start it
+            startInactivityCountdown();
         }
     }
     lastPosition = { ...currentPosition, ...lastPosition };
 }
 function calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371e3;
+    const R = 6371e3; // Earth's radius in meters
     const φ1 = lat1 * Math.PI/180;
     const φ2 = lat2 * Math.PI/180;
     const Δφ = (lat2-lat1) * Math.PI/180;
@@ -1338,7 +1337,7 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
               Math.cos(φ1) * Math.cos(φ2) *
               Math.sin(Δλ/2) * Math.sin(Δλ/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
+    return R * c; // Returns distance in meters
 }
 function startInactivityCountdown() {
     inactivityCountdown = 60;
