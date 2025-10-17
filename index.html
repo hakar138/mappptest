@@ -137,7 +137,7 @@
             70% { box-shadow: 0 0 0 10px rgba(232, 65, 24, 0); }
             100% { box-shadow: 0 0 0 0 rgba(232, 65, 24, 0); }
         }
-        /* ⬇️ INACTIVITY COUNTDOWN TIMER - FIXED: Small and positioned next to session timer */
+        /* ⬇️ COMPACT INACTIVITY WARNING - next to session timer */
         #inactivity-warning {
             background: rgba(232, 65, 24, 0.2);
             color: #e84118;
@@ -237,7 +237,7 @@
             <div class="session-timer">
                 <i class="fas fa-clock"></i>
                 <span id="session-timer">00:00:00</span>
-                <!-- Small inactivity warning next to timer -->
+                <!-- Compact inactivity warning next to timer -->
                 <div id="inactivity-warning">
                     <i class="fas fa-exclamation-triangle"></i>
                     <span id="inactivity-text">Move soon!</span>
@@ -384,6 +384,14 @@ const recordingTimer = document.getElementById('recording-timer');
 // Updated inactivity warning elements
 const inactivityWarning = document.getElementById('inactivity-warning');
 const inactivityText = document.getElementById('inactivity-text');
+
+/* ========= CONFIGURABLE THRESHOLDS ========= */
+// Movement threshold: minimum distance (in meters) to consider as real movement
+const MOVEMENT_THRESHOLD = 1.0; // meters
+
+// Accuracy threshold: maximum acceptable accuracy (in meters) to trust the reading
+const ACCURACY_THRESHOLD = 10; // meters
+
 /* ========= State ========= */
 let peer = null;
 let conn = null;
@@ -418,8 +426,7 @@ let recordingTimerInterval = null;
 let watchId = null;
 let lastSentTimestamp = 0;
 let MIN_SEND_INTERVAL = 5000;
-let MOVEMENT_THRESHOLD = 1.0; // ⬅️ 1.0 meters (noticeable movement)
-let ACCURACY_THRESHOLD = 50;
+
 /* ========= Map init ========= */
 const map = L.map('map', { 
     attributionControl: false,
@@ -429,6 +436,7 @@ const map = L.map('map', {
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
+
 /* ========= Helpers ========= */
 function generateAnonAlias(){ 
     const adjectives = ["Swift", "Clever", "Brave", "Wise", "Gentle", "Fierce", "Noble", "Silent", "Bright", "Calm"];
@@ -437,6 +445,7 @@ function generateAnonAlias(){
     const noun = nouns[Math.floor(Math.random() * nouns.length)];
     return `${adj} ${noun}`;
 }
+
 function showNotification(msg, isError=false, duration=3000){
     if(notificationTimeout){ clearTimeout(notificationTimeout); notificationTimeout=null; }
     notificationMessage.textContent = msg;
@@ -444,10 +453,12 @@ function showNotification(msg, isError=false, duration=3000){
     if(isError) notification.classList.add('error'); else notification.classList.remove('error');
     notificationTimeout = setTimeout(()=>{ notification.classList.remove('show'); notification.classList.remove('error'); }, duration);
 }
+
 function updateStatus(text, connected=false){
     statusText.textContent = text;
     connectionDot.className = connected ? 'status-indicator connected' : 'status-indicator';
 }
+
 function updateSessionTimer() {
     if (!sessionStartTime) return;
     const elapsed = Date.now() - sessionStartTime;
@@ -459,6 +470,7 @@ function updateSessionTimer() {
     sessionTimer.textContent = formattedTime;
     yourDuration.textContent = formatDuration(elapsed);
 }
+
 function formatDuration(milliseconds) {
     const seconds = Math.floor((milliseconds / 1000) % 60);
     const minutes = Math.floor((milliseconds / (1000 * 60)) % 60);
@@ -471,14 +483,17 @@ function formatDuration(milliseconds) {
         return `${seconds}s`;
     }
 }
+
 function safeSend(payload){
     if(!conn || conn.open === false) return;
     try { conn.send(payload); } catch(e){ console.error('send failed', e); showNotification('Send failed', true); }
 }
+
 function destroyExistingPeer(){
     if(conn){ try{ conn.close(); }catch(e){} conn=null; }
     if(peer){ try{ peer.destroy(); }catch(e){} peer=null; }
 }
+
 async function copyToClipboard(text){
     try {
         if(navigator.clipboard && window.isSecureContext){
@@ -491,6 +506,7 @@ async function copyToClipboard(text){
         showNotification('Code copied to clipboard');
     } catch(e){ console.error(e); showNotification('Copy failed', true); }
 }
+
 function appendMessage(text, fromMe=false, isSystem=false, isVoice=false){
     const el = document.createElement('div');
     if(isSystem) {
@@ -531,6 +547,7 @@ function appendMessage(text, fromMe=false, isSystem=false, isVoice=false){
     chatMessages.appendChild(el);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
+
 function generateSecureCode(length = 8) {
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     const arr = new Uint8Array(length);
@@ -541,12 +558,14 @@ function generateSecureCode(length = 8) {
     }
     return s;
 }
+
 genCodeBtn.addEventListener('click', () => {
     const code = generateSecureCode(8);
     sessionCodeInput.value = code;
     maskCodeDisplay();
     showNotification('Secure code generated. Click Reveal to view and copy.');
 });
+
 function maskCodeDisplay() {
     codeRevealed = false;
     sessionCodeInput.type = 'password';
@@ -555,6 +574,7 @@ function maskCodeDisplay() {
     copySessionCodeBtn.disabled = true;
     if (autoHideTimeout) { clearTimeout(autoHideTimeout); autoHideTimeout = null; }
 }
+
 function revealCodeTemporarily() {
     if (!sessionCodeInput.value) {
         showNotification('No code to reveal', true);
@@ -571,6 +591,7 @@ function revealCodeTemporarily() {
         showNotification('Code auto-hidden for security');
     }, 20000);
 }
+
 revealCodeBtn.addEventListener('click', () => {
     if (codeRevealed) {
         maskCodeDisplay();
@@ -578,11 +599,13 @@ revealCodeBtn.addEventListener('click', () => {
         revealCodeTemporarily();
     }
 });
+
 copySessionCodeBtn.addEventListener('click', () => {
     if (!sessionCodeInput.value) { showNotification('No code to copy', true); return; }
     if (!codeRevealed) { showNotification('Reveal the code first to enable copying', true); return; }
     copyToClipboard(sessionCodeInput.value);
 });
+
 /* ========= Join modal behavior ========= */
 openJoinBtn.addEventListener('click', () => {
     joinModal.classList.add('show');
@@ -590,10 +613,12 @@ openJoinBtn.addEventListener('click', () => {
     joinCodeInput.value = '';
     setTimeout(()=> joinCodeInput.focus(), 60);
 });
+
 joinCancelBtn.addEventListener('click', () => {
     joinModal.classList.remove('show');
     joinModal.setAttribute('aria-hidden', 'true');
 });
+
 joinNowBtn.addEventListener('click', () => {
     const code = (joinCodeInput.value || '').trim();
     if (!code || code.length < 4) {
@@ -612,12 +637,14 @@ joinNowBtn.addEventListener('click', () => {
     }
     startSession(false);
 });
+
 joinModal.addEventListener('click', (e) => {
     if (e.target === joinModal) {
         joinModal.classList.remove('show');
         joinModal.setAttribute('aria-hidden', 'true');
     }
 });
+
 /* ========= Create / Join ========= */
 function startSession(host){
     isHost = host;
@@ -736,6 +763,7 @@ function startSession(host){
         setControlsDisabled(false); 
     });
 }
+
 function setupDataChannel(connection){
     if(!connection) return;
     connection.on('data', (data) => {
@@ -788,6 +816,7 @@ function setupDataChannel(connection){
         showNotification('Data channel error: ' + err.message, true); 
     });
 }
+
 function updatePeerAlias(data){
     removePeerCard();
     const alias = (data && data.alias) ? String(data.alias) : generateAnonAlias();
@@ -826,6 +855,7 @@ function updatePeerAlias(data){
         }
     }, 1000);
 }
+
 function removePeerCard() {
     const peerCards = userList.querySelectorAll('.peer-card');
     peerCards.forEach(card => card.remove());
@@ -834,6 +864,7 @@ function removePeerCard() {
         peerDurationInterval = null;
     }
 }
+
 function updatePeerLocation(d){
     const latitude = Number(d.latitude), longitude = Number(d.longitude);
     if(isNaN(latitude) || isNaN(longitude)) return;
@@ -870,6 +901,7 @@ function updatePeerLocation(d){
         map.setView([latitude, longitude], 13);
     }
 }
+
 /* ========= Enhanced Location Sharing ========= */
 function shareMyLocation(){
     if(!peer) {
@@ -913,7 +945,7 @@ function shareMyLocation(){
         } else {
             map.setView([latitude, longitude], 13);
         }
-        lastPosition = { lat: latitude, lng: longitude, accuracy, timestamp: Date.now() };
+        lastPosition = normalizePosition({ lat: latitude, lng: longitude, accuracy, timestamp: Date.now() });
         lastSentTimestamp = Date.now();
         if(conn && conn.open) {
             safeSend({ 
@@ -954,22 +986,29 @@ function shareMyLocation(){
     };
     navigator.geolocation.getCurrentPosition(success, error, options);
 }
+
+function normalizePosition(coords) {
+    // Always returns consistent shape: { latitude, longitude, accuracy, timestamp }
+    return {
+        latitude: coords.lat !== undefined ? coords.lat : coords.latitude,
+        longitude: coords.lng !== undefined ? coords.lng : coords.longitude,
+        accuracy: coords.accuracy !== undefined ? coords.accuracy : null,
+        timestamp: coords.timestamp || Date.now()
+    };
+}
+
 function handlePositionUpdate(pos) {
     const { latitude, longitude, accuracy } = pos.coords;
     const now = Date.now();
-    const timeSinceLastSend = now - lastSentTimestamp;
-    let shouldSend = false;
-    if (lastPosition) {
-        const distance = calculateDistance(
-            lastPosition.lat, lastPosition.lng,
-            latitude, longitude
-        );
-        if (distance > MOVEMENT_THRESHOLD || timeSinceLastSend > MIN_SEND_INTERVAL) {
-            shouldSend = true;
-        }
-    } else {
-        shouldSend = true;
+    
+    // Throttle updates: ignore if too soon after last sent
+    if (now - lastSentTimestamp < 1000) {
+        return;
     }
+
+    // Create normalized current position
+    const currentPosition = normalizePosition({ lat: latitude, lng: longitude, accuracy, timestamp: now });
+
     // Update marker visually
     if(myMarker) {
         const markerColor = isSOSActive ? 'red' : '#3388ff';
@@ -983,7 +1022,9 @@ function handlePositionUpdate(pos) {
         myMarker.setLatLng([latitude, longitude]);
         myMarker.setPopupContent(`<b>Your Location</b><br>Lat: ${latitude.toFixed(6)}<br>Lng: ${longitude.toFixed(6)}<br>Accuracy: ±${Math.round(accuracy)}m${isSOSActive ? '<br><span style="color:red;font-weight:bold;">EMERGENCY: You are in danger!</span>' : ''}`);
     }
-    if (shouldSend && conn && conn.open) {
+
+    // Send location if needed
+    if (conn && conn.open) {
         safeSend({ 
             type:'location', 
             latitude, 
@@ -994,18 +1035,22 @@ function handlePositionUpdate(pos) {
         });
         lastSentTimestamp = now;
     }
-    // Update last known position for inactivity check
-    lastPosition = { lat: latitude, lng: longitude, accuracy, timestamp: now };
-    // Check inactivity if not host
+
+    // Check inactivity if not host and not in SOS
     if (!isHost && !isSOSActive) {
-        checkInactivity(latitude, longitude);
+        checkInactivity(currentPosition);
     }
+
+    // Update lastPosition AFTER all decisions
+    lastPosition = currentPosition;
 }
+
 function getAccuracyClass(accuracy) {
     if (accuracy <= 20) return 'accuracy-high';
     if (accuracy <= 50) return 'accuracy-medium';
     return 'accuracy-low';
 }
+
 /* update location */
 updateLocationBtn.addEventListener('click', () => {
     if (!locationShared) {
@@ -1023,6 +1068,7 @@ updateLocationBtn.addEventListener('click', () => {
         }
     }
 });
+
 /* stop sharing location */
 stopSharingBtn.addEventListener('click', () => {
     if(watchId !== null) {
@@ -1043,6 +1089,7 @@ stopSharingBtn.addEventListener('click', () => {
     showNotification('Stopped sharing your location');
     resetInactivityTimer();
 });
+
 /* stop session */
 function stopSession(){
     if(watchId !== null) {
@@ -1092,9 +1139,11 @@ function stopSession(){
     }
     showNotification('Session stopped');
 }
+
 function setControlsDisabled(state){
     [createSessionBtn, openJoinBtn, resumeSessionBtn, copyCodeBtn].forEach(b => { if(b) b.disabled = state; });
 }
+
 /* ========= Modal fixed behavior (stop modal) ========= */
 function showStopModal(){
     const sessionActive = localStorage.getItem('session_active') === 'true';
@@ -1102,7 +1151,9 @@ function showStopModal(){
     stopConfirmation.classList.add('show');
     confirmStopBtn.focus();
 }
+
 function hideStopModal(){ stopConfirmation.classList.remove('show'); }
+
 stopSessionBtn.addEventListener('click', (e) => { showStopModal(); });
 confirmStopBtn.addEventListener('click', (e) => { hideStopModal(); setTimeout(()=> stopSession(), 120); });
 cancelStopBtn.addEventListener('click', hideStopModal);
@@ -1110,6 +1161,7 @@ stopConfirmation.addEventListener('click', (e) => { if(e.target === stopConfirma
 const confirmationBox = stopConfirmation.querySelector('.confirmation-box');
 if(confirmationBox) confirmationBox.addEventListener('click', (e)=> e.stopPropagation());
 window.addEventListener('keydown', (e) => { if(e.key === 'Escape' && stopConfirmation.classList.contains('show')) hideStopModal(); });
+
 /* ========= Resume & load handling ========= */
 window.addEventListener('DOMContentLoaded', () => {
     const showRealName = localStorage.getItem('show_real_name') === 'true';
@@ -1133,13 +1185,16 @@ window.addEventListener('DOMContentLoaded', () => {
         updateStatus('Ready to connect', false);
     }
 });
+
 function updateYourNameDisplay() {
     const realName = localStorage.getItem('local_real_name') || 'You';
     yourNameDisplay.textContent = realName;
 }
+
 showRealNameToggle.addEventListener('change', () => {
     localStorage.setItem('show_real_name', showRealNameToggle.checked);
 });
+
 /* ========= Event listeners ========= */
 createSessionBtn.addEventListener('click', () => {
     if(!sessionCodeInput.value.trim()){
@@ -1148,10 +1203,12 @@ createSessionBtn.addEventListener('click', () => {
     }
     startSession(true);
 });
+
 openJoinBtn.addEventListener('click', () => {
     joinModal.classList.add('show');
     joinModal.setAttribute('aria-hidden', 'false');
 });
+
 resumeSessionBtn.addEventListener('click', () => {
     const persistedName = localStorage.getItem('local_real_name') || '';
     if (persistedName) realNameInput.value = persistedName;
@@ -1164,11 +1221,14 @@ resumeSessionBtn.addEventListener('click', () => {
     const isHost = (localStorage.getItem('session_role') === 'host');
     startSession(isHost);
 });
+
 copyCodeBtn.addEventListener('click', () => {
     const txt = displayCodeInput.value || sessionCodeInput.value || '';
     if(txt) copyToClipboard(txt); else showNotification('No code available to copy', true);
 });
+
 shareLocationBtn.addEventListener('click', shareMyLocation);
+
 /* Chat send */
 chatSend.addEventListener('click', () => {
     const txt = chatInput.value.trim();
@@ -1179,12 +1239,14 @@ chatSend.addEventListener('click', () => {
     }
     chatInput.value = '';
 });
+
 chatInput.addEventListener('keydown', (e) => {
     if(e.key === 'Enter' && !e.shiftKey){
         e.preventDefault();
         chatSend.click();
     }
 });
+
 window.addEventListener('beforeunload', (e) => {
     const sessionActive = localStorage.getItem('session_active') === 'true';
     if(sessionActive){
@@ -1192,6 +1254,7 @@ window.addEventListener('beforeunload', (e) => {
         e.returnValue = '';
     }
 });
+
 /* ========= Emergency System Implementation ========= */
 function triggerSOS() {
     if(isSOSActive) return;
@@ -1235,6 +1298,7 @@ function triggerSOS() {
     }
     showNotification('SOS ALERT TRIGGERED! Your location is being shared with all users.', false, 5000);
 }
+
 function cancelSOS() {
     if(!isSOSActive) return;
     isSOSActive = false;
@@ -1267,6 +1331,7 @@ function cancelSOS() {
     }
     showNotification('SOS ALERT CANCELLED', false, 3000);
 }
+
 function handleSOS(data) {
     if(peerMarker) {
         const icon = L.divIcon({
@@ -1285,6 +1350,7 @@ function handleSOS(data) {
         peerCancelSOSBtn.disabled = false;
     }
 }
+
 function handleCancelSOS(data) {
     if(peerMarker) {
         const icon = L.divIcon({
@@ -1305,28 +1371,66 @@ function handleCancelSOS(data) {
         peerCancelSOSBtn.disabled = true;
     }
 }
+
 sosBtn.addEventListener('click', triggerSOS);
 cancelSosBtn.addEventListener('click', cancelSOS);
+
 /* ========= Automatic Danger Detection ========= */
-function checkInactivity(lat, lng) {
-    if(isHost || isSOSActive) return;
-    const currentPosition = { lat, lng, timestamp: Date.now() };
-    if(lastPosition) {
-        const distance = calculateDistance(
-            lastPosition.lat, lastPosition.lng,
-            currentPosition.lat, currentPosition.lng
-        );
-        if(distance >= MOVEMENT_THRESHOLD) {
-            // Real movement detected - reset timer
-            resetInactivityTimer();
-            showNotification(`✅ Movement detected (${distance.toFixed(1)}m) - timer reset`, false, 2000);
-        } else if(!inactivityTimer) {
-            // No significant movement and timer not running - start it
-            startInactivityCountdown();
+
+// Centralized, idempotent timer reset
+function resetInactivityTimer() {
+    if(inactivityTimer) {
+        clearInterval(inactivityTimer);
+        inactivityTimer = null;
+    }
+    inactivityWarning.style.display = 'none';
+    inactivityCountdown = 60;
+    showNotification('✅ Movement detected - inactivity timer reset', false, 2000);
+}
+
+function checkInactivity(currentPosition) {
+    if(isHost || isSOSActive || !lastPosition) return;
+
+    // Calculate real distance in meters
+    const distance = calculateDistance(
+        lastPosition.latitude, lastPosition.longitude,
+        currentPosition.latitude, currentPosition.longitude
+    );
+
+    // Get accuracy info
+    const accuracy = currentPosition.accuracy;
+
+    // Debug logging (temporary for testing)
+    console.log(`movement-check: distance=${distance.toFixed(2)}m, accuracy=${accuracy !== null ? accuracy.toFixed(1) : 'null'}m, threshold=${MOVEMENT_THRESHOLD}m`);
+
+    // Determine if movement is valid
+    let shouldReset = false;
+
+    if (accuracy !== null) {
+        // Device reports accuracy
+        if (accuracy <= ACCURACY_THRESHOLD && distance >= MOVEMENT_THRESHOLD) {
+            shouldReset = true;
+        } else if (distance >= MOVEMENT_THRESHOLD && distance > accuracy) {
+            shouldReset = true;
+        }
+    } else {
+        // No accuracy reported - be conservative
+        if (distance >= 1.5) { // Require larger movement
+            shouldReset = true;
         }
     }
-    lastPosition = { ...currentPosition, ...lastPosition };
+
+    // Log decision
+    console.log(`movement-decision: ${shouldReset ? 'RESET' : 'IGNORE'}`);
+
+    if (shouldReset) {
+        resetInactivityTimer();
+    } else if (!inactivityTimer) {
+        // Start timer only if not already running
+        startInactivityCountdown();
+    }
 }
+
 function calculateDistance(lat1, lon1, lat2, lon2) {
     const R = 6371e3; // Earth's radius in meters
     const φ1 = lat1 * Math.PI/180;
@@ -1339,6 +1443,7 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     return R * c; // Returns distance in meters
 }
+
 function startInactivityCountdown() {
     inactivityCountdown = 60;
     inactivityWarning.style.display = 'flex';
@@ -1357,17 +1462,11 @@ function startInactivityCountdown() {
         }
     }, 1000);
 }
-function resetInactivityTimer() {
-    if(inactivityTimer) {
-        clearInterval(inactivityTimer);
-        inactivityTimer = null;
-    }
-    inactivityWarning.style.display = 'none';
-    inactivityCountdown = 60;
-}
+
 function startInactivityMonitoring() {
     // Already handled by watchPosition updates
 }
+
 /* ========= Voice Message Implementation ========= */
 async function startRecording() {
     try {
@@ -1410,6 +1509,7 @@ async function startRecording() {
         showNotification('Could not access microphone. Please check permissions.', true);
     }
 }
+
 function stopRecording() {
     if (mediaRecorder && isRecording) {
         mediaRecorder.stop();
@@ -1423,6 +1523,7 @@ function stopRecording() {
         showNotification('Voice message recorded and sent');
     }
 }
+
 voiceRecordBtn.addEventListener('click', () => {
     if (isRecording) {
         stopRecording();
