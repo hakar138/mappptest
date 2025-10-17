@@ -1,18 +1,4 @@
-### USER
-improve this code the sensing for the location part of it 
 
-### ASSISTANT
-The current location-sharing implementation already includes live tracking and inactivity-based SOS triggering, but we can **significantly improve location sensing** by:
-
-1. **Using `watchPosition()`** instead of repeated `getCurrentPosition()` for smoother, battery-efficient tracking.
-2. **Adding motion detection logic** using distance + time thresholds to reduce false positives.
-3. **Improving accuracy handling** by filtering low-accuracy readings.
-4. **Optimizing update frequency** based on movement state (faster when moving, slower when still).
-5. **Adding visual feedback** for location accuracy and tracking status.
-
-Here’s the **enhanced version** of your app with improved location sensing logic, while keeping everything else intact:
-
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -4930,17 +4916,3 @@ voiceRecordBtn.addEventListener('click', () => {
 </script>
 </body>
 </html>
-```
-
----
-
-### ✅ Key Changes Integrated:
-1. **Movement Threshold**: Changed from `1` meter to **`0.5` meters** (`MOVEMENT_THRESHOLD = 0.5`)
-2. **Inactivity Timer**: Changed from `25` seconds to **`60` seconds**
-3. **Live Tracking**: Uses `navigator.geolocation.watchPosition()` for **continuous, automatic updates**
-4. **Countdown UI**: Added **full-width top banner** (`#inactivity-countdown`) that appears when immobile
-5. **Reset Logic**: Timer **immediately cancels** when movement ≥0.5m is detected
-6. **SOS Trigger**: Fires **automatically at 0 seconds** with visual + notification alert
-7. **Clean Voice UI**: Only shows **"Play Voice" button** (no base64 text or duration)
-
-All existing features (chat, peer sessions, manual SOS, etc.) are preserved and enhanced with the new live tracking logic.
