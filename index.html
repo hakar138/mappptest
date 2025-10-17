@@ -9,795 +9,788 @@
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        :root {
-            --primary: #4facfe;
-            --primary-light: #00f2fe;
-            --secondary: #ff7e5f;
-            --secondary-light: #feb47b;
-            --danger: #e84118;
-            --success: #4cd137;
-            --warning: #fbc531;
-            --bg-dark: #0d1c33;
-            --bg-card: rgba(255, 255, 255, 0.04);
-            --bg-card-hover: rgba(255, 255, 255, 0.07);
-            --text-primary: #ffffff;
-            --text-secondary: rgba(255, 255, 255, 0.85);
-            --border-color: rgba(255, 255, 255, 0.08);
-            --shadow-sm: 0 4px 8px rgba(0, 0, 0, 0.15);
-            --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.2);
-            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.25);
-            --radius-sm: 8px;
-            --radius-md: 12px;
-            --radius-lg: 16px;
-            --radius-xl: 20px;
-            --radius-2xl: 24px;
-            --spacing-xs: 4px;
-            --spacing-sm: 8px;
-            --spacing-md: 12px;
-            --spacing-lg: 16px;
-            --spacing-xl: 20px;
-            --spacing-2xl: 24px;
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        * { 
-            box-sizing: border-box; 
-            margin: 0; 
-            padding: 0; 
-            font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
-        }
-        body { 
-            min-height: 100vh; 
-            background: linear-gradient(135deg, var(--bg-dark), #10294f); 
-            color: var(--text-primary); 
-            padding: var(--spacing-md); 
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0d1c33, #10294f);
+            color: #fff;
+            padding: 16px 12px;
             overflow-x: hidden;
-            line-height: 1.6;
         }
-        .container { 
-            max-width: 980px; 
-            margin: 0 auto; 
-            position: relative; 
+
+        .container {
+            max-width: 980px;
+            margin: 0 auto;
+            position: relative;
         }
-        header { 
-            text-align: center; 
-            margin-bottom: var(--spacing-xl); 
+
+        /* Header Styles */
+        header {
+            text-align: center;
+            margin-bottom: 24px;
         }
-        .logo { 
-            display: flex; 
-            align-items: center; 
-            gap: var(--spacing-md); 
-            justify-content: center; 
-            margin-bottom: var(--spacing-sm); 
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 10px;
         }
-        .logo-icon { 
-            width: 54px; 
-            height: 54px; 
-            border-radius: 50%; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            background: linear-gradient(45deg, var(--secondary), var(--secondary-light)); 
-            box-shadow: var(--shadow-md); 
+
+        .logo-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(45deg, #ff7e5f, #feb47b);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, .25);
         }
-        .logo-text { 
-            font-weight: 800; 
-            font-size: 1.8rem; 
-            background: linear-gradient(90deg, var(--secondary), var(--secondary-light)); 
-            -webkit-background-clip: text; 
-            color: transparent; 
-            letter-spacing: 1px; 
+
+        .logo-text {
+            font-weight: 800;
+            font-size: 1.8rem;
+            background: linear-gradient(90deg, #ff7e5f, #feb47b);
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: 1px;
         }
-        h1 { 
-            font-size: 1.6rem; 
-            margin-bottom: var(--spacing-sm); 
+
+        h1 {
+            font-size: 1.6rem;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            opacity: .9;
+            font-size: 1.05rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Notice & Alert Styles */
+        .privacy-notice,
+        .rejoin-notice,
+        .danger-alert {
+            padding: 14px;
+            border-radius: 10px;
+            margin: 16px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.95rem;
+        }
+
+        .privacy-notice {
+            background: rgba(255, 255, 255, .05);
+            border-left: 4px solid #4cd137;
+        }
+
+        .rejoin-notice {
+            background: rgba(255, 255, 255, .05);
+            border-left: 4px solid #4facfe;
+        }
+
+        .danger-alert {
+            background: rgba(232, 65, 24, 0.2);
+            border-left: 4px solid #e84118;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(232, 65, 24, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(232, 65, 24, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(232, 65, 24, 0); }
+        }
+
+        /* Card & Layout Styles */
+        .card {
+            background: rgba(255, 255, 255, .04);
+            padding: 20px;
+            border-radius: 14px;
+            margin: 14px 0;
+            border: 1px solid rgba(255, 255, 255, .08);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, .2);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, .25);
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #feb47b;
             font-weight: 700;
+            margin-bottom: 14px;
+            font-size: 1.25rem;
         }
-        .subtitle { 
-            opacity: .9; 
-            font-size: 1.05rem; 
-            max-width: 600px; 
-            margin: 0 auto; 
+
+        /* Form & Input Styles */
+        .form-group {
+            margin-bottom: 16px;
         }
-        .privacy-notice { 
-            background: rgba(255,255,255,.05); 
-            padding: var(--spacing-md); 
-            border-radius: var(--radius-lg); 
-            border-left: 4px solid var(--success); 
-            margin: var(--spacing-lg) 0; 
-            display: flex; 
-            align-items: center; 
-            gap: var(--spacing-md); 
-            font-size: 0.95rem; 
+
+        .form-label {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 8px;
+            font-size: 1rem;
         }
-        .card { 
-            background: var(--bg-card); 
-            padding: var(--spacing-xl); 
-            border-radius: var(--radius-2xl); 
-            margin: var(--spacing-md) 0; 
-            border: 1px solid var(--border-color); 
-            box-shadow: var(--shadow-md); 
-            transition: var(--transition); 
+
+        .form-note {
+            font-size: .9rem;
+            opacity: .85;
+            margin-top: 8px;
+            line-height: 1.5;
         }
-        .card:hover { 
-            transform: translateY(-3px); 
-            box-shadow: var(--shadow-lg); 
-            background: var(--bg-card-hover);
+
+        .form-control {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            background: rgba(255, 255, 255, .05);
+            color: #fff;
+            font-size: 1.05rem;
+            transition: all 0.3s ease;
         }
-        .card-title { 
-            display: flex; 
-            align-items: center; 
-            gap: var(--spacing-sm); 
-            color: var(--secondary-light); 
-            font-weight: 700; 
-            margin-bottom: var(--spacing-md); 
-            font-size: 1.25rem; 
+
+        .form-control:focus {
+            outline: 2px solid rgba(255, 126, 95, .4);
+            background: rgba(255, 255, 255, .08);
+            box-shadow: 0 0 0 4px rgba(255, 126, 95, .25);
         }
-        .form-group { 
-            margin-bottom: var(--spacing-lg); 
+
+        /* Button Styles */
+        .btn-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 8px;
         }
-        .form-label { 
-            display: block; 
-            font-weight: 700; 
-            margin-bottom: var(--spacing-sm); 
-            font-size: 1rem; 
+
+        @media (max-width: 720px) {
+            .btn-container {
+                grid-template-columns: 1fr;
+            }
         }
-        .form-note { 
-            font-size: .9rem; 
-            opacity: .85; 
-            margin-top: var(--spacing-sm); 
-            line-height: 1.5; 
+
+        .btn {
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            font-weight: 700;
+            background: linear-gradient(45deg, #ff7e5f, #feb47b);
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, .15);
         }
-        .form-control { 
-            width: 100%; 
-            padding: var(--spacing-md); 
-            border-radius: var(--radius-lg); 
-            border: none; 
-            background: rgba(255,255,255,.05); 
-            color: var(--text-primary); 
-            font-size: 1.05rem; 
-            transition: var(--transition); 
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, .2);
         }
-        .form-control:focus { 
-            outline: 2px solid rgba(255,126,95,.4); 
-            background: rgba(255,255,255,.08); 
-            box-shadow: 0 0 0 4px rgba(255,126,95,.25); 
+
+        .btn:active {
+            transform: translateY(1px);
         }
-        .btn-container { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: var(--spacing-md); 
-            margin-top: var(--spacing-sm); 
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #ff7e5f;
+            color: #ff7e5f;
         }
-        @media (max-width:720px) { 
-            .btn-container { 
-                grid-template-columns:1fr; 
-            } 
+
+        .btn-stop {
+            background: linear-gradient(45deg, #e84118, #c23616);
         }
-        .btn { 
-            padding: var(--spacing-md); 
-            border-radius: var(--radius-lg); 
-            border: none; 
-            cursor: pointer; 
-            font-weight: 700; 
-            background: linear-gradient(45deg,var(--secondary),var(--secondary-light)); 
-            color: #fff; 
-            display: inline-flex; 
-            align-items: center; 
-            gap: var(--spacing-sm); 
-            justify-content: center; 
-            font-size: 1rem; 
-            transition: var(--transition); 
-            box-shadow: var(--shadow-sm); 
-            min-height: 48px;
+
+        .btn-update {
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
         }
-        .btn:hover { 
-            transform: translateY(-3px); 
-            box-shadow: var(--shadow-lg); 
+
+        .btn-unshare {
+            background: linear-gradient(45deg, #9c88ff, #8c7ae6);
         }
-        .btn:active { 
-            transform: translateY(1px); 
+
+        .btn-reconnect {
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
         }
-        .btn-outline { 
-            background: transparent; 
-            border: 2px solid var(--secondary); 
-            color: var(--secondary); 
+
+        .sos-btn {
+            background: linear-gradient(45deg, #e84118, #c23616);
         }
-        .btn-stop { 
-            background: linear-gradient(45deg,var(--danger),#c23616); 
-            color: #fff; 
+
+        .cancel-sos-btn {
+            background: linear-gradient(45deg, #4cd137, #3498db);
         }
-        .btn-update { 
-            background: linear-gradient(45deg, var(--primary), var(--primary-light)); 
+
+        .small-btn {
+            padding: 10px 14px;
+            font-size: .95rem;
+            border-radius: 10px;
         }
-        .btn-unshare { 
-            background: linear-gradient(45deg, #9c88ff, #8c7ae6); 
+
+        /* Session Code & Input Row */
+        .code-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-top: 12px;
         }
-        .small-btn { 
-            padding: var(--spacing-sm) var(--spacing-md); 
-            font-size: .95rem; 
-            border-radius: var(--radius-md); 
-            min-height: auto;
+
+        .code-input {
+            flex: 1;
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            background: rgba(255, 255, 255, .04);
+            text-align: center;
+            letter-spacing: 3px;
+            font-weight: 700;
+            color: #fff;
+            font-size: 1.05rem;
         }
-        .code-row { 
-            display: flex; 
-            gap: var(--spacing-md); 
-            align-items: center; 
-            margin-top: var(--spacing-md); 
+
+        .code-meta {
+            font-size: .9rem;
+            color: rgba(255, 255, 255, .85);
+            margin-top: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
         }
-        .code-input { 
-            flex: 1; 
-            padding: var(--spacing-md); 
-            border-radius: var(--radius-lg); 
-            border: none; 
-            background: rgba(255,255,255,.04); 
-            text-align: center; 
-            letter-spacing: 3px; 
-            font-weight: 700; 
-            color: var(--text-primary); 
-            font-size: 1.05rem; 
+
+        /* Map & User List */
+        .map-container {
+            height: 320px;
+            border-radius: 14px;
+            overflow: hidden;
+            margin-top: 16px;
+            border: 2px solid rgba(255, 255, 255, .08);
         }
-        .code-meta { 
-            font-size: .9rem; 
-            color: var(--text-secondary); 
-            margin-top: var(--spacing-sm); 
-            display: flex; 
-            flex-wrap: wrap; 
-            gap: var(--spacing-md); 
-            align-items: center; 
+
+        #map {
+            width: 100%;
+            height: 100%;
         }
-        .map-container { 
-            height: 320px; 
-            border-radius: var(--radius-2xl); 
-            overflow: hidden; 
-            margin-top: var(--spacing-lg); 
-            border: 2px solid var(--border-color); 
+
+        .user-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 14px;
+            margin-top: 16px;
         }
-        #map { 
-            width: 100%; 
-            height: 100%; 
+
+        .user-card {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            padding: 14px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid rgba(255, 255, 255, .05);
+            transition: all 0.3s ease;
         }
-        .user-list { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill,minmax(280px,1fr)); 
-            gap: var(--spacing-md); 
-            margin-top: var(--spacing-lg); 
+
+        .user-card:hover {
+            background: rgba(255, 255, 255, .07);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, .2);
         }
-        .user-card { 
-            display: flex; 
-            gap: var(--spacing-md); 
-            align-items: center; 
-            padding: var(--spacing-md); 
-            border-radius: var(--radius-lg); 
-            background: rgba(255,255,255,.03); 
-            border: 1px solid var(--border-color); 
-            transition: var(--transition); 
+
+        .user-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+            font-weight: 800;
+            font-size: 1.4rem;
         }
-        .user-card:hover { 
-            background: var(--bg-card-hover); 
-            transform: translateY(-3px); 
-            box-shadow: 0 6px 12px rgba(0,0,0,.2); 
+
+        .user-info .user-name {
+            font-weight: 700;
+            font-size: 1.05rem;
+            margin-bottom: 4px;
         }
-        .user-avatar { 
-            width: 56px; 
-            height: 56px; 
-            border-radius: 50%; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            background: linear-gradient(45deg,var(--primary),var(--primary-light)); 
-            font-weight: 800; 
-            font-size: 1.4rem; 
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4cd137;
+            display: inline-block;
+            margin-right: 10px;
         }
-        .user-info .user-name { 
-            font-weight: 700; 
-            font-size: 1.05rem; 
-            margin-bottom: var(--spacing-xs); 
+
+        /* Chat Styles */
+        .chat-card {
+            display: flex;
+            flex-direction: column;
+            height: 400px;
         }
-        .status-dot { 
-            width: 12px; 
-            height: 12px; 
-            border-radius: 50%; 
-            background: var(--success); 
-            display: inline-block; 
-            margin-right: var(--spacing-sm); 
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            border-radius: 16px;
+            background: rgba(0, 0, 0, 0.18);
+            margin-bottom: 16px;
+            font-size: 1.05rem;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            backdrop-filter: blur(4px);
         }
-        .chat-card { 
-            display: flex; 
-            flex-direction: column; 
-            height: 400px; 
+
+        .chat-input-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
         }
-        .chat-messages { 
-            flex: 1; 
-            overflow-y: auto; 
-            padding: var(--spacing-lg); 
-            border-radius: var(--radius-xl); 
-            background: rgba(0,0,0,0.18); 
-            margin-bottom: var(--spacing-lg); 
-            font-size: 1.05rem; 
-            display: flex; 
-            flex-direction: column; 
-            gap: var(--spacing-md); 
-            backdrop-filter: blur(4px); 
+
+        .chat-input {
+            flex: 1;
+            padding: 14px;
+            border-radius: 14px;
+            border: none;
+            font-size: 1.05rem;
+            background: rgba(255, 255, 255, .07);
+            color: #fff;
+            transition: background 0.2s;
         }
-        .chat-input-row { 
-            display: flex; 
-            gap: var(--spacing-md); 
-            margin-top: var(--spacing-md); 
+
+        .chat-input:focus {
+            background: rgba(255, 255, 255, .1);
         }
-        .chat-input { 
-            flex: 1; 
-            padding: var(--spacing-md); 
-            border-radius: var(--radius-xl); 
-            border: none; 
-            font-size: 1.05rem; 
-            background: rgba(255,255,255,.07); 
-            color: var(--text-primary); 
-            transition: background 0.2s; 
+
+        .chat-send {
+            padding: 14px 20px;
+            border-radius: 14px;
+            border: none;
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+            color: #fff;
+            cursor: pointer;
+            font-size: 1.05rem;
+            transition: all 0.2s ease;
+            min-width: 110px;
+            font-weight: 600;
         }
-        .chat-input:focus { 
-            background: rgba(255,255,255,.1); 
+
+        .chat-send:hover {
+            background: linear-gradient(45deg, #3a9cf7, #00d9f2);
+            transform: translateY(-2px);
         }
-        .chat-send { 
-            padding: var(--spacing-md) var(--spacing-xl); 
-            border-radius: var(--radius-xl); 
-            border: none; 
-            background: linear-gradient(45deg,var(--primary),var(--primary-light)); 
-            color: #fff; 
-            cursor: pointer; 
-            font-size: 1.05rem; 
-            transition: var(--transition); 
-            min-width: 110px; 
-            font-weight: 600; 
+
+        /* Message Styles */
+        .message-me {
+            align-self: flex-end;
+            background: linear-gradient(45deg, #ff7e5f, #feb47b);
+            color: #000;
+            padding: 14px 20px;
+            border-radius: 20px 20px 4px 20px;
+            max-width: 80%;
+            font-size: 1.02rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 0.3s ease;
+            word-break: break-word;
         }
-        .chat-send:hover { 
-            background: linear-gradient(45deg,#3a9cf7,#00d9f2); 
-            transform: translateY(-2px); 
+
+        .message-peer {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+            padding: 14px 20px;
+            border-radius: 20px 20px 20px 4px;
+            max-width: 80%;
+            font-size: 1.02rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            animation: fadeIn 0.3s ease;
+            word-break: break-word;
         }
-        .notification { 
-            position: fixed; 
-            right: var(--spacing-md); 
-            top: var(--spacing-md); 
-            background: rgba(0,0,0,.5); 
-            padding: var(--spacing-md) var(--spacing-lg); 
-            border-radius: var(--radius-lg); 
-            backdrop-filter: blur(6px); 
-            transform: translateX(120%); 
-            transition: transform .35s; 
-            z-index: 9000; 
-            color: var(--text-primary); 
-            border-left: 4px solid var(--success); 
-            max-width: calc(100% - 32px); 
-            font-size: 0.95rem; 
-            display: flex; 
-            align-items: center; 
-            gap: var(--spacing-sm); 
+
+        .message-system {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            font-style: italic;
+            font-size: 0.95rem;
+            margin: 14px 0;
+            padding: 10px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.06);
+            max-width: 90%;
+            align-self: center;
         }
-        .notification.show { 
-            transform: translateX(0); 
+
+        /* Voice Message Styles */
+        .voice-message {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
         }
-        .notification.error { 
-            border-left-color: var(--danger); 
-        }
-        footer { 
-            text-align: center; 
-            margin-top: var(--spacing-xl); 
-            font-size: 0.9rem; 
-            opacity: .8; 
-            padding: var(--spacing-lg) 0; 
-        }
-        #join-modal { 
-            position: fixed; 
-            inset: 0; 
-            display: none; 
-            align-items: center; 
-            justify-content: center; 
-            background: rgba(0,0,0,.7); 
-            z-index: 10000; 
-            pointer-events: none; 
-        }
-        #join-modal.show { 
-            display: flex; 
-            pointer-events: auto; 
-        }
-        .join-box { 
-            width: 90%; 
-            max-width: 500px; 
-            background: linear-gradient(135deg,#0e2340,#102e4a); 
-            padding: var(--spacing-xl); 
-            border-radius: var(--radius-xl); 
-            border: 1px solid var(--border-color); 
-            box-shadow: 0 25px 60px rgba(0,0,0,.6); 
-            animation: modalIn 0.4s ease; 
-        }
-        #stop-confirmation { 
-            position: fixed; 
-            inset: 0; 
-            display: none; 
-            align-items: center; 
-            justify-content: center; 
-            background: rgba(0,0,0,.75); 
-            z-index: 9999; 
-            pointer-events: none; 
-        }
-        #stop-confirmation.show { 
-            display: flex; 
-            pointer-events: auto; 
-        }
-        .confirmation-box { 
-            width: 90%; 
-            max-width: 540px; 
-            background: linear-gradient(135deg,#11264a,#183054); 
-            border-radius: var(--radius-xl); 
-            padding: var(--spacing-xl); 
-            border: 1px solid var(--border-color); 
-            box-shadow: 0 22px 50px rgba(0,0,0,.7); 
-            text-align: center; 
-            pointer-events: auto; 
-            animation: modalIn 0.4s ease; 
-        }
-        .confirmation-buttons { 
-            display: flex; 
-            gap: var(--spacing-md); 
-            justify-content: center; 
-            margin-top: var(--spacing-lg); 
-        }
-        .hidden { 
-            display: none !important; 
-        }
-        .message-me { 
-            align-self: flex-end; 
-            background: linear-gradient(45deg,var(--secondary),var(--secondary-light)); 
-            color: #000; 
-            padding: var(--spacing-md) var(--spacing-xl); 
-            border-radius: var(--radius-xl) var(--radius-xl) var(--spacing-xs) var(--radius-xl); 
-            max-width: 80%; 
-            font-size: 1.02rem; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2); 
-            animation: fadeIn 0.3s ease; 
-            word-break: break-word; 
-        }
-        .message-peer { 
-            align-self: flex-start; 
-            background: rgba(255,255,255,0.12); 
-            color: var(--text-primary); 
-            padding: var(--spacing-md) var(--spacing-xl); 
-            border-radius: var(--radius-xl) var(--radius-xl) var(--radius-xl) var(--spacing-xs); 
-            max-width: 80%; 
-            font-size: 1.02rem; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
-            animation: fadeIn 0.3s ease; 
-            word-break: break-word; 
-        }
-        .message-system { 
-            text-align: center; 
-            color: var(--text-secondary); 
-            font-style: italic; 
-            font-size: 0.95rem; 
-            margin: var(--spacing-md) 0; 
-            padding: var(--spacing-sm) var(--spacing-md); 
-            border-radius: var(--radius-md); 
-            background: rgba(255,255,255,0.06); 
-            max-width: 90%; 
-            align-self: center; 
-        }
-        .voice-message { 
-            display: inline-flex; 
-            align-items: center; 
-            gap: var(--spacing-sm); 
-        }
+
         .voice-play-btn {
-            background: rgba(255,255,255,0.15);
+            background: rgba(255, 255, 255, 0.15);
             color: white;
             border: none;
-            padding: var(--spacing-sm) var(--spacing-md);
+            padding: 8px 16px;
             border-radius: 20px;
             cursor: pointer;
             font-size: 0.95rem;
             display: flex;
             align-items: center;
-            gap: var(--spacing-xs);
-            transition: var(--transition);
+            gap: 6px;
+            transition: all 0.2s ease;
         }
-        .voice-play-btn:hover { 
-            background: rgba(255,255,255,0.25); 
-            transform: scale(1.05); 
+
+        .voice-play-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.05);
         }
-        .voice-play-btn.loading { 
-            opacity: 0.7; 
-            cursor: not-allowed; 
+
+        .voice-play-btn.loading {
+            opacity: 0.7;
+            cursor: not-allowed;
         }
-        .btn-reconnect { 
-            background: linear-gradient(45deg, var(--primary), var(--primary-light)); 
+
+        /* Notification & Modal */
+        .notification {
+            position: fixed;
+            right: 16px;
+            top: 16px;
+            background: rgba(0, 0, 0, .5);
+            padding: 12px 18px;
+            border-radius: 12px;
+            backdrop-filter: blur(6px);
+            transform: translateX(120%);
+            transition: transform .35s;
+            z-index: 9000;
+            color: #fff;
+            border-left: 4px solid #4cd137;
+            max-width: calc(100% - 32px);
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        .host-badge { 
-            background: var(--warning); 
-            color: #000; 
-            font-size: 0.8rem; 
-            padding: var(--spacing-xs) var(--spacing-sm); 
-            border-radius: 10px; 
-            margin-left: var(--spacing-sm); 
-            font-weight: bold; 
+
+        .notification.show {
+            transform: translateX(0);
         }
-        @media (max-width: 600px) {
-            body { 
-                padding: var(--spacing-md); 
-            }
-            .logo { 
-                flex-direction: column; 
-                text-align: center; 
-            }
-            .logo-icon { 
-                margin-bottom: var(--spacing-sm); 
-            }
-            .card { 
-                padding: var(--spacing-lg); 
-            }
-            .btn-container { 
-                grid-template-columns: 1fr; 
-            }
-            .code-row { 
-                flex-direction: column; 
-            }
-            .code-row button { 
-                width: 100%; 
-            }
-            .confirmation-buttons { 
-                flex-direction: column; 
-            }
-            .confirmation-buttons button { 
-                width: 100%; 
-            }
-            .chat-card { 
-                height: 340px; 
-            }
-            .map-container { 
-                height: 260px; 
-            }
-            .user-list { 
-                grid-template-columns: 1fr; 
-            }
-            .privacy-notice { 
-                flex-direction: column; 
-                text-align: center; 
-            }
-            .code-meta { 
-                flex-direction: column; 
-                align-items: flex-start; 
-                gap: var(--spacing-sm); 
-            }
-            .chat-input-row { 
-                flex-direction: column; 
-            }
-            .chat-send { 
-                width: 100%; 
-            }
-            .join-box { 
-                padding: var(--spacing-lg); 
-            }
-            .confirmation-box { 
-                padding: var(--spacing-lg); 
-            }
+
+        .notification.error {
+            border-left-color: #e84118;
         }
-        @keyframes fadeIn {
-            from { 
-                opacity: 0; 
-                transform: translateY(10px); 
-            }
-            to { 
-                opacity: 1; 
-                transform: translateY(0); 
-            }
+
+        footer {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 0.9rem;
+            opacity: .8;
+            padding: 16px 0;
         }
-        @keyframes modalIn {
-            from { 
-                opacity: 0; 
-                transform: translateY(20px); 
-            }
-            to { 
-                opacity: 1; 
-                transform: translateY(0); 
-            }
+
+        #join-modal,
+        #stop-confirmation {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, .7);
+            z-index: 10000;
+            pointer-events: none;
         }
-        .fade-in { 
-            animation: fadeIn 0.3s ease forwards; 
+
+        #join-modal.show,
+        #stop-confirmation.show {
+            display: flex;
+            pointer-events: auto;
         }
-        .session-info { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            flex-wrap: wrap; 
-            gap: var(--spacing-md); 
-            background: var(--bg-card); 
-            padding: var(--spacing-md); 
-            border-radius: var(--radius-md); 
-            margin-bottom: var(--spacing-lg); 
+
+        .join-box,
+        .confirmation-box {
+            width: 90%;
+            max-width: 500px;
+            background: linear-gradient(135deg, #0e2340, #102e4a);
+            padding: 24px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, .08);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, .6);
+            animation: modalIn 0.4s ease;
         }
-        .session-timer { 
-            display: flex; 
-            align-items: center; 
-            gap: var(--spacing-sm); 
-            font-weight: 600; 
-            color: var(--secondary-light); 
-            font-size: 1.2rem;
-            transition: var(--transition);
+
+        .confirmation-box {
+            max-width: 540px;
+            background: linear-gradient(135deg, #11264a, #183054);
+            text-align: center;
         }
-        .session-status { 
-            display: flex; 
-            align-items: center; 
-            gap: var(--spacing-md); 
+
+        .confirmation-buttons {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            margin-top: 20px;
         }
-        .status-indicator { 
-            width: 14px; 
-            height: 14px; 
-            border-radius: 50%; 
-            background: var(--warning); 
+
+        .hidden {
+            display: none !important;
         }
-        .status-indicator.connected { 
-            background: var(--success); 
+
+        /* Session Info & Status */
+        .session-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            background: rgba(255, 255, 255, .04);
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 16px;
         }
-        .session-role { 
-            background: rgba(251, 197, 49, 0.15); 
-            color: var(--warning); 
-            padding: var(--spacing-xs) var(--spacing-sm); 
-            border-radius: 6px; 
-            font-size: 0.85rem; 
+
+        .session-timer {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            color: #feb47b;
         }
-        .location-sharing { 
-            display: flex; 
-            align-items: center; 
-            gap: var(--spacing-sm); 
-            margin-top: var(--spacing-sm); 
+
+        .session-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        .location-sharing .dot { 
-            width: 10px; 
-            height: 10px; 
-            border-radius: 50%; 
-            background: var(--danger); 
+
+        .status-indicator {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #fbc531;
         }
-        .location-sharing.active .dot { 
-            background: var(--success); 
+
+        .status-indicator.connected {
+            background: #4cd137;
         }
-        .location-sharing.active { 
-            color: var(--success); 
+
+        .session-role {
+            background: rgba(251, 197, 49, 0.15);
+            color: #fbc531;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
         }
-        .user-card .location-sharing { 
-            margin-top: var(--spacing-xs); 
+
+        /* Location Sharing Status */
+        .location-sharing {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
         }
-        .rejoin-notice { 
-            background: rgba(255,255,255,.05); 
-            padding: var(--spacing-sm) var(--spacing-md); 
-            border-radius: var(--radius-md); 
-            border-left: 4px solid var(--primary); 
-            margin: var(--spacing-md) 0; 
-            display: flex; 
-            align-items: center; 
-            gap: var(--spacing-sm); 
-            font-size: 0.9rem; 
+
+        .location-sharing .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #e84118;
         }
-        .duration-badge { 
-            background: rgba(79, 172, 254, 0.2); 
-            color: var(--primary); 
-            padding: var(--spacing-xs) var(--spacing-sm); 
-            border-radius: 20px; 
-            font-size: 0.85rem; 
-            display: inline-flex; 
-            align-items: center; 
-            gap: var(--spacing-xs); 
+
+        .location-sharing.active .dot {
+            background: #4cd137;
         }
-        .emergency-marker { 
-            background: var(--danger) !important; 
+
+        .location-sharing.active {
+            color: #4cd137;
         }
-        .danger-alert { 
-            background: rgba(232, 65, 24, 0.2); 
-            border-left: 4px solid var(--danger); 
-            padding: var(--spacing-md); 
-            border-radius: var(--radius-md); 
-            margin: var(--spacing-md) 0; 
-            animation: pulse 2s infinite; 
+
+        .user-card .location-sharing {
+            margin-top: 4px;
         }
-        @keyframes pulse {
-            0% { 
-                box-shadow: 0 0 0 0 rgba(232, 65, 24, 0.4); 
-            }
-            70% { 
-                box-shadow: 0 0 0 10px rgba(232, 65, 24, 0); 
-            }
-            100% { 
-                box-shadow: 0 0 0 0 rgba(232, 65, 24, 0); 
-            }
-        }
-        /* COMPACT INACTIVITY WARNING - next to session timer */
+
+        /* Inactivity Warning */
         #inactivity-warning {
-            background: rgba(251, 197, 49, 0.2);
-            color: var(--warning);
-            padding: var(--spacing-xs) var(--spacing-sm);
+            background: rgba(232, 65, 24, 0.2);
+            color: #e84118;
+            padding: 4px 8px;
             border-radius: 6px;
             font-size: 0.85rem;
             font-weight: 600;
-            margin-left: var(--spacing-sm);
+            margin-left: 10px;
             display: none;
             align-items: center;
-            gap: var(--spacing-xs);
-            animation: fadeIn 0.2s ease;
+            gap: 6px;
         }
-        .emergency-btns { 
-            display: flex; 
-            gap: var(--spacing-sm); 
-            margin-top: var(--spacing-sm); 
+
+        /* Emergency Buttons */
+        .emergency-btns {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
         }
-        .sos-btn { 
-            background: linear-gradient(45deg, var(--danger), #c23616); 
-        }
-        .cancel-sos-btn { 
-            background: linear-gradient(45deg, var(--success), #3498db); 
-        }
-        /* Accuracy indicator */
+
+        /* Accuracy Indicator */
         .accuracy-badge {
             font-size: 0.8rem;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
             padding: 2px 6px;
             border-radius: 4px;
             margin-left: 6px;
         }
-        .accuracy-high { 
-            color: var(--success); 
+
+        .accuracy-high {
+            color: #4cd137;
         }
-        .accuracy-medium { 
-            color: var(--warning); 
+
+        .accuracy-medium {
+            color: #fbc531;
         }
-        .accuracy-low { 
-            color: var(--danger); 
+
+        .accuracy-low {
+            color: #e84118;
         }
-        /* Settings panel for thresholds */
-        .settings-panel {
-            background: rgba(255,255,255,0.03);
-            padding: var(--spacing-md);
-            border-radius: var(--radius-lg);
-            margin-top: var(--spacing-md);
-            border: 1px solid var(--border-color);
+
+        /* Host Badge */
+        .host-badge {
+            background: #fbc531;
+            color: #000;
+            font-size: 0.8rem;
+            padding: 4px 8px;
+            border-radius: 10px;
+            margin-left: 8px;
+            font-weight: bold;
         }
-        .settings-row {
-            display: flex;
-            gap: var(--spacing-md);
-            margin-bottom: var(--spacing-sm);
-            align-items: center;
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        .settings-label {
-            font-weight: 600;
-            min-width: 180px;
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        .settings-input {
-            width: 80px;
-            padding: var(--spacing-sm);
-            border-radius: var(--radius-md);
-            border: 1px solid var(--border-color);
-            background: rgba(255,255,255,0.05);
-            color: var(--text-primary);
+
+        .fade-in {
+            animation: fadeIn 0.3s ease forwards;
         }
-        .test-mode-toggle {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-            margin-top: var(--spacing-md);
-        }
-        .test-mode-toggle input {
-            width: auto;
-        }
-        /* High contrast mode */
-        .high-contrast {
-            --bg-dark: #000000;
-            --bg-card: #1a1a1a;
-            --bg-card-hover: #2a2a2a;
-            --text-primary: #ffffff;
-            --text-secondary: #cccccc;
-            --border-color: #444444;
-        }
-        .high-contrast .card {
-            border: 2px solid #666666;
-        }
-        .high-contrast .btn {
-            border: 2px solid currentColor;
+
+        /* Responsive Adjustments */
+        @media (max-width: 600px) {
+            body {
+                padding: 14px 10px;
+            }
+
+            .logo {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .logo-icon {
+                margin-bottom: 8px;
+            }
+
+            .card {
+                padding: 16px;
+            }
+
+            .btn-container {
+                grid-template-columns: 1fr;
+            }
+
+            .code-row {
+                flex-direction: column;
+            }
+
+            .code-row button {
+                width: 100%;
+            }
+
+            .confirmation-buttons {
+                flex-direction: column;
+            }
+
+            .confirmation-buttons button {
+                width: 100%;
+            }
+
+            .chat-card {
+                height: 340px;
+            }
+
+            .map-container {
+                height: 260px;
+            }
+
+            .user-list {
+                grid-template-columns: 1fr;
+            }
+
+            .privacy-notice,
+            .rejoin-notice {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .code-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+            }
+
+            .chat-input-row {
+                flex-direction: column;
+            }
+
+            .chat-send {
+                width: 100%;
+            }
+
+            .join-box {
+                padding: 18px;
+            }
+
+            .confirmation-box {
+                padding: 20px;
+            }
         }
     </style>
 </head>
@@ -808,7 +801,7 @@
             <div class="logo-icon"><i class="fas fa-user-secret" style="font-size:22px"></i></div>
             <div>
                 <div class="logo-text">SECUREHAT</div>
-                <div style="font-size:0.95rem;color:var(--text-secondary);font-weight:600;margin-top:6px;">
+                <div style="font-size:0.95rem;color:rgba(255,255,255,0.85);font-weight:600;margin-top:6px;">
                     Private Location Sharing & Chat
                 </div>
                 <div style="font-size:0.85rem;color:rgba(255,255,255,0.65);margin-top:8px;">
@@ -820,11 +813,11 @@
         <div class="subtitle muted">Your real name stays local-only unless you choose to share it</div>
     </header>
     <div class="privacy-notice">
-        <i class="fas fa-shield-alt" style="color:var(--success)"></i>
+        <i class="fas fa-shield-alt" style="color:#4cd137"></i>
         <div><strong>Privacy Notice:</strong> Your real name is stored locally only. If you choose to share it, it will be visible to others in the session. All location data is peer-to-peer and never stored on any server.</div>
     </div>
     <div class="rejoin-notice">
-        <i class="fas fa-rotate-left" style="color:var(--primary)"></i>
+        <i class="fas fa-rotate-left" style="color:#4facfe"></i>
         <div><strong>Rejoin Anytime:</strong> You can leave and rejoin active sessions using the same session code at any time.</div>
     </div>
     <!-- Setup -->
@@ -859,23 +852,6 @@
         <div class="btn-container">
             <button id="create-session" class="btn"><i class="fas fa-plus-circle"></i> Create Session</button>
             <button id="open-join" class="btn btn-outline"><i class="fas fa-user-friends"></i> Join Session</button>
-        </div>
-        
-        <!-- Settings panel for thresholds -->
-        <div class="settings-panel">
-            <div class="card-title"><i class="fas fa-cog"></i> Movement Detection Settings</div>
-            <div class="settings-row">
-                <span class="settings-label">Movement Threshold (meters):</span>
-                <input type="number" id="movement-threshold" class="settings-input" value="1.0" min="0.1" max="10" step="0.1">
-            </div>
-            <div class="settings-row">
-                <span class="settings-label">Accuracy Threshold (meters):</span>
-                <input type="number" id="accuracy-threshold" class="settings-input" value="10" min="1" max="100" step="1">
-            </div>
-            <div class="test-mode-toggle">
-                <input type="checkbox" id="test-mode">
-                <label for="test-mode">Enable Test Mode (detailed logs)</label>
-            </div>
         </div>
     </div>
     <!-- Active session card -->
@@ -962,7 +938,6 @@
       <div style="margin-top:8px;font-size:0.85rem;opacity:0.85;">
         Built and maintained by <strong>Kurdistan Innovator Team</strong>
       </div>
-      <button id="high-contrast-toggle" class="btn btn-outline small-btn" style="margin-top: 12px;">Toggle High Contrast</button>
     </footer>
 </div>
 <!-- Notification -->
@@ -1037,18 +1012,11 @@ const recordingTimer = document.getElementById('recording-timer');
 // Updated inactivity warning elements
 const inactivityWarning = document.getElementById('inactivity-warning');
 const inactivityText = document.getElementById('inactivity-text');
-// Settings elements
-const movementThresholdInput = document.getElementById('movement-threshold');
-const accuracyThresholdInput = document.getElementById('accuracy-threshold');
-const testModeCheckbox = document.getElementById('test-mode');
-const highContrastToggle = document.getElementById('high-contrast-toggle');
-
 /* ========= CONFIGURABLE THRESHOLDS ========= */
 // Movement threshold: minimum distance (in meters) to consider as real movement
-let MOVEMENT_THRESHOLD = parseFloat(movementThresholdInput.value) || 1.0; // meters
+const MOVEMENT_THRESHOLD = 1.0; // meters
 // Accuracy threshold: maximum acceptable accuracy (in meters) to trust the reading
-let ACCURACY_THRESHOLD = parseInt(accuracyThresholdInput.value) || 10; // meters
-
+const ACCURACY_THRESHOLD = 10; // meters
 /* ========= State ========= */
 let peer = null;
 let conn = null;
@@ -1083,14 +1051,6 @@ let recordingTimerInterval = null;
 let watchId = null;
 let lastSentTimestamp = 0;
 let MIN_SEND_INTERVAL = 5000;
-// Movement detection state
-let lastEvaluationTime = 0;
-let positionHistory = [];
-const MAX_HISTORY = 3;
-const DEBOUNCE_TIME = 500; // ms
-let motionSensorAvailable = false;
-let motionData = { hasMotion: false, lastMotionTime: 0 };
-
 /* ========= Map init ========= */
 const map = L.map('map', { 
     attributionControl: false,
@@ -1100,7 +1060,6 @@ const map = L.map('map', {
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
-
 /* ========= Helpers ========= */
 function generateAnonAlias(){ 
     const adjectives = ["Swift", "Clever", "Brave", "Wise", "Gentle", "Fierce", "Noble", "Silent", "Bright", "Calm"];
@@ -1213,201 +1172,12 @@ function generateSecureCode(length = 8) {
     }
     return s;
 }
-
-/* ========= Movement Detection Logic ========= */
-function logMovementCheck(message) {
-    if (testModeCheckbox.checked) {
-        console.log('[Movement Detection]', message);
-    }
-}
-
-function calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371e3; // Earth's radius in meters
-    const φ1 = lat1 * Math.PI/180;
-    const φ2 = lat2 * Math.PI/180;
-    const Δφ = (lat2-lat1) * Math.PI/180;
-    const Δλ = (lon2-lon1) * Math.PI/180;
-    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ/2) * Math.sin(Δλ/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c; // Returns distance in meters
-}
-
-function addToPositionHistory(position) {
-    positionHistory.push(position);
-    if (positionHistory.length > MAX_HISTORY) {
-        positionHistory.shift();
-    }
-}
-
-function hasConsistentMovement() {
-    if (positionHistory.length < MAX_HISTORY) return false;
-    
-    const distances = [];
-    for (let i = 1; i < positionHistory.length; i++) {
-        const prev = positionHistory[i-1];
-        const curr = positionHistory[i];
-        const dist = calculateDistance(prev.latitude, prev.longitude, curr.latitude, curr.longitude);
-        distances.push(dist);
-    }
-    
-    // Check if all distances are above threshold or show consistent direction
-    const allAboveThreshold = distances.every(d => d >= MOVEMENT_THRESHOLD * 0.8);
-    const avgDistance = distances.reduce((a, b) => a + b, 0) / distances.length;
-    
-    return allAboveThreshold || avgDistance >= MOVEMENT_THRESHOLD;
-}
-
-function checkMotionSensor() {
-    // Check if DeviceMotionEvent is available
-    if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-        DeviceMotionEvent.requestPermission()
-            .then(permissionState => {
-                if (permissionState === 'granted') {
-                    motionSensorAvailable = true;
-                    window.addEventListener('devicemotion', handleDeviceMotion);
-                }
-            })
-            .catch(console.error);
-    } else if (window.DeviceMotionEvent) {
-        motionSensorAvailable = true;
-        window.addEventListener('devicemotion', handleDeviceMotion);
-    }
-}
-
-function handleDeviceMotion(event) {
-    const acceleration = event.accelerationIncludingGravity;
-    if (!acceleration) return;
-    
-    const magnitude = Math.sqrt(
-        acceleration.x * acceleration.x +
-        acceleration.y * acceleration.y +
-        acceleration.z * acceleration.z
-    );
-    
-    // Consider motion if acceleration magnitude changes significantly
-    const threshold = 1.5; // m/s²
-    if (magnitude > threshold) {
-        motionData.hasMotion = true;
-        motionData.lastMotionTime = Date.now();
-        
-        // Reset after 2 seconds of no motion
-        setTimeout(() => {
-            if (Date.now() - motionData.lastMotionTime > 2000) {
-                motionData.hasMotion = false;
-            }
-        }, 2000);
-    }
-}
-
-function isMovementValid(currentPosition) {
-    const now = Date.now();
-    
-    // Debounce: only evaluate if enough time has passed
-    if (now - lastEvaluationTime < DEBOUNCE_TIME) {
-        logMovementCheck(`Debounced - last evaluation was ${now - lastEvaluationTime}ms ago`);
-        return false;
-    }
-    
-    lastEvaluationTime = now;
-    
-    if (!lastPosition) {
-        logMovementCheck('No last position available');
-        return false;
-    }
-    
-    // Calculate real distance in meters
-    const distance = calculateDistance(
-        lastPosition.latitude, lastPosition.longitude,
-        currentPosition.latitude, currentPosition.longitude
-    );
-    
-    // Get accuracy info
-    const accuracy = currentPosition.accuracy;
-    const lastAccuracy = lastPosition.accuracy;
-    
-    logMovementCheck(`Position check: distance=${distance.toFixed(2)}m, accuracy=${accuracy !== null ? accuracy.toFixed(1) : 'null'}m, lastAccuracy=${lastAccuracy !== null ? lastAccuracy.toFixed(1) : 'null'}m`);
-    
-    // Determine if movement is valid
-    let shouldReset = false;
-    
-    if (accuracy !== null) {
-        // Device reports accuracy
-        if (accuracy <= ACCURACY_THRESHOLD && distance >= MOVEMENT_THRESHOLD) {
-            shouldReset = true;
-            logMovementCheck('Movement valid: accuracy within threshold and distance sufficient');
-        } else if (distance >= MOVEMENT_THRESHOLD && distance > accuracy) {
-            shouldReset = true;
-            logMovementCheck('Movement valid: distance exceeds accuracy');
-        }
-    } else {
-        // No accuracy reported - be conservative
-        if (distance >= 1.5) {
-            shouldReset = true;
-            logMovementCheck('Movement valid: no accuracy, but large distance');
-        }
-    }
-    
-    // Check for consistent movement in history
-    if (!shouldReset && hasConsistentMovement()) {
-        shouldReset = true;
-        logMovementCheck('Movement valid: consistent movement pattern detected');
-    }
-    
-    // Check motion sensor if available
-    if (!shouldReset && motionSensorAvailable && motionData.hasMotion && distance >= MOVEMENT_THRESHOLD * 0.7) {
-        shouldReset = true;
-        logMovementCheck('Movement valid: motion sensor confirms movement');
-    }
-    
-    logMovementCheck(`Final decision: ${shouldReset ? 'RESET' : 'IGNORE'} (distance: ${distance.toFixed(2)}m, threshold: ${MOVEMENT_THRESHOLD}m)`);
-    
-    return shouldReset;
-}
-
-/* ========= Centralized Timer Reset ========= */
-function resetInactivityTimer() {
-    if(inactivityTimer) {
-        clearInterval(inactivityTimer);
-        inactivityTimer = null;
-    }
-    inactivityWarning.style.display = 'none';
-    inactivityCountdown = 60;
-    showNotification('✅ Movement detected - inactivity timer reset', false, 2000);
-    
-    // Add subtle pulse animation to timer
-    sessionTimer.style.transform = 'scale(1.05)';
-    setTimeout(() => {
-        sessionTimer.style.transform = 'scale(1)';
-    }, 300);
-}
-
-/* ========= Event Listeners for Settings ========= */
-movementThresholdInput.addEventListener('change', () => {
-    MOVEMENT_THRESHOLD = parseFloat(movementThresholdInput.value) || 1.0;
-    showNotification(`Movement threshold set to ${MOVEMENT_THRESHOLD}m`);
-});
-
-accuracyThresholdInput.addEventListener('change', () => {
-    ACCURACY_THRESHOLD = parseInt(accuracyThresholdInput.value) || 10;
-    showNotification(`Accuracy threshold set to ${ACCURACY_THRESHOLD}m`);
-});
-
-highContrastToggle.addEventListener('click', () => {
-    document.body.classList.toggle('high-contrast');
-    const isHighContrast = document.body.classList.contains('high-contrast');
-    showNotification(isHighContrast ? 'High contrast mode enabled' : 'High contrast mode disabled');
-});
-
-/* ========= Rest of the original functionality ========= */
 genCodeBtn.addEventListener('click', () => {
     const code = generateSecureCode(8);
     sessionCodeInput.value = code;
     maskCodeDisplay();
     showNotification('Secure code generated. Click Reveal to view and copy.');
 });
-
 function maskCodeDisplay() {
     codeRevealed = false;
     sessionCodeInput.type = 'password';
@@ -1416,7 +1186,6 @@ function maskCodeDisplay() {
     copySessionCodeBtn.disabled = true;
     if (autoHideTimeout) { clearTimeout(autoHideTimeout); autoHideTimeout = null; }
 }
-
 function revealCodeTemporarily() {
     if (!sessionCodeInput.value) {
         showNotification('No code to reveal', true);
@@ -1433,7 +1202,6 @@ function revealCodeTemporarily() {
         showNotification('Code auto-hidden for security');
     }, 20000);
 }
-
 revealCodeBtn.addEventListener('click', () => {
     if (codeRevealed) {
         maskCodeDisplay();
@@ -1441,13 +1209,11 @@ revealCodeBtn.addEventListener('click', () => {
         revealCodeTemporarily();
     }
 });
-
 copySessionCodeBtn.addEventListener('click', () => {
     if (!sessionCodeInput.value) { showNotification('No code to copy', true); return; }
     if (!codeRevealed) { showNotification('Reveal the code first to enable copying', true); return; }
     copyToClipboard(sessionCodeInput.value);
 });
-
 /* ========= Join modal behavior ========= */
 openJoinBtn.addEventListener('click', () => {
     joinModal.classList.add('show');
@@ -1455,12 +1221,10 @@ openJoinBtn.addEventListener('click', () => {
     joinCodeInput.value = '';
     setTimeout(()=> joinCodeInput.focus(), 60);
 });
-
 joinCancelBtn.addEventListener('click', () => {
     joinModal.classList.remove('show');
     joinModal.setAttribute('aria-hidden', 'true');
 });
-
 joinNowBtn.addEventListener('click', () => {
     const code = (joinCodeInput.value || '').trim();
     if (!code || code.length < 4) {
@@ -1479,14 +1243,12 @@ joinNowBtn.addEventListener('click', () => {
     }
     startSession(false);
 });
-
 joinModal.addEventListener('click', (e) => {
     if (e.target === joinModal) {
         joinModal.classList.remove('show');
         joinModal.setAttribute('aria-hidden', 'true');
     }
 });
-
 /* ========= Create / Join ========= */
 function startSession(host){
     isHost = host;
@@ -1605,7 +1367,6 @@ function startSession(host){
         setControlsDisabled(false); 
     });
 }
-
 function setupDataChannel(connection){
     if(!connection) return;
     connection.on('data', (data) => {
@@ -1638,6 +1399,10 @@ function setupDataChannel(connection){
         else if(data.type === 'cancel-sos') {
             handleCancelSOS(data);
         }
+        else if(data.type === 'inactivity-trigger') {
+            // Handle remote user inactivity trigger
+            handleRemoteInactivity(data);
+        }
     });
     connection.on('close', () => {
         updateStatus('Peer disconnected', false);
@@ -1658,7 +1423,6 @@ function setupDataChannel(connection){
         showNotification('Data channel error: ' + err.message, true); 
     });
 }
-
 function updatePeerAlias(data){
     removePeerCard();
     const alias = (data && data.alias) ? String(data.alias) : generateAnonAlias();
@@ -1697,7 +1461,6 @@ function updatePeerAlias(data){
         }
     }, 1000);
 }
-
 function removePeerCard() {
     const peerCards = userList.querySelectorAll('.peer-card');
     peerCards.forEach(card => card.remove());
@@ -1706,7 +1469,6 @@ function removePeerCard() {
         peerDurationInterval = null;
     }
 }
-
 function updatePeerLocation(d){
     const latitude = Number(d.latitude), longitude = Number(d.longitude);
     if(isNaN(latitude) || isNaN(longitude)) return;
@@ -1743,7 +1505,6 @@ function updatePeerLocation(d){
         map.setView([latitude, longitude], 13);
     }
 }
-
 /* ========= Enhanced Location Sharing ========= */
 function shareMyLocation(){
     if(!peer) {
@@ -1819,8 +1580,6 @@ function shareMyLocation(){
         if(!isHost) {
             startInactivityMonitoring();
         }
-        // Initialize motion sensor
-        checkMotionSensor();
     };
     const error = (err) => {
         console.error('Geolocation error', err);
@@ -1830,7 +1589,6 @@ function shareMyLocation(){
     };
     navigator.geolocation.getCurrentPosition(success, error, options);
 }
-
 function normalizePosition(coords) {
     // Always returns consistent shape: { latitude, longitude, accuracy, timestamp }
     return {
@@ -1840,7 +1598,6 @@ function normalizePosition(coords) {
         timestamp: coords.timestamp || Date.now()
     };
 }
-
 function handlePositionUpdate(pos) {
     const { latitude, longitude, accuracy } = pos.coords;
     const now = Date.now();
@@ -1850,10 +1607,6 @@ function handlePositionUpdate(pos) {
     }
     // Create normalized current position
     const currentPosition = normalizePosition({ lat: latitude, lng: longitude, accuracy, timestamp: now });
-    
-    // Add to position history for smoothing
-    addToPositionHistory(currentPosition);
-    
     // Update marker visually
     if(myMarker) {
         const markerColor = isSOSActive ? 'red' : '#3388ff';
@@ -1867,7 +1620,6 @@ function handlePositionUpdate(pos) {
         myMarker.setLatLng([latitude, longitude]);
         myMarker.setPopupContent(`<b>Your Location</b><br>Lat: ${latitude.toFixed(6)}<br>Lng: ${longitude.toFixed(6)}<br>Accuracy: ±${Math.round(accuracy)}m${isSOSActive ? '<br><span style="color:red;font-weight:bold;">EMERGENCY: You are in danger!</span>' : ''}`);
     }
-    
     // Send location if needed
     if (conn && conn.open) {
         safeSend({ 
@@ -1880,27 +1632,18 @@ function handlePositionUpdate(pos) {
         });
         lastSentTimestamp = now;
     }
-    
     // Check inactivity if not host and not in SOS
     if (!isHost && !isSOSActive) {
-        if (isMovementValid(currentPosition)) {
-            resetInactivityTimer();
-        } else if (!inactivityTimer) {
-            // Start timer only if not already running
-            startInactivityCountdown();
-        }
+        checkInactivity(currentPosition);
     }
-    
     // Update lastPosition AFTER all decisions
     lastPosition = currentPosition;
 }
-
 function getAccuracyClass(accuracy) {
     if (accuracy <= 20) return 'accuracy-high';
     if (accuracy <= 50) return 'accuracy-medium';
     return 'accuracy-low';
 }
-
 /* update location */
 updateLocationBtn.addEventListener('click', () => {
     if (!locationShared) {
@@ -1918,7 +1661,6 @@ updateLocationBtn.addEventListener('click', () => {
         }
     }
 });
-
 /* stop sharing location */
 stopSharingBtn.addEventListener('click', () => {
     if(watchId !== null) {
@@ -1939,7 +1681,6 @@ stopSharingBtn.addEventListener('click', () => {
     showNotification('Stopped sharing your location');
     resetInactivityTimer();
 });
-
 /* stop session */
 function stopSession(){
     if(watchId !== null) {
@@ -1989,11 +1730,9 @@ function stopSession(){
     }
     showNotification('Session stopped');
 }
-
 function setControlsDisabled(state){
     [createSessionBtn, openJoinBtn, resumeSessionBtn, copyCodeBtn].forEach(b => { if(b) b.disabled = state; });
 }
-
 /* ========= Modal fixed behavior (stop modal) ========= */
 function showStopModal(){
     const sessionActive = localStorage.getItem('session_active') === 'true';
@@ -2001,9 +1740,7 @@ function showStopModal(){
     stopConfirmation.classList.add('show');
     confirmStopBtn.focus();
 }
-
 function hideStopModal(){ stopConfirmation.classList.remove('show'); }
-
 stopSessionBtn.addEventListener('click', (e) => { showStopModal(); });
 confirmStopBtn.addEventListener('click', (e) => { hideStopModal(); setTimeout(()=> stopSession(), 120); });
 cancelStopBtn.addEventListener('click', hideStopModal);
@@ -2011,7 +1748,6 @@ stopConfirmation.addEventListener('click', (e) => { if(e.target === stopConfirma
 const confirmationBox = stopConfirmation.querySelector('.confirmation-box');
 if(confirmationBox) confirmationBox.addEventListener('click', (e)=> e.stopPropagation());
 window.addEventListener('keydown', (e) => { if(e.key === 'Escape' && stopConfirmation.classList.contains('show')) hideStopModal(); });
-
 /* ========= Resume & load handling ========= */
 window.addEventListener('DOMContentLoaded', () => {
     const showRealName = localStorage.getItem('show_real_name') === 'true';
@@ -2035,16 +1771,13 @@ window.addEventListener('DOMContentLoaded', () => {
         updateStatus('Ready to connect', false);
     }
 });
-
 function updateYourNameDisplay() {
     const realName = localStorage.getItem('local_real_name') || 'You';
     yourNameDisplay.textContent = realName;
 }
-
 showRealNameToggle.addEventListener('change', () => {
     localStorage.setItem('show_real_name', showRealNameToggle.checked);
 });
-
 /* ========= Event listeners ========= */
 createSessionBtn.addEventListener('click', () => {
     if(!sessionCodeInput.value.trim()){
@@ -2053,12 +1786,10 @@ createSessionBtn.addEventListener('click', () => {
     }
     startSession(true);
 });
-
 openJoinBtn.addEventListener('click', () => {
     joinModal.classList.add('show');
     joinModal.setAttribute('aria-hidden', 'false');
 });
-
 resumeSessionBtn.addEventListener('click', () => {
     const persistedName = localStorage.getItem('local_real_name') || '';
     if (persistedName) realNameInput.value = persistedName;
@@ -2071,14 +1802,11 @@ resumeSessionBtn.addEventListener('click', () => {
     const isHost = (localStorage.getItem('session_role') === 'host');
     startSession(isHost);
 });
-
 copyCodeBtn.addEventListener('click', () => {
     const txt = displayCodeInput.value || sessionCodeInput.value || '';
     if(txt) copyToClipboard(txt); else showNotification('No code available to copy', true);
 });
-
 shareLocationBtn.addEventListener('click', shareMyLocation);
-
 /* Chat send */
 chatSend.addEventListener('click', () => {
     const txt = chatInput.value.trim();
@@ -2089,14 +1817,12 @@ chatSend.addEventListener('click', () => {
     }
     chatInput.value = '';
 });
-
 chatInput.addEventListener('keydown', (e) => {
     if(e.key === 'Enter' && !e.shiftKey){
         e.preventDefault();
         chatSend.click();
     }
 });
-
 window.addEventListener('beforeunload', (e) => {
     const sessionActive = localStorage.getItem('session_active') === 'true';
     if(sessionActive){
@@ -2104,7 +1830,6 @@ window.addEventListener('beforeunload', (e) => {
         e.returnValue = '';
     }
 });
-
 /* ========= Emergency System Implementation ========= */
 function triggerSOS() {
     if(isSOSActive) return;
@@ -2148,7 +1873,6 @@ function triggerSOS() {
     }
     showNotification('SOS ALERT TRIGGERED! Your location is being shared with all users.', false, 5000);
 }
-
 function cancelSOS() {
     if(!isSOSActive) return;
     isSOSActive = false;
@@ -2181,7 +1905,6 @@ function cancelSOS() {
     }
     showNotification('SOS ALERT CANCELLED', false, 3000);
 }
-
 function handleSOS(data) {
     if(peerMarker) {
         const icon = L.divIcon({
@@ -2200,7 +1923,6 @@ function handleSOS(data) {
         peerCancelSOSBtn.disabled = false;
     }
 }
-
 function handleCancelSOS(data) {
     if(peerMarker) {
         const icon = L.divIcon({
@@ -2221,15 +1943,66 @@ function handleCancelSOS(data) {
         peerCancelSOSBtn.disabled = true;
     }
 }
-
 sosBtn.addEventListener('click', triggerSOS);
 cancelSosBtn.addEventListener('click', cancelSOS);
-
 /* ========= Automatic Danger Detection ========= */
-function checkInactivity(latitude, longitude) {
-    // This function is now handled by handlePositionUpdate with the improved logic
+// Centralized, idempotent timer reset
+function resetInactivityTimer() {
+    if(inactivityTimer) {
+        clearInterval(inactivityTimer);
+        inactivityTimer = null;
+    }
+    inactivityWarning.style.display = 'none';
+    inactivityCountdown = 60;
+    showNotification('✅ Movement detected - inactivity timer reset', false, 2000);
 }
-
+function checkInactivity(currentPosition) {
+    if(isHost || isSOSActive || !lastPosition) return;
+    // Calculate real distance in meters
+    const distance = calculateDistance(
+        lastPosition.latitude, lastPosition.longitude,
+        currentPosition.latitude, currentPosition.longitude
+    );
+    // Get accuracy info
+    const accuracy = currentPosition.accuracy;
+    // Debug logging (temporary for testing)
+    console.log(`movement-check: distance=${distance.toFixed(2)}m, accuracy=${accuracy !== null ? accuracy.toFixed(1) : 'null'}m, threshold=${MOVEMENT_THRESHOLD}m`);
+    // Determine if movement is valid
+    let shouldReset = false;
+    if (accuracy !== null) {
+        // Device reports accuracy
+        if (accuracy <= ACCURACY_THRESHOLD && distance >= MOVEMENT_THRESHOLD) {
+            shouldReset = true;
+        } else if (distance >= MOVEMENT_THRESHOLD && distance > accuracy) {
+            shouldReset = true;
+        }
+    } else {
+        // No accuracy reported - be conservative
+        if (distance >= 1.5) { // Require larger movement
+            shouldReset = true;
+        }
+    }
+    // Log decision
+    console.log(`movement-decision: ${shouldReset ? 'RESET' : 'IGNORE'}`);
+    if (shouldReset) {
+        resetInactivityTimer();
+    } else if (!inactivityTimer) {
+        // Start timer only if not already running
+        startInactivityCountdown();
+    }
+}
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371e3; // Earth's radius in meters
+    const φ1 = lat1 * Math.PI/180;
+    const φ2 = lat2 * Math.PI/180;
+    const Δφ = (lat2-lat1) * Math.PI/180;
+    const Δλ = (lon2-lon1) * Math.PI/180;
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c; // Returns distance in meters
+}
 function startInactivityCountdown() {
     inactivityCountdown = 60;
     inactivityWarning.style.display = 'flex';
@@ -2243,15 +2016,41 @@ function startInactivityCountdown() {
             clearInterval(inactivityTimer);
             inactivityTimer = null;
             triggerSOS();
+            // NEW: Broadcast inactivity trigger to all users
+            if(conn && conn.open) {
+                safeSend({
+                    type: 'inactivity-trigger',
+                    clientAlias: myAlias
+                });
+            }
             inactivityWarning.style.display = 'none';
         }
     }, 1000);
 }
-
 function startInactivityMonitoring() {
     // Already handled by watchPosition updates
 }
-
+// NEW: Handle remote inactivity trigger
+function handleRemoteInactivity(data) {
+    const username = data.clientAlias || 'User';
+    // Show system message to all users
+    appendMessage(`⚠️ ${username} is in danger!`, false, true);
+    showNotification(`${username} is in danger!`, true, 5000);
+    
+    // If we have their marker, update it to red
+    if(peerMarker && peerAlias === username) {
+        const icon = L.divIcon({
+            className: 'custom-marker',
+            html: `<div style="background:red;width:12px;height:12px;border-radius:50%;border:2px solid white;box-shadow:0 0 4px rgba(0,0,0,0.5);"></div>`,
+            iconSize: [16, 16],
+            iconAnchor: [8, 8]
+        });
+        peerMarker.setIcon(icon);
+        const lat = peerMarker.getLatLng().lat;
+        const lng = peerMarker.getLatLng().lng;
+        peerMarker.setPopupContent(`<b>${username}'s Location</b><br>Lat: ${lat.toFixed(6)}<br>Lng: ${lng.toFixed(6)}<br><span style="color:red;font-weight:bold;">EMERGENCY: User in danger!</span>`);
+    }
+}
 /* ========= Voice Message Implementation ========= */
 async function startRecording() {
     try {
@@ -2294,7 +2093,6 @@ async function startRecording() {
         showNotification('Could not access microphone. Please check permissions.', true);
     }
 }
-
 function stopRecording() {
     if (mediaRecorder && isRecording) {
         mediaRecorder.stop();
@@ -2308,7 +2106,6 @@ function stopRecording() {
         showNotification('Voice message recorded and sent');
     }
 }
-
 voiceRecordBtn.addEventListener('click', () => {
     if (isRecording) {
         stopRecording();
@@ -2316,9 +2113,6 @@ voiceRecordBtn.addEventListener('click', () => {
         startRecording();
     }
 });
-
-// Initialize motion sensor on load
-checkMotionSensor();
 </script>
 </body>
 </html>
