@@ -9,150 +9,729 @@
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif }
-        body { min-height: 100vh; background: linear-gradient(135deg, #0d1c33, #10294f); color: #fff; padding: 16px 12px; overflow-x: hidden }
-        .container { max-width: 980px; margin: 0 auto; position: relative; }
-        header { text-align: center; margin-bottom: 24px }
-        .logo { display: flex; align-items: center; gap: 12px; justify-content: center; margin-bottom: 10px }
-        .logo-icon { width: 54px; height: 54px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: linear-gradient(45deg, #ff7e5f, #feb47b); box-shadow: 0 6px 20px rgba(0,0,0,.25) }
-        .logo-text { font-weight: 800; font-size: 1.8rem; background: linear-gradient(90deg, #ff7e5f, #feb47b); -webkit-background-clip: text; color: transparent; letter-spacing: 1px }
-        h1 { font-size: 1.6rem; margin-bottom: 8px }
-        .subtitle { opacity: .9; font-size: 1.05rem; max-width: 600px; margin: 0 auto }
-        .privacy-notice { background: rgba(255,255,255,.05); padding: 14px; border-radius: 10px; border-left: 4px solid #4cd137; margin: 16px 0; display: flex; align-items: center; gap: 12px; font-size: 0.95rem }
-        .card { background: rgba(255,255,255,.04); padding: 20px; border-radius: 14px; margin: 14px 0; border: 1px solid rgba(255,255,255,.08); box-shadow: 0 6px 20px rgba(0,0,0,.2); transition: transform 0.3s ease }
-        .card:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,0,0,.25) }
-        .card-title { display: flex; align-items: center; gap: 10px; color: #feb47b; font-weight: 700; margin-bottom: 14px; font-size: 1.25rem }
-        .form-group { margin-bottom: 16px }
-        .form-label { display: block; font-weight: 700; margin-bottom: 8px; font-size: 1rem }
-        .form-note { font-size: .9rem; opacity: .85; margin-top: 8px; line-height: 1.5 }
-        .form-control { width: 100%; padding: 14px; border-radius: 12px; border: none; background: rgba(255,255,255,.05); color: #fff; font-size: 1.05rem; transition: all 0.3s ease }
-        .form-control:focus { outline: 2px solid rgba(255,126,95,.4); background: rgba(255,255,255,.08); box-shadow: 0 0 0 4px rgba(255,126,95,.25) }
-        .btn-container { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px }
-        @media (max-width:720px) { .btn-container { grid-template-columns:1fr } }
-        .btn { padding: 14px; border-radius: 12px; border: none; cursor: pointer; font-weight: 700; background: linear-gradient(45deg,#ff7e5f,#feb47b); color: #fff; display: inline-flex; align-items: center; gap: 10px; justify-content: center; font-size: 1rem; transition: all 0.2s ease; box-shadow: 0 4px 8px rgba(0,0,0,.15) }
-        .btn:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,.2) }
-        .btn:active { transform: translateY(1px) }
-        .btn-outline { background: transparent; border: 2px solid #ff7e5f; color: #ff7e5f }
-        .btn-stop { background: linear-gradient(45deg,#e84118,#c23616); color: #fff }
-        .btn-update { background: linear-gradient(45deg, #4facfe, #00f2fe); }
-        .btn-unshare { background: linear-gradient(45deg, #9c88ff, #8c7ae6); }
-        .small-btn { padding: 10px 14px; font-size: .95rem; border-radius: 10px }
-        .code-row { display: flex; gap: 12px; align-items: center; margin-top: 12px }
-        .code-input { flex: 1; padding: 14px; border-radius: 12px; border: none; background: rgba(255,255,255,.04); text-align: center; letter-spacing: 3px; font-weight: 700; color: #fff; font-size: 1.05rem }
-        .code-meta { font-size: .9rem; color: rgba(255,255,255,.85); margin-top: 8px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center }
-        .map-container { height: 320px; border-radius: 14px; overflow: hidden; margin-top: 16px; border: 2px solid rgba(255,255,255,.08) }
-        #map { width: 100%; height: 100% }
-        .user-list { display: grid; grid-template-columns: repeat(auto-fill,minmax(280px,1fr)); gap: 14px; margin-top: 16px }
-        .user-card { display: flex; gap: 14px; align-items: center; padding: 14px; border-radius: 12px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.05); transition: all 0.3s ease }
-        .user-card:hover { background: rgba(255,255,255,.07); transform: translateY(-3px); box-shadow: 0 6px 12px rgba(0,0,0,.2) }
-        .user-avatar { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: linear-gradient(45deg,#4facfe,#00f2fe); font-weight: 800; font-size: 1.4rem }
-        .user-info .user-name { font-weight: 700; font-size: 1.05rem; margin-bottom: 4px }
-        .status-dot { width: 12px; height: 12px; border-radius: 50%; background: #4cd137; display: inline-block; margin-right: 10px }
-        .chat-card { display: flex; flex-direction: column; height: 400px }
-        .chat-messages { flex: 1; overflow-y: auto; padding: 16px; border-radius: 16px; background: rgba(0,0,0,0.18); margin-bottom: 16px; font-size: 1.05rem; display: flex; flex-direction: column; gap: 14px; backdrop-filter: blur(4px); }
-        .chat-input-row { display: flex; gap: 12px; margin-top: 12px }
-        .chat-input { flex: 1; padding: 14px; border-radius: 14px; border: none; font-size: 1.05rem; background: rgba(255,255,255,.07); color: #fff; transition: background 0.2s; }
-        .chat-input:focus { background: rgba(255,255,255,.1); }
-        .chat-send { padding: 14px 20px; border-radius: 14px; border: none; background: linear-gradient(45deg,#4facfe,#00f2fe); color: #fff; cursor: pointer; font-size: 1.05rem; transition: all 0.2s ease; min-width: 110px; font-weight: 600; }
-        .chat-send:hover { background: linear-gradient(45deg,#3a9cf7,#00d9f2); transform: translateY(-2px); }
-        .notification { position: fixed; right: 16px; top: 16px; background: rgba(0,0,0,.5); padding: 12px 18px; border-radius: 12px; backdrop-filter: blur(6px); transform: translateX(120%); transition: transform .35s; z-index: 9000; color: #fff; border-left: 4px solid #4cd137; max-width: calc(100% - 32px); font-size: 0.95rem; display: flex; align-items: center; gap: 10px }
-        .notification.show { transform: translateX(0) }
-        .notification.error { border-left-color: #e84118 }
-        footer { text-align: center; margin-top: 24px; font-size: 0.9rem; opacity: .8; padding: 16px 0 }
-        #join-modal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,.7); z-index: 10000; pointer-events: none }
-        #join-modal.show { display: flex; pointer-events: auto }
-        .join-box { width: 90%; max-width: 500px; background: linear-gradient(135deg,#0e2340,#102e4a); padding: 24px; border-radius: 16px; border: 1px solid rgba(255,255,255,.08); box-shadow: 0 25px 60px rgba(0,0,0,.6); animation: modalIn 0.4s ease }
-        #stop-confirmation { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,.75); z-index: 9999; pointer-events: none }
-        #stop-confirmation.show { display: flex; pointer-events: auto }
-        .confirmation-box { width: 90%; max-width: 540px; background: linear-gradient(135deg,#11264a,#183054); border-radius: 16px; padding: 24px; border: 1px solid rgba(255,255,255,.08); box-shadow: 0 22px 50px rgba(0,0,0,.7); text-align: center; pointer-events: auto; animation: modalIn 0.4s ease }
-        .confirmation-buttons { display: flex; gap: 14px; justify-content: center; margin-top: 20px }
-        .hidden { display: none !important }
-        .message-me { align-self: flex-end; background: linear-gradient(45deg,#ff7e5f,#feb47b); color: #000; padding: 14px 20px; border-radius: 20px 20px 4px 20px; max-width: 80%; font-size: 1.02rem; box-shadow: 0 4px 12px rgba(0,0,0,0.2); animation: fadeIn 0.3s ease; word-break: break-word; }
-        .message-peer { align-self: flex-start; background: rgba(255,255,255,0.12); color: #fff; padding: 14px 20px; border-radius: 20px 20px 20px 4px; max-width: 80%; font-size: 1.02rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: fadeIn 0.3s ease; word-break: break-word; }
-        .message-system { text-align: center; color: rgba(255,255,255,0.8); font-style: italic; font-size: 0.95rem; margin: 14px 0; padding: 10px; border-radius: 10px; background: rgba(255,255,255,0.06); max-width: 90%; align-self: center; }
-        .voice-message { display: inline-flex; align-items: center; gap: 10px; }
+        :root {
+            --primary: #4facfe;
+            --primary-light: #00f2fe;
+            --secondary: #ff7e5f;
+            --secondary-light: #feb47b;
+            --danger: #e84118;
+            --success: #4cd137;
+            --warning: #fbc531;
+            --bg-dark: #0d1c33;
+            --bg-card: rgba(255, 255, 255, 0.04);
+            --bg-card-hover: rgba(255, 255, 255, 0.07);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.85);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --shadow-sm: 0 4px 8px rgba(0, 0, 0, 0.15);
+            --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.2);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.25);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --radius-2xl: 24px;
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 12px;
+            --spacing-lg: 16px;
+            --spacing-xl: 20px;
+            --spacing-2xl: 24px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+        }
+        body { 
+            min-height: 100vh; 
+            background: linear-gradient(135deg, var(--bg-dark), #10294f); 
+            color: var(--text-primary); 
+            padding: var(--spacing-md); 
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+        .container { 
+            max-width: 980px; 
+            margin: 0 auto; 
+            position: relative; 
+        }
+        header { 
+            text-align: center; 
+            margin-bottom: var(--spacing-xl); 
+        }
+        .logo { 
+            display: flex; 
+            align-items: center; 
+            gap: var(--spacing-md); 
+            justify-content: center; 
+            margin-bottom: var(--spacing-sm); 
+        }
+        .logo-icon { 
+            width: 54px; 
+            height: 54px; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            background: linear-gradient(45deg, var(--secondary), var(--secondary-light)); 
+            box-shadow: var(--shadow-md); 
+        }
+        .logo-text { 
+            font-weight: 800; 
+            font-size: 1.8rem; 
+            background: linear-gradient(90deg, var(--secondary), var(--secondary-light)); 
+            -webkit-background-clip: text; 
+            color: transparent; 
+            letter-spacing: 1px; 
+        }
+        h1 { 
+            font-size: 1.6rem; 
+            margin-bottom: var(--spacing-sm); 
+            font-weight: 700;
+        }
+        .subtitle { 
+            opacity: .9; 
+            font-size: 1.05rem; 
+            max-width: 600px; 
+            margin: 0 auto; 
+        }
+        .privacy-notice { 
+            background: rgba(255,255,255,.05); 
+            padding: var(--spacing-md); 
+            border-radius: var(--radius-lg); 
+            border-left: 4px solid var(--success); 
+            margin: var(--spacing-lg) 0; 
+            display: flex; 
+            align-items: center; 
+            gap: var(--spacing-md); 
+            font-size: 0.95rem; 
+        }
+        .card { 
+            background: var(--bg-card); 
+            padding: var(--spacing-xl); 
+            border-radius: var(--radius-2xl); 
+            margin: var(--spacing-md) 0; 
+            border: 1px solid var(--border-color); 
+            box-shadow: var(--shadow-md); 
+            transition: var(--transition); 
+        }
+        .card:hover { 
+            transform: translateY(-3px); 
+            box-shadow: var(--shadow-lg); 
+            background: var(--bg-card-hover);
+        }
+        .card-title { 
+            display: flex; 
+            align-items: center; 
+            gap: var(--spacing-sm); 
+            color: var(--secondary-light); 
+            font-weight: 700; 
+            margin-bottom: var(--spacing-md); 
+            font-size: 1.25rem; 
+        }
+        .form-group { 
+            margin-bottom: var(--spacing-lg); 
+        }
+        .form-label { 
+            display: block; 
+            font-weight: 700; 
+            margin-bottom: var(--spacing-sm); 
+            font-size: 1rem; 
+        }
+        .form-note { 
+            font-size: .9rem; 
+            opacity: .85; 
+            margin-top: var(--spacing-sm); 
+            line-height: 1.5; 
+        }
+        .form-control { 
+            width: 100%; 
+            padding: var(--spacing-md); 
+            border-radius: var(--radius-lg); 
+            border: none; 
+            background: rgba(255,255,255,.05); 
+            color: var(--text-primary); 
+            font-size: 1.05rem; 
+            transition: var(--transition); 
+        }
+        .form-control:focus { 
+            outline: 2px solid rgba(255,126,95,.4); 
+            background: rgba(255,255,255,.08); 
+            box-shadow: 0 0 0 4px rgba(255,126,95,.25); 
+        }
+        .btn-container { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: var(--spacing-md); 
+            margin-top: var(--spacing-sm); 
+        }
+        @media (max-width:720px) { 
+            .btn-container { 
+                grid-template-columns:1fr; 
+            } 
+        }
+        .btn { 
+            padding: var(--spacing-md); 
+            border-radius: var(--radius-lg); 
+            border: none; 
+            cursor: pointer; 
+            font-weight: 700; 
+            background: linear-gradient(45deg,var(--secondary),var(--secondary-light)); 
+            color: #fff; 
+            display: inline-flex; 
+            align-items: center; 
+            gap: var(--spacing-sm); 
+            justify-content: center; 
+            font-size: 1rem; 
+            transition: var(--transition); 
+            box-shadow: var(--shadow-sm); 
+            min-height: 48px;
+        }
+        .btn:hover { 
+            transform: translateY(-3px); 
+            box-shadow: var(--shadow-lg); 
+        }
+        .btn:active { 
+            transform: translateY(1px); 
+        }
+        .btn-outline { 
+            background: transparent; 
+            border: 2px solid var(--secondary); 
+            color: var(--secondary); 
+        }
+        .btn-stop { 
+            background: linear-gradient(45deg,var(--danger),#c23616); 
+            color: #fff; 
+        }
+        .btn-update { 
+            background: linear-gradient(45deg, var(--primary), var(--primary-light)); 
+        }
+        .btn-unshare { 
+            background: linear-gradient(45deg, #9c88ff, #8c7ae6); 
+        }
+        .small-btn { 
+            padding: var(--spacing-sm) var(--spacing-md); 
+            font-size: .95rem; 
+            border-radius: var(--radius-md); 
+            min-height: auto;
+        }
+        .code-row { 
+            display: flex; 
+            gap: var(--spacing-md); 
+            align-items: center; 
+            margin-top: var(--spacing-md); 
+        }
+        .code-input { 
+            flex: 1; 
+            padding: var(--spacing-md); 
+            border-radius: var(--radius-lg); 
+            border: none; 
+            background: rgba(255,255,255,.04); 
+            text-align: center; 
+            letter-spacing: 3px; 
+            font-weight: 700; 
+            color: var(--text-primary); 
+            font-size: 1.05rem; 
+        }
+        .code-meta { 
+            font-size: .9rem; 
+            color: var(--text-secondary); 
+            margin-top: var(--spacing-sm); 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: var(--spacing-md); 
+            align-items: center; 
+        }
+        .map-container { 
+            height: 320px; 
+            border-radius: var(--radius-2xl); 
+            overflow: hidden; 
+            margin-top: var(--spacing-lg); 
+            border: 2px solid var(--border-color); 
+        }
+        #map { 
+            width: 100%; 
+            height: 100%; 
+        }
+        .user-list { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill,minmax(280px,1fr)); 
+            gap: var(--spacing-md); 
+            margin-top: var(--spacing-lg); 
+        }
+        .user-card { 
+            display: flex; 
+            gap: var(--spacing-md); 
+            align-items: center; 
+            padding: var(--spacing-md); 
+            border-radius: var(--radius-lg); 
+            background: rgba(255,255,255,.03); 
+            border: 1px solid var(--border-color); 
+            transition: var(--transition); 
+        }
+        .user-card:hover { 
+            background: var(--bg-card-hover); 
+            transform: translateY(-3px); 
+            box-shadow: 0 6px 12px rgba(0,0,0,.2); 
+        }
+        .user-avatar { 
+            width: 56px; 
+            height: 56px; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            background: linear-gradient(45deg,var(--primary),var(--primary-light)); 
+            font-weight: 800; 
+            font-size: 1.4rem; 
+        }
+        .user-info .user-name { 
+            font-weight: 700; 
+            font-size: 1.05rem; 
+            margin-bottom: var(--spacing-xs); 
+        }
+        .status-dot { 
+            width: 12px; 
+            height: 12px; 
+            border-radius: 50%; 
+            background: var(--success); 
+            display: inline-block; 
+            margin-right: var(--spacing-sm); 
+        }
+        .chat-card { 
+            display: flex; 
+            flex-direction: column; 
+            height: 400px; 
+        }
+        .chat-messages { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: var(--spacing-lg); 
+            border-radius: var(--radius-xl); 
+            background: rgba(0,0,0,0.18); 
+            margin-bottom: var(--spacing-lg); 
+            font-size: 1.05rem; 
+            display: flex; 
+            flex-direction: column; 
+            gap: var(--spacing-md); 
+            backdrop-filter: blur(4px); 
+        }
+        .chat-input-row { 
+            display: flex; 
+            gap: var(--spacing-md); 
+            margin-top: var(--spacing-md); 
+        }
+        .chat-input { 
+            flex: 1; 
+            padding: var(--spacing-md); 
+            border-radius: var(--radius-xl); 
+            border: none; 
+            font-size: 1.05rem; 
+            background: rgba(255,255,255,.07); 
+            color: var(--text-primary); 
+            transition: background 0.2s; 
+        }
+        .chat-input:focus { 
+            background: rgba(255,255,255,.1); 
+        }
+        .chat-send { 
+            padding: var(--spacing-md) var(--spacing-xl); 
+            border-radius: var(--radius-xl); 
+            border: none; 
+            background: linear-gradient(45deg,var(--primary),var(--primary-light)); 
+            color: #fff; 
+            cursor: pointer; 
+            font-size: 1.05rem; 
+            transition: var(--transition); 
+            min-width: 110px; 
+            font-weight: 600; 
+        }
+        .chat-send:hover { 
+            background: linear-gradient(45deg,#3a9cf7,#00d9f2); 
+            transform: translateY(-2px); 
+        }
+        .notification { 
+            position: fixed; 
+            right: var(--spacing-md); 
+            top: var(--spacing-md); 
+            background: rgba(0,0,0,.5); 
+            padding: var(--spacing-md) var(--spacing-lg); 
+            border-radius: var(--radius-lg); 
+            backdrop-filter: blur(6px); 
+            transform: translateX(120%); 
+            transition: transform .35s; 
+            z-index: 9000; 
+            color: var(--text-primary); 
+            border-left: 4px solid var(--success); 
+            max-width: calc(100% - 32px); 
+            font-size: 0.95rem; 
+            display: flex; 
+            align-items: center; 
+            gap: var(--spacing-sm); 
+        }
+        .notification.show { 
+            transform: translateX(0); 
+        }
+        .notification.error { 
+            border-left-color: var(--danger); 
+        }
+        footer { 
+            text-align: center; 
+            margin-top: var(--spacing-xl); 
+            font-size: 0.9rem; 
+            opacity: .8; 
+            padding: var(--spacing-lg) 0; 
+        }
+        #join-modal { 
+            position: fixed; 
+            inset: 0; 
+            display: none; 
+            align-items: center; 
+            justify-content: center; 
+            background: rgba(0,0,0,.7); 
+            z-index: 10000; 
+            pointer-events: none; 
+        }
+        #join-modal.show { 
+            display: flex; 
+            pointer-events: auto; 
+        }
+        .join-box { 
+            width: 90%; 
+            max-width: 500px; 
+            background: linear-gradient(135deg,#0e2340,#102e4a); 
+            padding: var(--spacing-xl); 
+            border-radius: var(--radius-xl); 
+            border: 1px solid var(--border-color); 
+            box-shadow: 0 25px 60px rgba(0,0,0,.6); 
+            animation: modalIn 0.4s ease; 
+        }
+        #stop-confirmation { 
+            position: fixed; 
+            inset: 0; 
+            display: none; 
+            align-items: center; 
+            justify-content: center; 
+            background: rgba(0,0,0,.75); 
+            z-index: 9999; 
+            pointer-events: none; 
+        }
+        #stop-confirmation.show { 
+            display: flex; 
+            pointer-events: auto; 
+        }
+        .confirmation-box { 
+            width: 90%; 
+            max-width: 540px; 
+            background: linear-gradient(135deg,#11264a,#183054); 
+            border-radius: var(--radius-xl); 
+            padding: var(--spacing-xl); 
+            border: 1px solid var(--border-color); 
+            box-shadow: 0 22px 50px rgba(0,0,0,.7); 
+            text-align: center; 
+            pointer-events: auto; 
+            animation: modalIn 0.4s ease; 
+        }
+        .confirmation-buttons { 
+            display: flex; 
+            gap: var(--spacing-md); 
+            justify-content: center; 
+            margin-top: var(--spacing-lg); 
+        }
+        .hidden { 
+            display: none !important; 
+        }
+        .message-me { 
+            align-self: flex-end; 
+            background: linear-gradient(45deg,var(--secondary),var(--secondary-light)); 
+            color: #000; 
+            padding: var(--spacing-md) var(--spacing-xl); 
+            border-radius: var(--radius-xl) var(--radius-xl) var(--spacing-xs) var(--radius-xl); 
+            max-width: 80%; 
+            font-size: 1.02rem; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2); 
+            animation: fadeIn 0.3s ease; 
+            word-break: break-word; 
+        }
+        .message-peer { 
+            align-self: flex-start; 
+            background: rgba(255,255,255,0.12); 
+            color: var(--text-primary); 
+            padding: var(--spacing-md) var(--spacing-xl); 
+            border-radius: var(--radius-xl) var(--radius-xl) var(--radius-xl) var(--spacing-xs); 
+            max-width: 80%; 
+            font-size: 1.02rem; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+            animation: fadeIn 0.3s ease; 
+            word-break: break-word; 
+        }
+        .message-system { 
+            text-align: center; 
+            color: var(--text-secondary); 
+            font-style: italic; 
+            font-size: 0.95rem; 
+            margin: var(--spacing-md) 0; 
+            padding: var(--spacing-sm) var(--spacing-md); 
+            border-radius: var(--radius-md); 
+            background: rgba(255,255,255,0.06); 
+            max-width: 90%; 
+            align-self: center; 
+        }
+        .voice-message { 
+            display: inline-flex; 
+            align-items: center; 
+            gap: var(--spacing-sm); 
+        }
         .voice-play-btn {
             background: rgba(255,255,255,0.15);
             color: white;
             border: none;
-            padding: 8px 16px;
+            padding: var(--spacing-sm) var(--spacing-md);
             border-radius: 20px;
             cursor: pointer;
             font-size: 0.95rem;
             display: flex;
             align-items: center;
-            gap: 6px;
-            transition: all 0.2s ease;
+            gap: var(--spacing-xs);
+            transition: var(--transition);
         }
-        .voice-play-btn:hover { background: rgba(255,255,255,0.25); transform: scale(1.05); }
-        .voice-play-btn.loading { opacity: 0.7; cursor: not-allowed; }
-        .btn-reconnect { background: linear-gradient(45deg, #4facfe, #00f2fe); }
-        .host-badge { background: #fbc531; color: #000; font-size: 0.8rem; padding: 4px 8px; border-radius: 10px; margin-left: 8px; font-weight: bold }
+        .voice-play-btn:hover { 
+            background: rgba(255,255,255,0.25); 
+            transform: scale(1.05); 
+        }
+        .voice-play-btn.loading { 
+            opacity: 0.7; 
+            cursor: not-allowed; 
+        }
+        .btn-reconnect { 
+            background: linear-gradient(45deg, var(--primary), var(--primary-light)); 
+        }
+        .host-badge { 
+            background: var(--warning); 
+            color: #000; 
+            font-size: 0.8rem; 
+            padding: var(--spacing-xs) var(--spacing-sm); 
+            border-radius: 10px; 
+            margin-left: var(--spacing-sm); 
+            font-weight: bold; 
+        }
         @media (max-width: 600px) {
-            body { padding: 14px 10px; }
-            .logo { flex-direction: column; text-align: center; }
-            .logo-icon { margin-bottom: 8px; }
-            .card { padding: 16px; }
-            .btn-container { grid-template-columns: 1fr; }
-            .code-row { flex-direction: column; }
-            .code-row button { width: 100%; }
-            .confirmation-buttons { flex-direction: column; }
-            .confirmation-buttons button { width: 100%; }
-            .chat-card { height: 340px; }
-            .map-container { height: 260px; }
-            .user-list { grid-template-columns: 1fr; }
-            .privacy-notice { flex-direction: column; text-align: center; }
-            .code-meta { flex-direction: column; align-items: flex-start; gap: 6px; }
-            .chat-input-row { flex-direction: column; }
-            .chat-send { width: 100%; }
-            .join-box { padding: 18px; }
-            .confirmation-box { padding: 20px; }
+            body { 
+                padding: var(--spacing-md); 
+            }
+            .logo { 
+                flex-direction: column; 
+                text-align: center; 
+            }
+            .logo-icon { 
+                margin-bottom: var(--spacing-sm); 
+            }
+            .card { 
+                padding: var(--spacing-lg); 
+            }
+            .btn-container { 
+                grid-template-columns: 1fr; 
+            }
+            .code-row { 
+                flex-direction: column; 
+            }
+            .code-row button { 
+                width: 100%; 
+            }
+            .confirmation-buttons { 
+                flex-direction: column; 
+            }
+            .confirmation-buttons button { 
+                width: 100%; 
+            }
+            .chat-card { 
+                height: 340px; 
+            }
+            .map-container { 
+                height: 260px; 
+            }
+            .user-list { 
+                grid-template-columns: 1fr; 
+            }
+            .privacy-notice { 
+                flex-direction: column; 
+                text-align: center; 
+            }
+            .code-meta { 
+                flex-direction: column; 
+                align-items: flex-start; 
+                gap: var(--spacing-sm); 
+            }
+            .chat-input-row { 
+                flex-direction: column; 
+            }
+            .chat-send { 
+                width: 100%; 
+            }
+            .join-box { 
+                padding: var(--spacing-lg); 
+            }
+            .confirmation-box { 
+                padding: var(--spacing-lg); 
+            }
         }
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { 
+                opacity: 0; 
+                transform: translateY(10px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
         }
         @keyframes modalIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { 
+                opacity: 0; 
+                transform: translateY(20px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
         }
-        .fade-in { animation: fadeIn 0.3s ease forwards; }
-        .session-info { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; background: rgba(255,255,255,.04); padding: 12px; border-radius: 10px; margin-bottom: 16px }
-        .session-timer { display: flex; align-items: center; gap: 8px; font-weight: 600; color: #feb47b }
-        .session-status { display: flex; align-items: center; gap: 10px; }
-        .status-indicator { width: 14px; height: 14px; border-radius: 50%; background: #fbc531 }
-        .status-indicator.connected { background: #4cd137 }
-        .session-role { background: rgba(251, 197, 49, 0.15); color: #fbc531; padding: 4px 10px; border-radius: 6px; font-size: 0.85rem }
-        .location-sharing { display: flex; align-items: center; gap: 8px; margin-top: 8px }
-        .location-sharing .dot { width: 10px; height: 10px; border-radius: 50%; background: #e84118 }
-        .location-sharing.active .dot { background: #4cd137 }
-        .location-sharing.active { color: #4cd137 }
-        .user-card .location-sharing { margin-top: 4px }
-        .rejoin-notice { background: rgba(255,255,255,.05); padding: 10px; border-radius: 10px; border-left: 4px solid #4facfe; margin: 12px 0; display: flex; align-items: center; gap: 8px; font-size: 0.9rem }
-        .duration-badge { background: rgba(79, 172, 254, 0.2); color: #4facfe; padding: 4px 8px; border-radius: 20px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 4px }
-        .emergency-marker { background: #e84118 !important; }
-        .danger-alert { background: rgba(232, 65, 24, 0.2); border-left: 4px solid #e84118; padding: 12px; border-radius: 8px; margin: 10px 0; animation: pulse 2s infinite; }
+        .fade-in { 
+            animation: fadeIn 0.3s ease forwards; 
+        }
+        .session-info { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            flex-wrap: wrap; 
+            gap: var(--spacing-md); 
+            background: var(--bg-card); 
+            padding: var(--spacing-md); 
+            border-radius: var(--radius-md); 
+            margin-bottom: var(--spacing-lg); 
+        }
+        .session-timer { 
+            display: flex; 
+            align-items: center; 
+            gap: var(--spacing-sm); 
+            font-weight: 600; 
+            color: var(--secondary-light); 
+            font-size: 1.2rem;
+            transition: var(--transition);
+        }
+        .session-status { 
+            display: flex; 
+            align-items: center; 
+            gap: var(--spacing-md); 
+        }
+        .status-indicator { 
+            width: 14px; 
+            height: 14px; 
+            border-radius: 50%; 
+            background: var(--warning); 
+        }
+        .status-indicator.connected { 
+            background: var(--success); 
+        }
+        .session-role { 
+            background: rgba(251, 197, 49, 0.15); 
+            color: var(--warning); 
+            padding: var(--spacing-xs) var(--spacing-sm); 
+            border-radius: 6px; 
+            font-size: 0.85rem; 
+        }
+        .location-sharing { 
+            display: flex; 
+            align-items: center; 
+            gap: var(--spacing-sm); 
+            margin-top: var(--spacing-sm); 
+        }
+        .location-sharing .dot { 
+            width: 10px; 
+            height: 10px; 
+            border-radius: 50%; 
+            background: var(--danger); 
+        }
+        .location-sharing.active .dot { 
+            background: var(--success); 
+        }
+        .location-sharing.active { 
+            color: var(--success); 
+        }
+        .user-card .location-sharing { 
+            margin-top: var(--spacing-xs); 
+        }
+        .rejoin-notice { 
+            background: rgba(255,255,255,.05); 
+            padding: var(--spacing-sm) var(--spacing-md); 
+            border-radius: var(--radius-md); 
+            border-left: 4px solid var(--primary); 
+            margin: var(--spacing-md) 0; 
+            display: flex; 
+            align-items: center; 
+            gap: var(--spacing-sm); 
+            font-size: 0.9rem; 
+        }
+        .duration-badge { 
+            background: rgba(79, 172, 254, 0.2); 
+            color: var(--primary); 
+            padding: var(--spacing-xs) var(--spacing-sm); 
+            border-radius: 20px; 
+            font-size: 0.85rem; 
+            display: inline-flex; 
+            align-items: center; 
+            gap: var(--spacing-xs); 
+        }
+        .emergency-marker { 
+            background: var(--danger) !important; 
+        }
+        .danger-alert { 
+            background: rgba(232, 65, 24, 0.2); 
+            border-left: 4px solid var(--danger); 
+            padding: var(--spacing-md); 
+            border-radius: var(--radius-md); 
+            margin: var(--spacing-md) 0; 
+            animation: pulse 2s infinite; 
+        }
         @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(232, 65, 24, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(232, 65, 24, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(232, 65, 24, 0); }
+            0% { 
+                box-shadow: 0 0 0 0 rgba(232, 65, 24, 0.4); 
+            }
+            70% { 
+                box-shadow: 0 0 0 10px rgba(232, 65, 24, 0); 
+            }
+            100% { 
+                box-shadow: 0 0 0 0 rgba(232, 65, 24, 0); 
+            }
         }
-        /* ⬇️ COMPACT INACTIVITY WARNING - next to session timer */
+        /* COMPACT INACTIVITY WARNING - next to session timer */
         #inactivity-warning {
-            background: rgba(232, 65, 24, 0.2);
-            color: #e84118;
-            padding: 4px 8px;
+            background: rgba(251, 197, 49, 0.2);
+            color: var(--warning);
+            padding: var(--spacing-xs) var(--spacing-sm);
             border-radius: 6px;
             font-size: 0.85rem;
             font-weight: 600;
-            margin-left: 10px;
+            margin-left: var(--spacing-sm);
             display: none;
             align-items: center;
-            gap: 6px;
+            gap: var(--spacing-xs);
+            animation: fadeIn 0.2s ease;
         }
-        .emergency-btns { display: flex; gap: 10px; margin-top: 10px; }
-        .sos-btn { background: linear-gradient(45deg, #e84118, #c23616); }
-        .cancel-sos-btn { background: linear-gradient(45deg, #4cd137, #3498db); }
+        .emergency-btns { 
+            display: flex; 
+            gap: var(--spacing-sm); 
+            margin-top: var(--spacing-sm); 
+        }
+        .sos-btn { 
+            background: linear-gradient(45deg, var(--danger), #c23616); 
+        }
+        .cancel-sos-btn { 
+            background: linear-gradient(45deg, var(--success), #3498db); 
+        }
         /* Accuracy indicator */
         .accuracy-badge {
             font-size: 0.8rem;
@@ -161,9 +740,65 @@
             border-radius: 4px;
             margin-left: 6px;
         }
-        .accuracy-high { color: #4cd137; }
-        .accuracy-medium { color: #fbc531; }
-        .accuracy-low { color: #e84118; }
+        .accuracy-high { 
+            color: var(--success); 
+        }
+        .accuracy-medium { 
+            color: var(--warning); 
+        }
+        .accuracy-low { 
+            color: var(--danger); 
+        }
+        /* Settings panel for thresholds */
+        .settings-panel {
+            background: rgba(255,255,255,0.03);
+            padding: var(--spacing-md);
+            border-radius: var(--radius-lg);
+            margin-top: var(--spacing-md);
+            border: 1px solid var(--border-color);
+        }
+        .settings-row {
+            display: flex;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-sm);
+            align-items: center;
+        }
+        .settings-label {
+            font-weight: 600;
+            min-width: 180px;
+        }
+        .settings-input {
+            width: 80px;
+            padding: var(--spacing-sm);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            background: rgba(255,255,255,0.05);
+            color: var(--text-primary);
+        }
+        .test-mode-toggle {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-md);
+        }
+        .test-mode-toggle input {
+            width: auto;
+        }
+        /* High contrast mode */
+        .high-contrast {
+            --bg-dark: #000000;
+            --bg-card: #1a1a1a;
+            --bg-card-hover: #2a2a2a;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --border-color: #444444;
+        }
+        .high-contrast .card {
+            border: 2px solid #666666;
+        }
+        .high-contrast .btn {
+            border: 2px solid currentColor;
+        }
     </style>
 </head>
 <body>
@@ -173,7 +808,7 @@
             <div class="logo-icon"><i class="fas fa-user-secret" style="font-size:22px"></i></div>
             <div>
                 <div class="logo-text">SECUREHAT</div>
-                <div style="font-size:0.95rem;color:rgba(255,255,255,0.85);font-weight:600;margin-top:6px;">
+                <div style="font-size:0.95rem;color:var(--text-secondary);font-weight:600;margin-top:6px;">
                     Private Location Sharing & Chat
                 </div>
                 <div style="font-size:0.85rem;color:rgba(255,255,255,0.65);margin-top:8px;">
@@ -185,11 +820,11 @@
         <div class="subtitle muted">Your real name stays local-only unless you choose to share it</div>
     </header>
     <div class="privacy-notice">
-        <i class="fas fa-shield-alt" style="color:#4cd137"></i>
+        <i class="fas fa-shield-alt" style="color:var(--success)"></i>
         <div><strong>Privacy Notice:</strong> Your real name is stored locally only. If you choose to share it, it will be visible to others in the session. All location data is peer-to-peer and never stored on any server.</div>
     </div>
     <div class="rejoin-notice">
-        <i class="fas fa-rotate-left" style="color:#4facfe"></i>
+        <i class="fas fa-rotate-left" style="color:var(--primary)"></i>
         <div><strong>Rejoin Anytime:</strong> You can leave and rejoin active sessions using the same session code at any time.</div>
     </div>
     <!-- Setup -->
@@ -224,6 +859,23 @@
         <div class="btn-container">
             <button id="create-session" class="btn"><i class="fas fa-plus-circle"></i> Create Session</button>
             <button id="open-join" class="btn btn-outline"><i class="fas fa-user-friends"></i> Join Session</button>
+        </div>
+        
+        <!-- Settings panel for thresholds -->
+        <div class="settings-panel">
+            <div class="card-title"><i class="fas fa-cog"></i> Movement Detection Settings</div>
+            <div class="settings-row">
+                <span class="settings-label">Movement Threshold (meters):</span>
+                <input type="number" id="movement-threshold" class="settings-input" value="1.0" min="0.1" max="10" step="0.1">
+            </div>
+            <div class="settings-row">
+                <span class="settings-label">Accuracy Threshold (meters):</span>
+                <input type="number" id="accuracy-threshold" class="settings-input" value="10" min="1" max="100" step="1">
+            </div>
+            <div class="test-mode-toggle">
+                <input type="checkbox" id="test-mode">
+                <label for="test-mode">Enable Test Mode (detailed logs)</label>
+            </div>
         </div>
     </div>
     <!-- Active session card -->
@@ -310,6 +962,7 @@
       <div style="margin-top:8px;font-size:0.85rem;opacity:0.85;">
         Built and maintained by <strong>Kurdistan Innovator Team</strong>
       </div>
+      <button id="high-contrast-toggle" class="btn btn-outline small-btn" style="margin-top: 12px;">Toggle High Contrast</button>
     </footer>
 </div>
 <!-- Notification -->
@@ -384,13 +1037,17 @@ const recordingTimer = document.getElementById('recording-timer');
 // Updated inactivity warning elements
 const inactivityWarning = document.getElementById('inactivity-warning');
 const inactivityText = document.getElementById('inactivity-text');
+// Settings elements
+const movementThresholdInput = document.getElementById('movement-threshold');
+const accuracyThresholdInput = document.getElementById('accuracy-threshold');
+const testModeCheckbox = document.getElementById('test-mode');
+const highContrastToggle = document.getElementById('high-contrast-toggle');
 
 /* ========= CONFIGURABLE THRESHOLDS ========= */
 // Movement threshold: minimum distance (in meters) to consider as real movement
-const MOVEMENT_THRESHOLD = 1.0; // meters
-
+let MOVEMENT_THRESHOLD = parseFloat(movementThresholdInput.value) || 1.0; // meters
 // Accuracy threshold: maximum acceptable accuracy (in meters) to trust the reading
-const ACCURACY_THRESHOLD = 10; // meters
+let ACCURACY_THRESHOLD = parseInt(accuracyThresholdInput.value) || 10; // meters
 
 /* ========= State ========= */
 let peer = null;
@@ -426,6 +1083,13 @@ let recordingTimerInterval = null;
 let watchId = null;
 let lastSentTimestamp = 0;
 let MIN_SEND_INTERVAL = 5000;
+// Movement detection state
+let lastEvaluationTime = 0;
+let positionHistory = [];
+const MAX_HISTORY = 3;
+const DEBOUNCE_TIME = 500; // ms
+let motionSensorAvailable = false;
+let motionData = { hasMotion: false, lastMotionTime: 0 };
 
 /* ========= Map init ========= */
 const map = L.map('map', { 
@@ -445,7 +1109,6 @@ function generateAnonAlias(){
     const noun = nouns[Math.floor(Math.random() * nouns.length)];
     return `${adj} ${noun}`;
 }
-
 function showNotification(msg, isError=false, duration=3000){
     if(notificationTimeout){ clearTimeout(notificationTimeout); notificationTimeout=null; }
     notificationMessage.textContent = msg;
@@ -453,12 +1116,10 @@ function showNotification(msg, isError=false, duration=3000){
     if(isError) notification.classList.add('error'); else notification.classList.remove('error');
     notificationTimeout = setTimeout(()=>{ notification.classList.remove('show'); notification.classList.remove('error'); }, duration);
 }
-
 function updateStatus(text, connected=false){
     statusText.textContent = text;
     connectionDot.className = connected ? 'status-indicator connected' : 'status-indicator';
 }
-
 function updateSessionTimer() {
     if (!sessionStartTime) return;
     const elapsed = Date.now() - sessionStartTime;
@@ -470,7 +1131,6 @@ function updateSessionTimer() {
     sessionTimer.textContent = formattedTime;
     yourDuration.textContent = formatDuration(elapsed);
 }
-
 function formatDuration(milliseconds) {
     const seconds = Math.floor((milliseconds / 1000) % 60);
     const minutes = Math.floor((milliseconds / (1000 * 60)) % 60);
@@ -483,17 +1143,14 @@ function formatDuration(milliseconds) {
         return `${seconds}s`;
     }
 }
-
 function safeSend(payload){
     if(!conn || conn.open === false) return;
     try { conn.send(payload); } catch(e){ console.error('send failed', e); showNotification('Send failed', true); }
 }
-
 function destroyExistingPeer(){
     if(conn){ try{ conn.close(); }catch(e){} conn=null; }
     if(peer){ try{ peer.destroy(); }catch(e){} peer=null; }
 }
-
 async function copyToClipboard(text){
     try {
         if(navigator.clipboard && window.isSecureContext){
@@ -506,7 +1163,6 @@ async function copyToClipboard(text){
         showNotification('Code copied to clipboard');
     } catch(e){ console.error(e); showNotification('Copy failed', true); }
 }
-
 function appendMessage(text, fromMe=false, isSystem=false, isVoice=false){
     const el = document.createElement('div');
     if(isSystem) {
@@ -547,7 +1203,6 @@ function appendMessage(text, fromMe=false, isSystem=false, isVoice=false){
     chatMessages.appendChild(el);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
-
 function generateSecureCode(length = 8) {
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     const arr = new Uint8Array(length);
@@ -559,6 +1214,193 @@ function generateSecureCode(length = 8) {
     return s;
 }
 
+/* ========= Movement Detection Logic ========= */
+function logMovementCheck(message) {
+    if (testModeCheckbox.checked) {
+        console.log('[Movement Detection]', message);
+    }
+}
+
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371e3; // Earth's radius in meters
+    const φ1 = lat1 * Math.PI/180;
+    const φ2 = lat2 * Math.PI/180;
+    const Δφ = (lat2-lat1) * Math.PI/180;
+    const Δλ = (lon2-lon1) * Math.PI/180;
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c; // Returns distance in meters
+}
+
+function addToPositionHistory(position) {
+    positionHistory.push(position);
+    if (positionHistory.length > MAX_HISTORY) {
+        positionHistory.shift();
+    }
+}
+
+function hasConsistentMovement() {
+    if (positionHistory.length < MAX_HISTORY) return false;
+    
+    const distances = [];
+    for (let i = 1; i < positionHistory.length; i++) {
+        const prev = positionHistory[i-1];
+        const curr = positionHistory[i];
+        const dist = calculateDistance(prev.latitude, prev.longitude, curr.latitude, curr.longitude);
+        distances.push(dist);
+    }
+    
+    // Check if all distances are above threshold or show consistent direction
+    const allAboveThreshold = distances.every(d => d >= MOVEMENT_THRESHOLD * 0.8);
+    const avgDistance = distances.reduce((a, b) => a + b, 0) / distances.length;
+    
+    return allAboveThreshold || avgDistance >= MOVEMENT_THRESHOLD;
+}
+
+function checkMotionSensor() {
+    // Check if DeviceMotionEvent is available
+    if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+        DeviceMotionEvent.requestPermission()
+            .then(permissionState => {
+                if (permissionState === 'granted') {
+                    motionSensorAvailable = true;
+                    window.addEventListener('devicemotion', handleDeviceMotion);
+                }
+            })
+            .catch(console.error);
+    } else if (window.DeviceMotionEvent) {
+        motionSensorAvailable = true;
+        window.addEventListener('devicemotion', handleDeviceMotion);
+    }
+}
+
+function handleDeviceMotion(event) {
+    const acceleration = event.accelerationIncludingGravity;
+    if (!acceleration) return;
+    
+    const magnitude = Math.sqrt(
+        acceleration.x * acceleration.x +
+        acceleration.y * acceleration.y +
+        acceleration.z * acceleration.z
+    );
+    
+    // Consider motion if acceleration magnitude changes significantly
+    const threshold = 1.5; // m/s²
+    if (magnitude > threshold) {
+        motionData.hasMotion = true;
+        motionData.lastMotionTime = Date.now();
+        
+        // Reset after 2 seconds of no motion
+        setTimeout(() => {
+            if (Date.now() - motionData.lastMotionTime > 2000) {
+                motionData.hasMotion = false;
+            }
+        }, 2000);
+    }
+}
+
+function isMovementValid(currentPosition) {
+    const now = Date.now();
+    
+    // Debounce: only evaluate if enough time has passed
+    if (now - lastEvaluationTime < DEBOUNCE_TIME) {
+        logMovementCheck(`Debounced - last evaluation was ${now - lastEvaluationTime}ms ago`);
+        return false;
+    }
+    
+    lastEvaluationTime = now;
+    
+    if (!lastPosition) {
+        logMovementCheck('No last position available');
+        return false;
+    }
+    
+    // Calculate real distance in meters
+    const distance = calculateDistance(
+        lastPosition.latitude, lastPosition.longitude,
+        currentPosition.latitude, currentPosition.longitude
+    );
+    
+    // Get accuracy info
+    const accuracy = currentPosition.accuracy;
+    const lastAccuracy = lastPosition.accuracy;
+    
+    logMovementCheck(`Position check: distance=${distance.toFixed(2)}m, accuracy=${accuracy !== null ? accuracy.toFixed(1) : 'null'}m, lastAccuracy=${lastAccuracy !== null ? lastAccuracy.toFixed(1) : 'null'}m`);
+    
+    // Determine if movement is valid
+    let shouldReset = false;
+    
+    if (accuracy !== null) {
+        // Device reports accuracy
+        if (accuracy <= ACCURACY_THRESHOLD && distance >= MOVEMENT_THRESHOLD) {
+            shouldReset = true;
+            logMovementCheck('Movement valid: accuracy within threshold and distance sufficient');
+        } else if (distance >= MOVEMENT_THRESHOLD && distance > accuracy) {
+            shouldReset = true;
+            logMovementCheck('Movement valid: distance exceeds accuracy');
+        }
+    } else {
+        // No accuracy reported - be conservative
+        if (distance >= 1.5) {
+            shouldReset = true;
+            logMovementCheck('Movement valid: no accuracy, but large distance');
+        }
+    }
+    
+    // Check for consistent movement in history
+    if (!shouldReset && hasConsistentMovement()) {
+        shouldReset = true;
+        logMovementCheck('Movement valid: consistent movement pattern detected');
+    }
+    
+    // Check motion sensor if available
+    if (!shouldReset && motionSensorAvailable && motionData.hasMotion && distance >= MOVEMENT_THRESHOLD * 0.7) {
+        shouldReset = true;
+        logMovementCheck('Movement valid: motion sensor confirms movement');
+    }
+    
+    logMovementCheck(`Final decision: ${shouldReset ? 'RESET' : 'IGNORE'} (distance: ${distance.toFixed(2)}m, threshold: ${MOVEMENT_THRESHOLD}m)`);
+    
+    return shouldReset;
+}
+
+/* ========= Centralized Timer Reset ========= */
+function resetInactivityTimer() {
+    if(inactivityTimer) {
+        clearInterval(inactivityTimer);
+        inactivityTimer = null;
+    }
+    inactivityWarning.style.display = 'none';
+    inactivityCountdown = 60;
+    showNotification('✅ Movement detected - inactivity timer reset', false, 2000);
+    
+    // Add subtle pulse animation to timer
+    sessionTimer.style.transform = 'scale(1.05)';
+    setTimeout(() => {
+        sessionTimer.style.transform = 'scale(1)';
+    }, 300);
+}
+
+/* ========= Event Listeners for Settings ========= */
+movementThresholdInput.addEventListener('change', () => {
+    MOVEMENT_THRESHOLD = parseFloat(movementThresholdInput.value) || 1.0;
+    showNotification(`Movement threshold set to ${MOVEMENT_THRESHOLD}m`);
+});
+
+accuracyThresholdInput.addEventListener('change', () => {
+    ACCURACY_THRESHOLD = parseInt(accuracyThresholdInput.value) || 10;
+    showNotification(`Accuracy threshold set to ${ACCURACY_THRESHOLD}m`);
+});
+
+highContrastToggle.addEventListener('click', () => {
+    document.body.classList.toggle('high-contrast');
+    const isHighContrast = document.body.classList.contains('high-contrast');
+    showNotification(isHighContrast ? 'High contrast mode enabled' : 'High contrast mode disabled');
+});
+
+/* ========= Rest of the original functionality ========= */
 genCodeBtn.addEventListener('click', () => {
     const code = generateSecureCode(8);
     sessionCodeInput.value = code;
@@ -977,6 +1819,8 @@ function shareMyLocation(){
         if(!isHost) {
             startInactivityMonitoring();
         }
+        // Initialize motion sensor
+        checkMotionSensor();
     };
     const error = (err) => {
         console.error('Geolocation error', err);
@@ -1000,15 +1844,16 @@ function normalizePosition(coords) {
 function handlePositionUpdate(pos) {
     const { latitude, longitude, accuracy } = pos.coords;
     const now = Date.now();
-    
     // Throttle updates: ignore if too soon after last sent
     if (now - lastSentTimestamp < 1000) {
         return;
     }
-
     // Create normalized current position
     const currentPosition = normalizePosition({ lat: latitude, lng: longitude, accuracy, timestamp: now });
-
+    
+    // Add to position history for smoothing
+    addToPositionHistory(currentPosition);
+    
     // Update marker visually
     if(myMarker) {
         const markerColor = isSOSActive ? 'red' : '#3388ff';
@@ -1022,7 +1867,7 @@ function handlePositionUpdate(pos) {
         myMarker.setLatLng([latitude, longitude]);
         myMarker.setPopupContent(`<b>Your Location</b><br>Lat: ${latitude.toFixed(6)}<br>Lng: ${longitude.toFixed(6)}<br>Accuracy: ±${Math.round(accuracy)}m${isSOSActive ? '<br><span style="color:red;font-weight:bold;">EMERGENCY: You are in danger!</span>' : ''}`);
     }
-
+    
     // Send location if needed
     if (conn && conn.open) {
         safeSend({ 
@@ -1035,12 +1880,17 @@ function handlePositionUpdate(pos) {
         });
         lastSentTimestamp = now;
     }
-
+    
     // Check inactivity if not host and not in SOS
     if (!isHost && !isSOSActive) {
-        checkInactivity(currentPosition);
+        if (isMovementValid(currentPosition)) {
+            resetInactivityTimer();
+        } else if (!inactivityTimer) {
+            // Start timer only if not already running
+            startInactivityCountdown();
+        }
     }
-
+    
     // Update lastPosition AFTER all decisions
     lastPosition = currentPosition;
 }
@@ -1376,79 +2226,14 @@ sosBtn.addEventListener('click', triggerSOS);
 cancelSosBtn.addEventListener('click', cancelSOS);
 
 /* ========= Automatic Danger Detection ========= */
-
-// Centralized, idempotent timer reset
-function resetInactivityTimer() {
-    if(inactivityTimer) {
-        clearInterval(inactivityTimer);
-        inactivityTimer = null;
-    }
-    inactivityWarning.style.display = 'none';
-    inactivityCountdown = 60;
-    showNotification('✅ Movement detected - inactivity timer reset', false, 2000);
-}
-
-function checkInactivity(currentPosition) {
-    if(isHost || isSOSActive || !lastPosition) return;
-
-    // Calculate real distance in meters
-    const distance = calculateDistance(
-        lastPosition.latitude, lastPosition.longitude,
-        currentPosition.latitude, currentPosition.longitude
-    );
-
-    // Get accuracy info
-    const accuracy = currentPosition.accuracy;
-
-    // Debug logging (temporary for testing)
-    console.log(`movement-check: distance=${distance.toFixed(2)}m, accuracy=${accuracy !== null ? accuracy.toFixed(1) : 'null'}m, threshold=${MOVEMENT_THRESHOLD}m`);
-
-    // Determine if movement is valid
-    let shouldReset = false;
-
-    if (accuracy !== null) {
-        // Device reports accuracy
-        if (accuracy <= ACCURACY_THRESHOLD && distance >= MOVEMENT_THRESHOLD) {
-            shouldReset = true;
-        } else if (distance >= MOVEMENT_THRESHOLD && distance > accuracy) {
-            shouldReset = true;
-        }
-    } else {
-        // No accuracy reported - be conservative
-        if (distance >= 1.5) { // Require larger movement
-            shouldReset = true;
-        }
-    }
-
-    // Log decision
-    console.log(`movement-decision: ${shouldReset ? 'RESET' : 'IGNORE'}`);
-
-    if (shouldReset) {
-        resetInactivityTimer();
-    } else if (!inactivityTimer) {
-        // Start timer only if not already running
-        startInactivityCountdown();
-    }
-}
-
-function calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371e3; // Earth's radius in meters
-    const φ1 = lat1 * Math.PI/180;
-    const φ2 = lat2 * Math.PI/180;
-    const Δφ = (lat2-lat1) * Math.PI/180;
-    const Δλ = (lon2-lon1) * Math.PI/180;
-    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ/2) * Math.sin(Δλ/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c; // Returns distance in meters
+function checkInactivity(latitude, longitude) {
+    // This function is now handled by handlePositionUpdate with the improved logic
 }
 
 function startInactivityCountdown() {
     inactivityCountdown = 60;
     inactivityWarning.style.display = 'flex';
     inactivityText.textContent = `Move in ${inactivityCountdown}s`;
-    
     inactivityTimer = setInterval(() => {
         inactivityCountdown--;
         if(inactivityCountdown >= 0) {
@@ -1531,6 +2316,9 @@ voiceRecordBtn.addEventListener('click', () => {
         startRecording();
     }
 });
+
+// Initialize motion sensor on load
+checkMotionSensor();
 </script>
 </body>
 </html>
